@@ -1,27 +1,37 @@
 <script setup>
 /** Компонент локации */
 
-import {ref, computed} from "vue";
+import {ref, computed, onMounted} from "vue";
+import LocationMenu from "@/components/UI/LocationMenu/LocationMenu.vue";
+
 
 const definedProps = defineProps(['location', 'currentLocation'])
+defineEmits(['farmResource'])
 
-const locationLines = ref(null) // реф картинки с линиями локации
+const locationLinesRefTag = ref(null) // реф картинки с линиями локации
+const locationActionsRef = ref(null)
 const locationStyle = computed(() => ({ /* Тут IIFE */
   top: definedProps.location.coordinates[0] + 'px',
   left: definedProps.location.coordinates[1] + 'px',
   width: definedProps.location.width + 'px',
   height: definedProps.location.height + 'px',
 }))
-const locationLinesImgSrc = computed(() => `/src/assets/images/hoverLocations/${definedProps.location.linesSrc}`);
+const locationLinesImgSrc = computed(() => `/src/assets/images/hoverLocations/${definedProps.location.linesSrc}`)
 
 /** Метод показа линий локации при наведении */
 const showHoverLines = (event) => {
   if (definedProps.currentLocation.id !== +event.target.dataset.locationId)
-    locationLines.value.classList.add('_visible')
+    locationLinesRefTag.value.classList.add('_visible')
 }
+
 /** Метод сокрытия линий локации при наведении */
 const hideHoverLines = () => {
-  locationLines.value.classList.remove('_visible')
+  locationLinesRefTag.value.classList.remove('_visible')
+  // locationActionsRef.value.classList.add('_hidden')
+}
+
+const toggleOpacity = (target) => {
+  target.classList.toggle('_hidden')
 }
 </script>
 
@@ -34,18 +44,11 @@ const hideHoverLines = () => {
        @mouseleave="hideHoverLines"
   >
     <img :src=locationLinesImgSrc
-         ref="locationLines"
+         ref="locationLinesRefTag"
          alt="location-hover"
          class="hover__effect">
 
-    <div v-show="location.isActual" class="location__menu main__text">
-      i
-
-<!-- todo делал окошки подменю      -->
-      <div class="subMenu">
-        <h3 class=""></h3>
-      </div>
-    </div>
+    <LocationMenu :isActual="location.isActual" />
   </div>
 </template>
 
@@ -57,20 +60,6 @@ const hideHoverLines = () => {
   z-index: 2;
   border-radius: 20px;
 }
-.location__menu {
-  position: absolute;
-  width: 26px;
-  height: 26px;
-  background-color: rgba(255, 255, 255, 0.9);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
 .hover__effect {
   opacity: 0;
   transition-duration: .4s;
@@ -78,8 +67,8 @@ const hideHoverLines = () => {
   inset: 0;
   width: 100%;
   height: auto;
+  z-index: 1;
 }
-
 .hover__effect._visible {
   opacity: 1;
 }

@@ -9,13 +9,12 @@ import SubWindowUiUnit from "@/components/UI/SubWindowUiUnit.vue";
 import Backpack from "@/components/UI/Backpack.vue";
 import Workbench from "@/components/UI/Workbench.vue";
 
-// табы
+
 const uiTabs = [
   {id: 0, btnName: 'Верстак', tabComponent: Workbench},
   {id: 1, btnName: 'Рюкзак', tabComponent: Backpack}
-]
-// компоненты табов
-const tabsComponentsArray = []
+] // табы
+const tabsComponentsArray = [] // компоненты табов
 let currentTabId = ref();
 let currentTab = ref(Backpack)
 const subWindow = ref(null)
