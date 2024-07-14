@@ -1,7 +1,15 @@
 <script setup>
+/**
+ * Компонент игры */
+import {ref, onMounted, onUpdated} from "vue";
+onMounted(() => {
+  console.log('Game Component mounted')
+})
+onUpdated(() => {
+  console.log('Game Component updated')
+})
+
 import Map from "@/components/Map/Map.vue";
-import UI from "@/components/UI/UI.vue"
-import {ref} from "vue";
 
 /**
  * Глобальный массив локаций
@@ -24,11 +32,32 @@ const locations = ref([
     width: 150,
     height: 158,
     resources: {
-      branch: 40,
-      grass: 40,
-      flower: 20,
+      branch: {
+        name: 'Ветка',
+        engName: 'branch',
+        chance: [0, 20],
+        defaultCount: [3, 6]
+      },
+      grass: {
+        name: 'Трава',
+        engName: 'grass',
+        chance: [30, 50],
+        defaultCount: [10, 22]
+      },
+      commonFlower: {
+        name: 'Обычный цветок',
+        engName: 'commonFlower',
+        chance: [70,94],
+        defaultCount: [2, 3]
+      },
+      goldenFlower: {
+        name: 'Золотой цветок',
+        engName: 'goldenFlower',
+        chance: [99, 99],
+        defaultCount: [1, 1]
+      }
     },
-    isActual: false
+    isActual: false,
   },
   {
     id: 1,
@@ -39,23 +68,99 @@ const locations = ref([
     width: 150,
     height: 158,
     resources: {
-      branch: 40,
-      grass: 40,
-      flower: 20,
+      branch: {
+        name: 'Ветка',
+        engName: 'branch',
+        chance: [0, 20],
+        defaultCount: [3, 6]
+      },
+      grass: {
+        name: 'Хорошая Трава',
+        engName: 'grass',
+        chance: [30, 50],
+        defaultCount: [10, 22]
+      },
+      commonFlower: {
+        name: 'Обычный цветок',
+        engName: 'commonFlower',
+        chance: [70,94],
+        defaultCount: [2, 3]
+      },
+      goldenFlower: {
+        name: 'Золотой цветок',
+        engName: 'goldenFlower',
+        chance: [95, 100],
+        defaultCount: [1, 1]
+      }
     },
-    isActual: false
+    isActual: false,
   },
 ])
 
 /**
  * Глобальный массив ресурсов */
-const resources = [
-
-]
+const resources = ref({})
 </script>
 <template>
+<!--  <Map :locations="locations"-->
+<!--       :resources="resources"-->
+<!--       @setActiveResource="setActiveResource"-->
+<!--       @updateCurrentLocation="updateCurrentLocation"-->
+<!--       @clickLocationBtn="updateLocationWindow"-->
+<!--  />-->
   <Map :locations="locations" :resources="resources" />
-  <UI />
+</template>
+<style>
+
+</style>
+
+
+<!--
+<script setup>
+
+import Map from "@/components/Map/MapOld.vue";
+import UI from "@/components/UI/UI.vue"
+import {onMounted, onUpdated, ref} from "vue";
+
+
+
+
+let activeResource = ref({})
+let currentLocation = ref({})
+let locationBtnComponent = ref('')
+
+const updateCurrentLocation = (currLoc) => {
+  currentLocation.value = currLoc
+}
+/**
+ * Устанавливает активный ресурс для отображения его в попапе полученного ресурса при фармежке */
+const setActiveResource = (resToActive) => {
+  activeResource.value = resToActive
+}
+const updateLocationWindow = (locationBtn) => {
+    locationBtnComponent.value = locationBtn
+}
+
+</script>
+<template>
+  <Map :locations="locations"
+       :resources="resources"
+       @setActiveResource="setActiveResource"
+       @updateCurrentLocation="updateCurrentLocation"
+       @clickLocationBtn="updateLocationWindow"
+  />
+  <UI :resources="resources"
+      :activeResource="activeResource"
+      :currentLocation="currentLocation"
+      :locationBtnComponent="locationBtnComponent"
+  />
 </template>
 
-
+ todo убрать выделение текста при двойном клике
+ todo сделать рандомное число от 0 до 1000, а то ресурсы слишком быстро добываются, особенно - золотой цветок.
+ todo сделать всплывающие окошки по всему вьюпорту. Тип берется рандомные координаты и оттуда уже через fixed лепится
+      окошко с подсказками или прочей лабудой.
+ todo сделать локал сторедж для ресурсов, хотябы
+ todo подумать над концепцией, что перезагрузка страницы будет равна смерти. И чем больше перезагрузок, тем больше
+      возможностей открывается.
+ todo сделать так, что бы когда переходил по локации, то плашка просто перелитала с место на место -->

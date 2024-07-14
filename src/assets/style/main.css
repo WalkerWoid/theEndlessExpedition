@@ -9,6 +9,7 @@ html, body {
 }
 :root {
     --radius: 20px;
+    --border-color: rgb(243, 219, 119)
 }
 ::-webkit-scrollbar {
     width: 12px;
@@ -29,6 +30,9 @@ ul {
 a {
     text-decoration: none;
 }
+picture {
+    display: flex;
+}
 
 
 .h2__header {
@@ -44,6 +48,12 @@ a {
 .main__text._little {
     font-size: 18px;
 }
+._nonVisible {
+    opacity: 0;
+}
 ._hidden {
     opacity: 0;
+}
+._green {
+    color: seagreen;
 }

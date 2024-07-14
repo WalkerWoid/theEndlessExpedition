@@ -1,22 +1,14 @@
-<script setup>
-/**
- * Компонент меню локаций */
-import {onMounted, onUpdated} from "vue";
-onMounted(() => {
-  console.log('LocationMenu Component mounted')
-})
-onUpdated(() => {
-  console.log('LocationMenu Component updated')
-})
+<script setup>/** Компонент меню, которое открывается при нажатии на локацию */
+import {onBeforeUpdate, onUpdated} from "vue";
 
-const definedProps = defineProps(['isActual'])
-const emits = defineEmits(['farmResource'])
+const definedProps = defineProps(['isActual', 'currentLocation'])
+defineEmits(['farmResource', 'clickLocationBtn'])
 </script>
 
-<template>
 <!-- todo кнопки для локаций сделать динамическими. Например, на первой локации нет охоты, а на других будут охота,
       охота за головами и так далее. -->
-  <div class="location__menu" :class="{_nonVisible: !isActual}">
+<template>
+<!--  <div class="location__menu" :class="{_hidden: !isActual}">
     <span class="location__i main__text _little btn_round">Вы тут</span>
 
     <div class="location__subMenu" :class="{_open: isActual}">
@@ -26,12 +18,14 @@ const emits = defineEmits(['farmResource'])
          @click="$emit('clickLocationBtn', 'LocationHunting')">Охота</p>
       <p class="location__btn _res main__text btn_round" @click="$emit('farmResource')">Ресурсы</p>
     </div>
-  </div>
+  </div>-->
 </template>
 
+<!--
 <style>
 /* todo при открытии локи все норм, но при закрытии локации(при переходе на другую) всплывающие окошки просто исчезают
     и на долю секунды видно, что они ломаются. Сделать какой-нибудь дилей с обратной анимацией. */
+
 .btn_round {
   background: url("@/assets/images/textures/UI-unit-texture.png");
   border-radius: 50%;
@@ -94,4 +88,4 @@ const emits = defineEmits(['farmResource'])
   transition-duration: .4s;
   opacity: 0;
 }
-</style>
+</style>-->

@@ -1,23 +1,23 @@
 <script setup>
 /**
- * Компонент глобальной карты */
+ * Компонент глобальной карты
+ *
+ * Тут будут основные локации карты и способы взаимодействия с ними */
 
-import {onMounted, ref} from "vue";
-import Location from "@/components/Map/Location.vue";
+import {ref, onMounted, onUpdated} from "vue";
+onMounted(() => {
+  console.log('Map Component mounted')
+  updateCurrentLocation(definedProps.locations[0])
+})
+onUpdated(() => {
+  console.log('Map Component updated')
+  console.log('currentLocation:', currentLocation._rawValue)
+})
 
+import Location from "@/components/Map/Location.vue"
 const definedProps = defineProps(['locations', 'resources'])
 const currentLocation = ref(null)
 
-onMounted(() => {
-  updateCurrentLocation(definedProps.locations[0])
-})
-const farmResource = (location) => {
-  console.log(location.resources)
-  console.log(definedProps.resources)
-}
-
-/**
- * Метод актуализации активной локации при кике на нее */
 const updateCurrentLocation = (location) => {
   if (!currentLocation.value) {
     currentLocation.value = location
@@ -27,6 +27,7 @@ const updateCurrentLocation = (location) => {
   currentLocation.value = location
   currentLocation.value.isActual = true
 
+  // emits('updateCurrentLocation', currentLocation.value)
 }
 </script>
 
@@ -36,13 +37,12 @@ const updateCurrentLocation = (location) => {
       <img src="../../assets/map/map.png" alt="main-map">
     </picture>
 
-    <Location v-for="(location) of locations"
+    <Location v-for="location of locations"
               :location="location"
               :key="location.id"
               :currentLocation="currentLocation"
-              @click="updateCurrentLocation(location)"
-              @farmResource="farmResource(location)"
-    />
+              :resources="resources"
+              @click="updateCurrentLocation(location) "/>
   </div>
 </template>
 

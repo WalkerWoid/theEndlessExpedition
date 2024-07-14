@@ -1,23 +1,18 @@
 <script setup>
-  import {ref} from "vue";
-  import Resource from "@/components/Resources/Resource.vue";
+/** Компонент рюкзака. Тут будут отображаться все ресурсы */
 
-  const resources = ref({
-    littleStone: {
-      name: 'Маленький камешек',
-      count: '200'
-    },
-    grass: {
-      name: 'Трава',
-      count: '195'
-    },
-  })
+import Resource from "@/components/Resources/Resource.vue";
+const definedProps = defineProps(['resources']);
+
 </script>
 <template>
-  <h2 class="h2__header">Рюкзак</h2>
+  <div>
+    <h2 class="h2__header">Рюкзак</h2>
 
-  <div class="resources">
-    <Resource v-for="resource of resources" :resource="resource" :key="resource.name" />
+    <div class="resources">
+      <p v-show="!Object.keys(definedProps.resources).length" class="main__text">Настолько пусто, что даже повешеной мыши нет!</p>
+      <Resource v-for="resource of resources" :resource="resource" :key="resource.name"/>
+    </div>
   </div>
 </template>
 <style>

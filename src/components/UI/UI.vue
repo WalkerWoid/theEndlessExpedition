@@ -2,19 +2,32 @@
 /**
  * Компонент UI, в котором будет находиться весь интерфейс. */
 
-import {onMounted, onUpdated, ref, shallowRef} from "vue";
+import {onMounted, onUpdated, ref} from "vue";
+import ResourcePopup from "@/components/Resources/ResourcePopup.vue";
+const definedProps = defineProps([
+  'resources',
+  'activeResource',
+  'currentLocation',
+  'locationBtnComponent'
+])
 
 import UiUnitButton from "@/components/UI/UiUnitButton.vue";
 import SubWindowUiUnit from "@/components/UI/SubWindowUiUnit.vue";
 import Backpack from "@/components/UI/Backpack.vue";
 import Workbench from "@/components/UI/Workbench.vue";
 
+import LocationInfo from "@/components/UI/LocationButtons/LocationInfo.vue";
+import LocationHunting from "@/components/UI/LocationButtons/LocationHunting.vue";
 
 const uiTabs = [
   {id: 0, btnName: 'Верстак', tabComponent: Workbench},
   {id: 1, btnName: 'Рюкзак', tabComponent: Backpack}
 ] // табы
 const tabsComponentsArray = [] // компоненты табов
+const locationsTab = {
+  LocationInfo,
+  LocationHunting
+}
 let currentTabId = ref();
 let currentTab = ref(Backpack)
 const subWindow = ref(null)
@@ -62,6 +75,10 @@ const toggleSubWindow = (cross = false) => {
     subWindow.value.classList.add('_closed')
   }
 }
+
+const toggleWindow = (event) => {
+  event.target.parentNode.classList.toggle('_closed')
+}
 </script>
 
 
@@ -77,9 +94,19 @@ const toggleSubWindow = (cross = false) => {
           @click="toggleUiTab(button)"
       />
     </div>
+
     <div class="ui__subWindow _closed main__texture" ref="subWindow">
       <span class="close" @click="toggleSubWindow(true)">Х</span>
-      <SubWindowUiUnit :currentTab="tabsComponentsArray[currentTabId]"/>
+      <SubWindowUiUnit :currentTab="tabsComponentsArray[currentTabId]" :resources="resources" />
+    </div>
+
+    <ResourcePopup :activeResource="activeResource" />
+
+    <div class="location__subWindow main__texture _closed">
+      <div class="close" @click="toggleWindow"> > </div>
+      <p class="main__text" v-if="!locationsTab[definedProps.locationBtnComponent]">Нажмите кнопку на локации. Например, на значок "i"</p>
+      <SubWindowUiUnit :currentTab="locationsTab[locationBtnComponent]"
+                       :currentLocation="currentLocation" />
     </div>
   </div>
 </template>
@@ -138,7 +165,7 @@ const toggleSubWindow = (cross = false) => {
   transform: translateY(100%);
 }
 
-.ui__subWindow .close {
+.ui__subWindow .close, .location__subWindow .close {
   position: absolute;
   text-transform: uppercase;
   font-size: 36px;
@@ -147,5 +174,21 @@ const toggleSubWindow = (cross = false) => {
   right: 10px;
   display: flex;
   cursor: pointer;
+}
+
+.location__subWindow {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  height: auto;
+  border-radius: 0 var(--radius) 0 0;
+  padding: 10px 60px 10px 30px;
+  transition-duration: .4s;
+  width: 400px;
+  min-height: 50px;
+  max-height: 500px;
+}
+.location__subWindow._closed {
+  transform: translateX(-90%);
 }
 </style>
