@@ -1,7 +1,10 @@
 <script setup>
 /**
  * Компонент подокна для кнопок локации, типа "Информация о локации", "Охота" и так далее */
-const definedProps = defineProps(['currentLocationTab', 'locationTabIsVisible'])
+
+import {onUpdated} from "vue";
+
+const definedProps = defineProps(['currentLocationTab', 'locationTabIsVisible', 'currentLocation'])
 const emits = defineEmits(['toggleSubWindow'])
 </script>
 
@@ -12,7 +15,7 @@ const emits = defineEmits(['toggleSubWindow'])
       <p class="main__text" v-if="!currentLocationTab">Нажмите на значок "i" или любую другую кнопку на локации</p>
 
       <div class="subWindow__wrapper" v-else>
-        <Component :is="currentLocationTab" />
+        <Component :is="currentLocationTab" v-if="currentLocationTab.__name === 'LocationInfo'" :currentLocation />
       </div>
     </div>
 </template>
@@ -23,7 +26,7 @@ const emits = defineEmits(['toggleSubWindow'])
   left: 0;
   height: auto;
   border-radius: 0 var(--radius) 0 0;
-  padding: 10px 60px 10px 30px;
+  padding: 10px 40px 10px 10px;
   width: 400px;
   max-height: 500px;
   min-height: 70px;

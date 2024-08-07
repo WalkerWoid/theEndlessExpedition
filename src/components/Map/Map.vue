@@ -17,7 +17,7 @@ onMounted(() => {
 import Location from "@/components/Map/Location.vue"
 
 const definedProps = defineProps(['locations', 'resources'])
-const emits = defineEmits(['setActiveResource', 'updateLocationTab'])
+const emits = defineEmits(['setActiveResource', 'updateLocationTab', 'updateCurrentLocation'])
 const currentLocation = ref(null)
 
 const updateCurrentLocation = (location) => {
@@ -28,6 +28,8 @@ const updateCurrentLocation = (location) => {
   }
   currentLocation.value = location
   currentLocation.value.isActual = true
+
+  emits('updateCurrentLocation', currentLocation)
 }
 const setActiveResource = resToActive => {
   emits('setActiveResource', resToActive)

@@ -21,11 +21,11 @@ import UiUnitButton from "@/components/UI/UiMainButtons/UiUnitButton.vue";
 import Workbench from "@/components/UI/UiMainButtons/Workbench.vue";
 import Backpack from "@/components/UI/UiMainButtons/Backpack.vue";
 
-import LocationSubWindow from "@/components/UI/UiMainButtons/LocationSubWindow.vue";
+import LocationSubWindow from "@/components/UI/LocationButtons/LocationSubWindow.vue";
 import LocationInfo from "@/components/UI/LocationButtons/LocationInfo.vue";
 import LocationHunting from "@/components/UI/LocationButtons/LocationHunting.vue";
 
-const definedProps = defineProps(['resources', 'activeResource', 'activeLocationTab'])
+const definedProps = defineProps(['resources', 'activeResource', 'activeLocationTab', 'currentLocation'])
 
 const uiTopButtons = [
   {id: 0, btnName: 'Верстак', tabComponent: Workbench},
@@ -65,7 +65,8 @@ const toggleUiTab = (index) => {
     <ResourcePopup :activeResource />
     <LocationSubWindow :currentLocationTab="locationButtonsArray[locationButtonsArray.findIndex(tabBtn => tabBtn.__name === activeLocationTab)]"
                        :locationTabIsVisible
-                       @toggleSubWindow="locationTabIsVisible = !locationTabIsVisible"/>
+                       @toggleSubWindow="locationTabIsVisible = !locationTabIsVisible"
+                       :currentLocation />
   </div>
 </template>
 
@@ -102,8 +103,6 @@ const toggleUiTab = (index) => {
 }
 .subWindow__wrapper {
   display: flex;
-  overflow: auto;
   flex-direction: column;
-  height: 100%;
 }
 </style>

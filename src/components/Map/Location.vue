@@ -3,7 +3,7 @@
  * Компонент отдельной локации */
 
 import LocationMenu from "@/components/UI/LocationMenu/LocationMenu.vue";
-import {computed} from "vue";
+import {computed, onUpdated} from "vue";
 // onMounted(() => {
 //   console.log('Location Component mounted')
 // })
@@ -59,13 +59,13 @@ const farmResource = (location) => {
       definedProps.resources[resourceName] = {count: resourceCount, name: resource.name}
     }
 
-    console.log('---------- Resource ----------')
-    console.log('resourceName', resourceName)
-    console.log('resourceCount', resourceCount)
-    console.log('random', random)
-    console.log(resource)
-    console.log('Global resources:', definedProps.resources)
-    console.log('------------ End -------------')
+    // console.log('---------- Resource ----------')
+    // console.log('resourceName', resourceName)
+    // console.log('resourceCount', resourceCount)
+    // console.log('random', random)
+    // console.log(resource)
+    // console.log('Global resources:', definedProps.resources)
+    // console.log('------------ End -------------')
 
     // emits('setActiveResource', resToActive)
     return resToActive
@@ -86,14 +86,16 @@ const farmResource = (location) => {
 
   if (isResource(resource)) {
     resToActive = addResourceToResources(resource)
+    emits('setActiveResource', resToActive)
   } else {
+    emits('setActiveResource', {name: 'Ничего', count: 'Нихрена'})
     console.log('Рерсурс не зафармили')
   }
 
-  emits('setActiveResource', resToActive)
+
 }
 const getRandomValueByRange = (min, max) => {
-  return Math.floor(Math.random() * (max - min) + min)
+  return Math.round(Math.random() * (max - min) + min)
 }
 const updateLocationTab = (locationTab) => {
   emits('updateLocationTab', locationTab)
@@ -104,16 +106,16 @@ const updateLocationTab = (locationTab) => {
 <div class="location"
      :style="getComputedLocationStyle"
      :data-location-name="location.engName"
-     :data-location-id="location.id"
-     @mouseenter="showHoverLinesHandler"
-     @mouseleave="hideHoverLinesHandler">
+     :data-location-id="location.id">
 
   <picture class="location__hoverEffect _nonVisible">
     <img :src="getLocationLinesImgSrc"
          alt="location-hover-effect">
   </picture>
 
-  <LocationMenu :isActual="location.isActual" @farmResource="farmResource(location)" @updateLocationTab="updateLocationTab" />
+  <LocationMenu :isActual="location.isActual"
+                @farmResource="farmResource(location)"
+                @updateLocationTab="updateLocationTab" />
 </div>
 </template>
 

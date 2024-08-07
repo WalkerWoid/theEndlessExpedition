@@ -20,17 +20,16 @@ const emits = defineEmits(['farmResource', 'updateLocationTab'])
 
     <div class="location__subMenu" :class="{_open: isActual}">
       <p class="location__btn _info main__text btn_round"
-         @click="$emit('updateLocationTab', 'LocationInfo')">i</p>
+         @click.prevent.stop="$emit('updateLocationTab', 'LocationInfo')">i</p>
       <p class="location__btn _hunt main__text btn_round"
-         @click="$emit('updateLocationTab', 'LocationHunting')">Охота</p>
-      <p class="location__btn _res main__text btn_round" @click="$emit('farmResource')">Ресурсы</p>
+         @click.prevent.stop="$emit('updateLocationTab', 'LocationHunting')">Охота</p>
+      <p class="location__btn _res main__text btn_round"
+         @click.prevent.stop="$emit('farmResource')">Ресурсы</p>
     </div>
   </div>
 </template>
 
 <style>
-/* todo при открытии локи все норм, но при закрытии локации(при переходе на другую) всплывающие окошки просто исчезают
-    и на долю секунды видно, что они ломаются. Сделать какой-нибудь дилей с обратной анимацией. */
 .btn_round {
   background: url("@/assets/images/textures/UI-unit-texture.png");
   border-radius: 50%;
@@ -61,6 +60,12 @@ const emits = defineEmits(['farmResource', 'updateLocationTab'])
   inset: 0;
   z-index: 3;
 }
+/* todo случайный фарм ресурса происходит из за того, что кнопку ресурса видно, когда она спрятана */
+.location__subMenu ._info {
+  border-radius: 50%;
+  width: 26px;
+  height: 26px;
+}
 .location__subMenu._open ._info {
   transform: translate(-50px, -50px);
   opacity: 1;
@@ -70,23 +75,21 @@ const emits = defineEmits(['farmResource', 'updateLocationTab'])
   opacity: 1;
   width: auto;
   border-radius: 10px;
-  padding: 5px 10px;
   transition-delay: .2s;
+  padding: 5px 10px;
 }
 .location__subMenu._open ._res {
   transform: translate(25px, -50px);
   width: auto;
   border-radius: 10px;
-  padding: 5px 10px;
   transition-delay: .4s;
+  padding: 5px 10px;
   opacity: 1;
 }
 
 .location__btn {
   position: absolute;
-  z-index: 4;
-  width: 26px;
-  height: 26px;
+  z-index: -2;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);

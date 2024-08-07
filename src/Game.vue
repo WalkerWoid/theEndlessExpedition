@@ -1,10 +1,10 @@
 <script setup>
 /**
  * Компонент игры */
-import {ref} from "vue";
-// onMounted(() => {
-//   console.log('Game Component mounted')
-// })
+import {ref, onMounted} from "vue";
+onMounted(() => {
+  console.log('Game Component mounted')
+})
 // onUpdated(() => {
 //   console.log('Game Component updated')
 // })
@@ -37,7 +37,9 @@ const locations = ref([
         name: 'Ветка',
         engName: 'branch',
         chance: [0, 20],
+        // chance: [0, 50],
         defaultCount: [3, 6]
+        // defaultCount: [3, 6]
       },
       grass: {
         name: 'Трава',
@@ -102,6 +104,11 @@ const locations = ref([
  * Глобальный массив ресурсов */
 const resources = ref({})
 
+const updateCurrentLocation = (location) => {
+  currentLocation.value = location.value
+}
+const currentLocation = ref(null)
+
 const activeResource = ref(null)
 const setActiveResource = (resToActive) => {
   activeResource.value = resToActive
@@ -116,18 +123,20 @@ const updateLocationTab = (locationTab) => {
   <Map :locations="locations"
        :resources="resources"
        @setActiveResource="setActiveResource"
-       @updateLocationTab="updateLocationTab" />
+       @updateLocationTab="updateLocationTab"
+       @updateCurrentLocation="updateCurrentLocation" />
   <UI :resources
       :activeResource
-      :activeLocationTab />
+      :activeLocationTab
+      :currentLocation />
 </template>
 
 <!--
- todo убрать выделение текста при двойном клике
+ Сделал todo убрать выделение текста при двойном клике
  todo сделать рандомное число от 0 до 1000, а то ресурсы слишком быстро добываются, особенно - золотой цветок.
  todo сделать всплывающие окошки по всему вьюпорту. Тип берется рандомные координаты и оттуда уже через fixed лепится
       окошко с подсказками или прочей лабудой.
  todo сделать локал сторедж для ресурсов, хотябы
  todo подумать над концепцией, что перезагрузка страницы будет равна смерти. И чем больше перезагрузок, тем больше
       возможностей открывается.
- todo сделать так, что бы когда переходил по локации, то плашка просто перелитала с место на место -->
+ todo сделать так, что бы когда переходил по локации, то плашка просто перелетала с место на место -->
