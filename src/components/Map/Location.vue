@@ -3,15 +3,16 @@
  * Компонент отдельной локации */
 
 import LocationMenu from "@/components/UI/LocationMenu/LocationMenu.vue";
-import {computed, onMounted, onUpdated} from "vue";
-onMounted(() => {
-  console.log('Location Component mounted')
-})
-onUpdated(() => {
-  console.log('Location Component updated')
-})
+import {computed} from "vue";
+// onMounted(() => {
+//   console.log('Location Component mounted')
+// })
+// onUpdated(() => {
+//   console.log('Location Component updated')
+// })
 
 const definedProps = defineProps(['location', 'currentLocation', 'resources'])
+const emits = defineEmits(['setActiveResource', 'updateLocationTab'])
 
 const getComputedLocationStyle = computed(() => ({
   top: definedProps.location.coordinates[0] + 'px',
@@ -67,6 +68,7 @@ const farmResource = (location) => {
     console.log('------------ End -------------')
 
     // emits('setActiveResource', resToActive)
+    return resToActive
   }
   const isResourceExistsInResources = (resourceName) => {
     return definedProps.resources[resourceName]
@@ -80,15 +82,21 @@ const farmResource = (location) => {
 
 
   resource = getResource()
+  let resToActive = null
+
   if (isResource(resource)) {
-    addResourceToResources(resource)
+    resToActive = addResourceToResources(resource)
   } else {
-    console.log('Не зафармили ресурсы')
-    // emits('setActiveResource', false)
+    console.log('Рерсурс не зафармили')
   }
+
+  emits('setActiveResource', resToActive)
 }
 const getRandomValueByRange = (min, max) => {
   return Math.floor(Math.random() * (max - min) + min)
+}
+const updateLocationTab = (locationTab) => {
+  emits('updateLocationTab', locationTab)
 }
 </script>
 
@@ -105,7 +113,7 @@ const getRandomValueByRange = (min, max) => {
          alt="location-hover-effect">
   </picture>
 
-  <LocationMenu :isActual="location.isActual" @farmResource="farmResource(location)" />
+  <LocationMenu :isActual="location.isActual" @farmResource="farmResource(location)" @updateLocationTab="updateLocationTab" />
 </div>
 </template>
 

@@ -6,4 +6,3 @@
     {{resource.name}}: {{resource.count}}
   </p>
 </template>
-<style></style>

@@ -4,18 +4,20 @@
  *
  * Тут будут основные локации карты и способы взаимодействия с ними */
 
-import {ref, onMounted, onUpdated} from "vue";
+import {ref, onMounted} from "vue";
 onMounted(() => {
-  console.log('Map Component mounted')
+  // console.log('Map Component mounted')
   updateCurrentLocation(definedProps.locations[0])
 })
-onUpdated(() => {
-  console.log('Map Component updated')
-  console.log('currentLocation:', currentLocation._rawValue)
-})
+// onUpdated(() => {
+//   console.log('Map Component updated')
+//   console.log('currentLocation:', currentLocation._rawValue)
+// })
 
 import Location from "@/components/Map/Location.vue"
+
 const definedProps = defineProps(['locations', 'resources'])
+const emits = defineEmits(['setActiveResource', 'updateLocationTab'])
 const currentLocation = ref(null)
 
 const updateCurrentLocation = (location) => {
@@ -26,8 +28,12 @@ const updateCurrentLocation = (location) => {
   }
   currentLocation.value = location
   currentLocation.value.isActual = true
-
-  // emits('updateCurrentLocation', currentLocation.value)
+}
+const setActiveResource = resToActive => {
+  emits('setActiveResource', resToActive)
+}
+const updateLocationTab = (locationTab) => {
+  emits('updateLocationTab', locationTab)
 }
 </script>
 
@@ -42,7 +48,9 @@ const updateCurrentLocation = (location) => {
               :key="location.id"
               :currentLocation="currentLocation"
               :resources="resources"
-              @click="updateCurrentLocation(location) "/>
+              @click="updateCurrentLocation(location)"
+              @setActiveResource="setActiveResource"
+              @updateLocationTab="updateLocationTab" />
   </div>
 </template>
 

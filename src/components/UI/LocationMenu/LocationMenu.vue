@@ -1,16 +1,15 @@
 <script setup>
 /**
  * Компонент меню локаций */
-import {onMounted, onUpdated} from "vue";
-onMounted(() => {
-  console.log('LocationMenu Component mounted')
-})
-onUpdated(() => {
-  console.log('LocationMenu Component updated')
-})
+// onMounted(() => {
+//   console.log('LocationMenu Component mounted')
+// })
+// onUpdated(() => {
+//   console.log('LocationMenu Component updated')
+// })
 
 const definedProps = defineProps(['isActual'])
-const emits = defineEmits(['farmResource'])
+const emits = defineEmits(['farmResource', 'updateLocationTab'])
 </script>
 
 <template>
@@ -21,9 +20,9 @@ const emits = defineEmits(['farmResource'])
 
     <div class="location__subMenu" :class="{_open: isActual}">
       <p class="location__btn _info main__text btn_round"
-         @click="$emit('clickLocationBtn', 'LocationInfo')">i</p>
+         @click="$emit('updateLocationTab', 'LocationInfo')">i</p>
       <p class="location__btn _hunt main__text btn_round"
-         @click="$emit('clickLocationBtn', 'LocationHunting')">Охота</p>
+         @click="$emit('updateLocationTab', 'LocationHunting')">Охота</p>
       <p class="location__btn _res main__text btn_round" @click="$emit('farmResource')">Ресурсы</p>
     </div>
   </div>

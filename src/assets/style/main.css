@@ -34,7 +34,11 @@ picture {
     display: flex;
 }
 
-
+.main__texture {
+    background: url("../../assets/images/textures/UI-unit-texture.png") center no-repeat;
+    background-size: cover;
+    border: 1px solid rgb(239, 228, 176);
+}
 .h2__header {
     font-size: 30px;
     line-height: 1.6;

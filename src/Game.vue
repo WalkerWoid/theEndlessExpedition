@@ -1,15 +1,16 @@
 <script setup>
 /**
  * Компонент игры */
-import {ref, onMounted, onUpdated} from "vue";
-onMounted(() => {
-  console.log('Game Component mounted')
-})
-onUpdated(() => {
-  console.log('Game Component updated')
-})
+import {ref} from "vue";
+// onMounted(() => {
+//   console.log('Game Component mounted')
+// })
+// onUpdated(() => {
+//   console.log('Game Component updated')
+// })
 
 import Map from "@/components/Map/Map.vue";
+import UI from "@/components/UI/UI.vue";
 
 /**
  * Глобальный массив локаций
@@ -100,62 +101,28 @@ const locations = ref([
 /**
  * Глобальный массив ресурсов */
 const resources = ref({})
-</script>
-<template>
-<!--  <Map :locations="locations"-->
-<!--       :resources="resources"-->
-<!--       @setActiveResource="setActiveResource"-->
-<!--       @updateCurrentLocation="updateCurrentLocation"-->
-<!--       @clickLocationBtn="updateLocationWindow"-->
-<!--  />-->
-  <Map :locations="locations" :resources="resources" />
-</template>
-<style>
 
-</style>
-
-
-<!--
-<script setup>
-
-import Map from "@/components/Map/MapOld.vue";
-import UI from "@/components/UI/UI.vue"
-import {onMounted, onUpdated, ref} from "vue";
-
-
-
-
-let activeResource = ref({})
-let currentLocation = ref({})
-let locationBtnComponent = ref('')
-
-const updateCurrentLocation = (currLoc) => {
-  currentLocation.value = currLoc
-}
-/**
- * Устанавливает активный ресурс для отображения его в попапе полученного ресурса при фармежке */
+const activeResource = ref(null)
 const setActiveResource = (resToActive) => {
   activeResource.value = resToActive
 }
-const updateLocationWindow = (locationBtn) => {
-    locationBtnComponent.value = locationBtn
-}
 
+const activeLocationTab = ref(null)
+const updateLocationTab = (locationTab) => {
+  activeLocationTab.value = locationTab
+}
 </script>
 <template>
   <Map :locations="locations"
        :resources="resources"
        @setActiveResource="setActiveResource"
-       @updateCurrentLocation="updateCurrentLocation"
-       @clickLocationBtn="updateLocationWindow"
-  />
-  <UI :resources="resources"
-      :activeResource="activeResource"
-      :currentLocation="currentLocation"
-      :locationBtnComponent="locationBtnComponent"
-  />
+       @updateLocationTab="updateLocationTab" />
+  <UI :resources
+      :activeResource
+      :activeLocationTab />
 </template>
 
+<!--
  todo убрать выделение текста при двойном клике
  todo сделать рандомное число от 0 до 1000, а то ресурсы слишком быстро добываются, особенно - золотой цветок.
  todo сделать всплывающие окошки по всему вьюпорту. Тип берется рандомные координаты и оттуда уже через fixed лепится

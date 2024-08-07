@@ -1,5 +1,5 @@
 <script setup>
-defineProps(['currentLocation'])
+  defineProps(['currentLocation'])
 </script>
 <template>
   <p>Окно охоты(не крепкой)</p>
