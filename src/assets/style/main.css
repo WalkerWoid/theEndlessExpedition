@@ -23,6 +23,10 @@ html, body {
     background-color: rgb(243, 219, 119);
     border-radius: var(--radius);
 }
+button {
+    font-family: inherit;
+}
+
 
 
 ul {
@@ -61,4 +65,17 @@ picture {
 }
 ._green {
     color: seagreen;
+}
+._red {
+    color: red;
+}
+
+.main__btn {
+    background-color: var(--border-color);
+    padding: 5px 20px;
+    font-size: 26px;
+    cursor: pointer;
+    border-radius: var(--radius);
+    text-decoration: none;
+    border: 1px solid var(--border-color);
 }

@@ -56,7 +56,7 @@ const farmResource = (location) => {
     if (isResourceExistsInResources(resourceName)) {
       definedProps.resources[resourceName].count += resourceCount
     } else {
-      definedProps.resources[resourceName] = {count: resourceCount, name: resource.name}
+      definedProps.resources[resourceName] = {count: resourceCount, name: resource.name, engName: resourceName}
     }
 
     // console.log('---------- Resource ----------')

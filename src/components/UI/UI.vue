@@ -25,7 +25,7 @@ import LocationSubWindow from "@/components/UI/LocationButtons/LocationSubWindow
 import LocationInfo from "@/components/UI/LocationButtons/LocationInfo.vue";
 import LocationHunting from "@/components/UI/LocationButtons/LocationHunting.vue";
 
-const definedProps = defineProps(['resources', 'activeResource', 'activeLocationTab', 'currentLocation'])
+const definedProps = defineProps(['resources', 'activeResource', 'activeLocationTab', 'currentLocation', 'workbench'])
 
 const uiTopButtons = [
   {id: 0, btnName: 'Верстак', tabComponent: Workbench},
@@ -61,7 +61,7 @@ const toggleUiTab = (index) => {
     </div>
     <UiSubWindow :currentTab="topButtonsComponentsArray[currentTabId]"
                  @closeSubWindow="uiSubWindowIsVisible = false"
-                 :uiSubWindowIsVisible :resources />
+                 :uiSubWindowIsVisible :resources :workbench />
     <ResourcePopup :activeResource />
     <LocationSubWindow :currentLocationTab="locationButtonsArray[locationButtonsArray.findIndex(tabBtn => tabBtn.__name === activeLocationTab)]"
                        :locationTabIsVisible

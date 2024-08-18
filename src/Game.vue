@@ -37,9 +37,7 @@ const locations = ref([
         name: 'Ветка',
         engName: 'branch',
         chance: [0, 20],
-        // chance: [0, 50],
         defaultCount: [3, 6]
-        // defaultCount: [3, 6]
       },
       grass: {
         name: 'Трава',
@@ -56,7 +54,7 @@ const locations = ref([
       goldenFlower: {
         name: 'Золотой цветок',
         engName: 'goldenFlower',
-        chance: [99, 99],
+        chance: [99, 100],
         defaultCount: [1, 1]
       }
     },
@@ -104,6 +102,63 @@ const locations = ref([
  * Глобальный массив ресурсов */
 const resources = ref({})
 
+/**
+ * Глобальный массив инвентаря */
+const inventory = ref({})
+
+/**
+ * Глобальный объект объектов с рецептами, которые будут храниться в верстаке
+ *
+ * @property {string} [name] Имя предмета на русском
+ * @property {string} [engName] Имя предмета на нерусском
+ * @property {array} [cost] стоимость предмета в ресурсах
+ * @property {string} [description] описание предмета
+ * @property {string} [type] тип предмета
+ * @property {number} [speed] скорость предмета. Чем быстрее оружие, тем больше раз им можно ударить до конца хода.
+ * @property {number} [durability] прочность предмета
+ * @property {number} [damage] урон предмета
+ * @property {array} [buffs] положительные эффекты расходника
+ * @property {array} [negativeEffects] негативные эффекты расходника
+ *
+ * */
+const workbench = ref({
+  'wooden-stick': {
+    name: 'Деревянная палка',
+    engName: 'WoodenStick',
+    cost: [
+      {engName: 'branch', name: 'Ветка', count: 6},
+      {engName: 'grass', name: 'Трава', count: 20}
+    ],
+    description: `Несколько палок, связанных сорваной впопыхах травой в своего большего собрата. Удовольствие на один
+                  раз. Дешевое и бесполезное оружие. Но в умелых руках так же является бесполезным. Скорость
+                  использования довольно быстрая, что бы кинуть сразу горсть таких палок в лицо врагу, тем самым
+                  разозлив его еще больше.`,
+    type: 'weapon',
+    speed: 30,
+    durability: 4,
+    damage: 2,
+  },
+  'grass-bandage': {
+    name: 'Травяные бинты',
+    engName: 'GrassBandage',
+    cost: [
+      {engName: 'grass', name: 'Трава', count: 20},
+      {engName: 'commonFlower', name: 'Обычный цветок', count: 3}
+    ],
+    description: `Трава, связанная травой и украшенная тремя разноцветными цветами. Никакой пропаганды. Лечит так же,
+                  как и выглядит. На все пятнадцать процентов. Хороший шанс получить рандомное заражение. Проще будет
+                  помочиться на рану.`,
+    type: 'consumable',
+    buffs: [
+      {health: 15, text: 'Восстанавливает 15% здоровья'}
+    ],
+    negativeEffects: [
+      {chance: [50, 100], text: 'Заражение крови', title: 'bloodPoisoning'},
+      {chance: [0, 20], text: 'Червяки под кожей', title: 'wormsUnderTheSkin'}
+    ]
+  }
+})
+
 const updateCurrentLocation = (location) => {
   currentLocation.value = location.value
 }
@@ -112,6 +167,8 @@ const currentLocation = ref(null)
 const activeResource = ref(null)
 const setActiveResource = (resToActive) => {
   activeResource.value = resToActive
+  console.log(resToActive)
+  console.log(resources.value)
 }
 
 const activeLocationTab = ref(null)
@@ -128,7 +185,8 @@ const updateLocationTab = (locationTab) => {
   <UI :resources
       :activeResource
       :activeLocationTab
-      :currentLocation />
+      :currentLocation
+      :workbench />
 </template>
 
 <!--

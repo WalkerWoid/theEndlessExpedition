@@ -73,7 +73,7 @@ const closeResourcePopup = () => {
   50% {
     transform: translate(-50%, 0) rotate(0deg);
   }
-  50% {
+  75% {
     transform: translate(-50%, 0) rotate(-1deg);
   }
   100% {
