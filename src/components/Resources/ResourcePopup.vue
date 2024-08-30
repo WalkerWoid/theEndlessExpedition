@@ -19,7 +19,7 @@ const updateResourcePopup = () => {
 
   const removeAnimClass = setTimeout(() => {
     resPopup.classList.remove('_animated')
-    console.log('class was removed')
+    // console.log('class was removed')
   }, 400)
   if (resPopup.classList.contains('_animated')) {
     resPopup.classList.remove('_animated')

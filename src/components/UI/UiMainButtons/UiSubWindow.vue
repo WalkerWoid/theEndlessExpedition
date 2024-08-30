@@ -4,7 +4,7 @@
 
 import {onUpdated} from "vue";
 
-const definedProps = defineProps(['currentTab', 'uiSubWindowIsVisible', 'resources', 'workbench'])
+const definedProps = defineProps(['currentTab', 'uiSubWindowIsVisible', 'resources', 'workbench', 'player'])
 const definedEmits = defineEmits(['closeSubWindow'])
 
 // onMounted(() => {
@@ -12,8 +12,8 @@ const definedEmits = defineEmits(['closeSubWindow'])
 //   console.log(definedProps.uiSubWindowIsVisible)
 // })
 onUpdated(() => {
-  console.log(definedProps.currentTab)
-  console.log('Подокно для кнопок сверху updated')
+  // console.log(definedProps.currentTab)
+  // console.log('Подокно для кнопок сверху updated')
 })
 </script>
 
@@ -22,8 +22,9 @@ onUpdated(() => {
     <span class="subWindow__close" @click="$emit('closeSubWindow', $event.target.parentNode)">Х</span>
 
     <div class="subWindow__wrapper">
-      <Component :is="currentTab" v-if="currentTab.__name === 'Backpack'" :resources />
-      <Component :is="currentTab" v-else-if="currentTab.__name === 'Workbench'" :workbench />
+      <Component :is="currentTab" v-if="currentTab.__name === 'Backpack'" :resources :player />
+      <Component :is="currentTab" v-else-if="currentTab.__name === 'Workbench'" :workbench :resources="resources" />
+      <Component :is="currentTab" v-else-if="currentTab.__name === 'Player'" :player />
     </div>
   </div>
 </template>
@@ -32,8 +33,8 @@ onUpdated(() => {
 .ui__subWindow {
   bottom: 0;
   right: 0;
-  width: 500px;
-  height: 300px;
+  width: 700px;
+  height: 700px;
   border-radius: var(--radius) 0 0 0;
   padding: 0 15px 15px;
 }

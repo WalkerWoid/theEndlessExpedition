@@ -2,17 +2,19 @@
 /**
  * Компонент UI. Тут будут находиться все всплывающие окошки и разные уведомления. Дайте мне силы прокидывать все
  * говно мира в этот компонент. */
-import {ref} from "vue";
+import {ref, onMounted, onUpdated} from "vue";
+import Player from "@/components/Player/Player.vue";
 
-// onMounted(() => {
-//   console.log('UI window mounted')
-//   console.log(locationButtonsArray)
-//   console.log(definedProps.activeLocationTab)
-// })
-// onUpdated(() => {
+onMounted(() => {
+  // console.log('UI window mounted')
+  // console.log(locationButtonsArray)
+  // console.log(definedProps.activeLocationTab)
+  // console.log(definedProps.player)
+})
+onUpdated(() => {
 //   console.log('UI window updated')
 //   console.log('activeLocationTab', definedProps.activeLocationTab)
-// })
+})
 
 import ResourcePopup from "@/components/Resources/ResourcePopup.vue";
 
@@ -25,15 +27,24 @@ import LocationSubWindow from "@/components/UI/LocationButtons/LocationSubWindow
 import LocationInfo from "@/components/UI/LocationButtons/LocationInfo.vue";
 import LocationHunting from "@/components/UI/LocationButtons/LocationHunting.vue";
 
-const definedProps = defineProps(['resources', 'activeResource', 'activeLocationTab', 'currentLocation', 'workbench'])
+const definedProps = defineProps([
+  'resources',
+  'activeResource',
+  'activeLocationTab',
+  'currentLocation',
+  'workbench',
+  'player'
+])
 
 const uiTopButtons = [
   {id: 0, btnName: 'Верстак', tabComponent: Workbench},
-  {id: 1, btnName: 'Рюкзак', tabComponent: Backpack}
+  {id: 1, btnName: 'Рюкзак', tabComponent: Backpack},
+  {id: 2, btnName: 'Игрок', tabComponent: Player}
 ]
 const topButtonsComponentsArray = [
     Workbench,
-    Backpack
+    Backpack,
+    Player
 ]
 const locationButtonsArray = [
     LocationInfo,
@@ -61,7 +72,7 @@ const toggleUiTab = (index) => {
     </div>
     <UiSubWindow :currentTab="topButtonsComponentsArray[currentTabId]"
                  @closeSubWindow="uiSubWindowIsVisible = false"
-                 :uiSubWindowIsVisible :resources :workbench />
+                 :uiSubWindowIsVisible :resources :workbench :player />
     <ResourcePopup :activeResource />
     <LocationSubWindow :currentLocationTab="locationButtonsArray[locationButtonsArray.findIndex(tabBtn => tabBtn.__name === activeLocationTab)]"
                        :locationTabIsVisible

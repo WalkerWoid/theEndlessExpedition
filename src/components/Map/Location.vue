@@ -106,7 +106,9 @@ const updateLocationTab = (locationTab) => {
 <div class="location"
      :style="getComputedLocationStyle"
      :data-location-name="location.engName"
-     :data-location-id="location.id">
+     :data-location-id="location.id"
+     @mouseenter="showHoverLinesHandler"
+     @mouseleave="hideHoverLinesHandler">
 
   <picture class="location__hoverEffect _nonVisible">
     <img :src="getLocationLinesImgSrc"

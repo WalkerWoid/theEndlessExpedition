@@ -10,7 +10,9 @@ html, body {
 }
 :root {
     --radius: 20px;
-    --border-color: rgb(243, 219, 119)
+    --main-color: rgb(232, 197, 76);
+    --border-color: rgb(182, 148, 37);
+    --transition: .4s;
 }
 ::-webkit-scrollbar {
     width: 12px;
@@ -49,13 +51,16 @@ picture {
     line-height: 1.6;
     letter-spacing: .2px;
     font-weight: 600;
+    -webkit-box-shadow: 0 11px 19px 9px rgba(246, 214, 85, 0.24);
+    -moz-box-shadow: 0 11px 19px 9px rgba(246, 214, 85, 0.24);
+    box-shadow: 0 11px 19px 9px rgba(246, 214, 85, 0.24);
 }
 .main__text {
     font-size: 24px;
     line-height: 100%;
 }
 .main__text._little {
-    font-size: 18px;
+    font-size: 20px;
 }
 ._nonVisible {
     opacity: 0;
@@ -71,7 +76,7 @@ picture {
 }
 
 .main__btn {
-    background-color: var(--border-color);
+    background: url("../images/textures/UI-unit-texture.png");
     padding: 5px 20px;
     font-size: 26px;
     cursor: pointer;

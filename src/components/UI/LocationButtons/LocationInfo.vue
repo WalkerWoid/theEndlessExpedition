@@ -5,9 +5,9 @@ const definedProps = defineProps(['currentLocation', 'currentLocation'])
 
 </script>
 <template>
-  <h2>{{currentLocation.name}}</h2>
+  <h2 class="h2__header">{{currentLocation.name}}</h2>
   <div>
-    <h2>Возможные ресурсы:</h2>
+    <h2 class="main__text">Возможные ресурсы:</h2>
     <ul>
       <li class="main__text _little" v-for="resource of currentLocation.resources">{{resource.name}}</li>
     </ul>
