@@ -12,14 +12,19 @@
 */
 /**
  * Компонент игры */
-import {ref, onMounted, onUpdated, shallowRef, reactive, shallowReactive} from "vue";
+import {ref, onMounted, onUpdated, shallowRef, reactive, shallowReactive, computed} from "vue";
 
 onMounted(() => {
   console.log('Game Component mounted')
+  console.log(Object.values(allNegativeEffects))
+  console.log(Object.entries(allNegativeEffects))
 })
 onUpdated(() => {
   // console.log('Game Component updated')
 })
+
+const firstName = ref('John')
+const lastName = ref('Doe')
 
 import Map from "@/components/Map/Map.vue";
 import UI from "@/components/UI/UI.vue";
@@ -133,33 +138,77 @@ const locations = ref([
  * */
 const resources = ref({
   grass: {name: 'Трава', count: 22, engName: 'grass'},
-  testSpaceChest: {
-    armor: 6,
-    description: "Тестовый космический нагрудник",
-    durability: 100,
-    engName: "testSpaceChest",
-    name: "Тестовый космический жилет",
-    speed: 10,
-    type: "armor",
-    bodyType: "body",
-    count: 2
-  },
-  testSpaceChest2: {
-    armor: 6,
-    description: "Тестовый космический нагрудник2",
-    durability: 100,
-    engName: "testSpaceChest2",
-    name: "Тестовый космический жилет2",
-    speed: 10,
-    type: "armor",
-    bodyType: "body",
-    count: 1
-  }
+  // testSpaceChest: {
+  //   armor: 6,
+  //   description: "Тестовый космический нагрудник",
+  //   durability: 100,
+  //   engName: "testSpaceChest",
+  //   name: "Тестовый космический жилет",
+  //   speed: 10,
+  //   type: "armor",
+  //   bodyType: "body",
+  //   count: 2
+  // },
+  // testSpaceChest2: {
+  //   armor: 10,
+  //   description: "Тестовый космический нагрудник быстрый",
+  //   durability: 100,
+  //   engName: "testSpaceChest2",
+  //   name: "Тестовый космический жилет быстрый",
+  //   speed: 20,
+  //   type: "armor",
+  //   bodyType: "body",
+  //   count: 1
+  // }
 })
 
 /**
  * Глобальный массив инвентаря */
 const inventory = ref({})
+
+/**
+ * Объект всех отрицательных эффектов */
+const allNegativeEffects = {
+  scratch: {
+    name: 'Царапина',
+    engName: 'scratch',
+    type: 'light',
+    effects: {
+      stateOfHealth: -1,
+      fatigue: -1
+    }
+  },
+  lightBleed: {
+    name: 'Кровотечение',
+    engName: 'lightBleed',
+    type: 'light',
+    effects: {
+      health: -10,
+      stateOFHealth: -6,
+      fatigue: -3
+    }
+  },
+  mediumBleed: {
+    name: 'Среднее кровотечение',
+    engName: 'mediumBleed',
+    type: 'medium',
+    effects: {
+      health: -40,
+      stateOfHealth: -18,
+      fatigue: -30,
+    },
+  },
+  deadlyBleed: {
+    name: 'Смертельное кровотечение',
+    engName: 'deadlyBleed',
+    type: 'deadly',
+    effects: {
+      health: -90,
+      stateOfHealth: -80,
+      fatigue: -50,
+    }
+  }
+}
 
 /**
  * Глобальный объект объектов с рецептами, которые будут храниться в верстаке
@@ -222,6 +271,19 @@ const workbench = ref({
     armor: 6,
     speed: 10
   },
+  'spaceChest2': {
+    name: 'Тестовый космический жилет2',
+    engName: 'testSpaceChest2',
+    cost: [
+      {engName: 'grass', name: 'Трава', count: 10},
+    ],
+    description: 'Тестовый космический нагрудник',
+    type: 'armor',
+    bodyType: 'body',
+    durability: 100,
+    armor: 6,
+    speed: 10
+  },
   'fullMetalSword': {
     name: 'Цельнометаллический меч',
     engName: 'fullMetalSword',
@@ -261,6 +323,60 @@ const workbench = ref({
 const player = reactive({
   name: 'Роуг Уолкер',
   engName: 'Rogue Walker',
+  health: {
+    count: 100,
+    perTick: 0,
+  },
+  food: {
+    count: 100,
+    perTick: 8
+  },
+  water: {
+    count: 100,
+    perTick: 12
+  },
+  fatigue: {
+    count: 100,
+    perTick: 6,
+  },
+  stateOfHealth: {
+    state: 100,
+    states: {
+      theBest: {
+        name: 'Наилучшее',
+        range: [100, 100]
+      },
+      good: {
+        name: 'Хорошее',
+        range: [90, 99]
+      },
+      normal: {
+        name: 'Нормальное',
+        range: [70, 89]
+      },
+      nice: {
+        name: 'Пойдет',
+        range: [60, 69]
+      },
+      bad: {
+        name: 'Плохое',
+        range: [40, 59]
+      },
+      veryBad: {
+        name: 'Очень плохое',
+        range: [20, 39]
+      },
+      impossiblyBad: {
+        name: 'Наихудшее',
+        range: [1, 19]
+      },
+      dead: {
+        name: 'Смерть',
+        range: [0, 0]
+      }
+    }
+  },
+  questions: [],
   fullArmor: 0,
   fullDamage: 0,
   fullSpeed: 0,
@@ -367,11 +483,17 @@ const player = reactive({
     console.clear()
     console.log('Экипируем предмет:', item)
     /**
-      - устанавливаем предмета в объект equipped
+      - устанавливаем предмет в объект equipped
       - устанавливаем preEquipped(что бы появилась кнопка "снять"), armor, durabilityLeft = durability, damage и speed.
      */
 
     const partOfBody = this.getPartOfBody(item)
+    if (partOfBody.equipped) {
+      console.log(partOfBody.equipped)
+      if (partOfBody.equipped.wasGreaterThan1) partOfBody.equipped.count += 1
+      this.unEquipItem(partOfBody.equipped)
+    }
+
     item.preEquipped = true
     if (!item.durabilityLeft) item.durabilityLeft = item.durability
     partOfBody.equipped = item
@@ -417,17 +539,17 @@ const updateLocationTab = (locationTab) => {
 <!--  <button @click="receps.test.value+=1">button</button>-->
 <!--  <p>{{receps.test.value}}</p>-->
 
-  <Map :locations="locations"
-       :resources="resources"
-       @setActiveResource="setActiveResource"
-       @updateLocationTab="updateLocationTab"
-       @updateCurrentLocation="updateCurrentLocation" />
-  <UI :resources
-      :activeResource
-      :activeLocationTab
-      :currentLocation
-      :workbench
-      :player />
+<!--  <Map :locations="locations"-->
+<!--       :resources="resources"-->
+<!--       @setActiveResource="setActiveResource"-->
+<!--       @updateLocationTab="updateLocationTab"-->
+<!--       @updateCurrentLocation="updateCurrentLocation" />-->
+<!--  <UI :resources-->
+<!--      :activeResource-->
+<!--      :activeLocationTab-->
+<!--      :currentLocation-->
+<!--      :workbench-->
+<!--      :player />-->
 </template>
 
 <!--

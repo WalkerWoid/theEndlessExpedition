@@ -13,6 +13,7 @@ const equipItem = (item) => {
   /** Если предмета больше чем 1, то вычитаем одну штуку. Если дурабилити будет меньше, чем начальное дурабилити, то
         оставим его. */
 
+
   if (item.count === 1) definedProps.player.equipItem(item)
   else {
     item.count-=1
