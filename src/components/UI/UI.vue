@@ -1,119 +1,170 @@
 <script setup>
 /**
- * Компонент UI. Тут будут находиться все всплывающие окошки и разные уведомления. Дайте мне силы прокидывать все
- * говно мира в этот компонент. */
-import {ref, onMounted, onUpdated} from "vue";
-import Player from "@/components/Player/Player.vue";
+ * Компонент UI */
 
-onMounted(() => {
-  // console.log('UI window mounted')
-  // console.log(locationButtonsArray)
-  // console.log(definedProps.activeLocationTab)
-  // console.log(definedProps.player)
+import {reactive} from "vue";
+import Recipes from "@/components/UI/MainUi/Recipes.vue";
+import Inventory from "@/components/UI/MainUi/Inventory.vue";
+import Profile from "@/components/UI/MainUi/Profile.vue";
+
+const definedProps = defineProps(['inventory', 'recipes', 'player'])
+
+/**
+ * Объект разных всплывающих окон
+ *
+ * @property {boolean} [visibility] видимо ли окно или нет
+ * @property {number} [activeIndex] индекс активного окна. По не му будет выбираться нужный компонент из массива
+ *  компонентов для этого окна:
+ *    * mainWindow - mainButtons
+ *
+ * @method [setNewActiveIndexToWindow] устанавливает новый активный индекс кнопки у переданного окна
+ *
+ * */
+const uiWindows = reactive({
+  mainWindow: {
+    visibility: false,
+    activeIndex: 0
+  },
+  setNewActiveIndexToWindow(window, newIndex) {
+    this[window].activeIndex = newIndex
+  }
 })
-onUpdated(() => {
-//   console.log('UI window updated')
-//   console.log('activeLocationTab', definedProps.activeLocationTab)
-})
 
-import ResourcePopup from "@/components/Resources/ResourcePopup.vue";
-
-import UiSubWindow from "@/components/UI/UiMainButtons/UiSubWindow.vue";
-import UiUnitButton from "@/components/UI/UiMainButtons/UiUnitButton.vue";
-import Workbench from "@/components/UI/UiMainButtons/Workbench.vue";
-import Backpack from "@/components/UI/UiMainButtons/Backpack.vue";
-
-import LocationSubWindow from "@/components/UI/LocationButtons/LocationSubWindow.vue";
-import LocationInfo from "@/components/UI/LocationButtons/LocationInfo.vue";
-import LocationHunting from "@/components/UI/LocationButtons/LocationHunting.vue";
-
-const definedProps = defineProps([
-  'resources',
-  'activeResource',
-  'activeLocationTab',
-  'currentLocation',
-  'workbench',
-  'player'
-])
-
-const uiTopButtons = [
-  {id: 0, btnName: 'Верстак', tabComponent: Workbench},
-  {id: 1, btnName: 'Рюкзак', tabComponent: Backpack},
-  {id: 2, btnName: 'Игрок', tabComponent: Player}
+/**
+ * Массив кнопок сверху
+ *
+ * @property {string} [name] имя кнопки
+ * @property {string} [engName] имя кнопки на английском
+ * @property {Component} [component] компонент, который отвечает на кнопку
+ *
+ * */
+const mainButtons = [
+  {
+    name: 'Рецепты',
+    engName: 'recipes',
+    component: Recipes,
+  },
+  {
+    name: 'Инвентарь',
+    engName: 'inventory',
+    component: Inventory,
+  },
+  {
+    name: 'Статус',
+    engName: 'profile',
+    component: Profile,
+  }
 ]
-const topButtonsComponentsArray = [
-    Workbench,
-    Backpack,
-    Player
-]
-const locationButtonsArray = [
-    LocationInfo,
-    LocationHunting
-]
-let currentTabId = ref(1)
-let uiSubWindowIsVisible = ref(false)
-let locationTabIsVisible = ref(false)
 
-const toggleUiUnit = (event) => {
-  event.target.classList.toggle('_closed');
+/**
+ * Получение компонента активной кнопки у окна по переданному массиву кнопок */
+const getActiveBtn = (window, buttonsArray) => {
+  const activeIndex = uiWindows[window].activeIndex
+
+  return buttonsArray[activeIndex].component
 }
-const toggleUiTab = (index) => {
-  currentTabId.value = index
+
+const openWindow = (window) => {
+  if (!window.visibility) {
+    // console.log('открываем окно')
+    toggleVisibility(window)
+  }
+}
+const closeWindow = (window) => {
+  if (window.visibility) {
+    // console.log('закрываем окно')
+    toggleVisibility(window)
+  }
+}
+const toggleVisibility = (window) => {
+  window.visibility = !window.visibility
 }
 </script>
 
 <template>
-  <div class="ui__container">
-    <div class="ui__buttons">
-      <UiUnitButton v-for="(button, index) of uiTopButtons"
-                    :button :key="button.btnName"
-                    @mouseenter="toggleUiUnit" @mouseleave="toggleUiUnit"
-                    @click="toggleUiTab(index); uiSubWindowIsVisible = true" />
+  <div class="ui">
+    <ul class="ui__buttons">
+      <li class="main__btn _lil"
+          @click="openWindow(uiWindows.mainWindow); uiWindows.setNewActiveIndexToWindow('mainWindow', index)"
+          v-for="(button, index) of mainButtons"
+          :key="button.engName">{{button.name}}</li>
+    </ul>
+
+    <div class="ui__window _main main__texture" :class="{_closed: !uiWindows.mainWindow.visibility}">
+      <span class="window__close" @click="closeWindow(uiWindows.mainWindow)">X</span>
+
+      <!--   todo из за проверки v-if и последующего вызова этого метода, то обновление activeIndex
+              происходит два раза. Вынести getActiveBtn('mainWindow', mainButtons) в отдельную переменную -->
+      <Component :is="getActiveBtn('mainWindow', mainButtons)"
+                 v-if="getActiveBtn('mainWindow', mainButtons).__name === 'Inventory'"
+                 :inventory="player.inventory"
+      />
+
+      <Component :is="getActiveBtn('mainWindow', mainButtons)"
+                 v-else-if="getActiveBtn('mainWindow', mainButtons).__name === 'Recipes'"
+                 :recipes="recipes" :player="player"
+      />
+
+      <Component :is="getActiveBtn('mainWindow', mainButtons)"
+                 v-else />
     </div>
-    <UiSubWindow :currentTab="topButtonsComponentsArray[currentTabId]"
-                 @closeSubWindow="uiSubWindowIsVisible = false"
-                 :uiSubWindowIsVisible :resources :workbench :player />
-    <ResourcePopup :activeResource />
-    <LocationSubWindow :currentLocationTab="locationButtonsArray[locationButtonsArray.findIndex(tabBtn => tabBtn.__name === activeLocationTab)]"
-                       :locationTabIsVisible
-                       @toggleSubWindow="locationTabIsVisible = !locationTabIsVisible"
-                       :currentLocation />
   </div>
 </template>
 
 <style>
-.ui__container {
+.ui {
   position: fixed;
   inset: 0;
-  z-index: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: flex-end;
-  align-items: flex-start;
+  z-index: 1;
 }
 .ui__buttons {
   display: flex;
-  gap: 20px;
+  z-index: 3;
+  position: relative;
+  gap: 6px;
+  justify-content: flex-end;
+}
+.ui__buttons li {
+  cursor: pointer;
+  transition-duration: var(--transition);
+  transform: translateY(-50%);
+}
+.ui__buttons li:hover {
+  transform: translateY(0);
 }
 
-.subWindow {
-  position: fixed;
-  transition-duration: .4s;
-}
-.subWindow__close {
+.ui__window {
   position: absolute;
-  text-transform: uppercase;
-  font-size: 36px;
-  line-height: 100%;
-  top: 0;
-  right: 10px;
-  display: flex;
-  cursor: pointer;
-  transition-duration: .4s;
-}
-.subWindow__wrapper {
+  transition-duration: var(--transition);
+  padding: 5px 20px 5px 40px;
   display: flex;
   flex-direction: column;
+  gap: 20px;
+}
+.ui__subWindow {
+  max-height: 100%;
+  overflow: auto;
+  height: 100%;
+  scrollbar-gutter: stable;
+}
+.window__close {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  cursor: pointer;
+}
+.ui__window._main {
+  bottom: 0;
+  right: 0;
+  height: 600px;
+  max-width: 800px;
+  width: 100%;
+  border-bottom: none;
+  border-right: none;
+  border-radius: var(--radius) 0 0 0;
+  transform: translateY(0);
+}
+.ui__window._main._closed {
+  transform: translateY(100%);
 }
 </style>
