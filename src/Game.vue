@@ -193,17 +193,26 @@ const locations = ref([
 /**
  * Объект рецептов.
  *
- * @property {string} [name] - имя на русском
- * @property {string} [engName] - имя на английском
- * @property {string} [description] - описание
- * @property {number} [count] - сколько предметов за раз будет создано
- * @property {array} [cost] - стоимость
- * @property {string} [type] - тип
- *           Виды: weapon - оружие
- *                 armor - броня
- *                 medical - медицина
+ * @property {array} [recipes] - Массив Объектов рецептов.
  *
- * Пример объекта оружия:
+ *
+ * @property {string} [name] - Имя на русском
+ * @property {string} [engName] - Имя на английском
+ * @property {string} [description] - Описание
+ * @property {number} [count] - Количество предметов, созданных за один раз
+ * @property {array} [cost] - Стоимость в ресурсах
+ * @property {string} [type] - Тип
+ *           weapon - оружие
+ *           armor - броня
+ *           medical - медицина
+ * @property {array} [info] Массив объектов со второстепенной информацией. У каждого типа создаваемого предмета
+ *                   своя информация.
+ *
+ *                   Для оружия и брони: Урон, Прочность, Скорость и Броня
+ *                   Для медицины: Количество использований, Баффы и Дебаффы
+ *
+ *
+ * Пример объекта оружия(у брони такой же):
  * {
  *  name: 'Кривая палка',
  *  engName: 'crookedStick',
@@ -214,10 +223,12 @@ const locations = ref([
  *    {name: 'Ветка', engName: 'stick', count: 12}
  *  ],
  *  type: 'weapon',
- *  damage: 3,
- *  durability: 1,
- *  speed: 30,
- *  armor: -6
+ *  info: [
+ *    {name: 'Урон', engName: 'damage', value: 3},
+ *    {name: 'Прочность', engName: 'durability', value: 1},
+ *    {name: 'Скорость', engName: 'speed', value: 30},
+ *    {name: 'Броня', engName: 'armor', value: -6},
+ *  ],
  * }
  *
  * @property {number} [damage] - урон
@@ -225,36 +236,22 @@ const locations = ref([
  * @property {number} [speed] - скорость
  * @property {number} [armor] - броня
  *
- * Пример объекта брони:
- * {
- *  name: 'Травяная панамка',
- *  engName: 'herbalPanamaHat',
- *  description: 'Будет выглядеть модно, если вы полугодовалый ребенок. Можно надеть сразу поверх вашего скафандра на смех всем полугодовалым детям в радиусе этого континента.',
- *  count: 1,
- *  cost: [
- *    {name: 'Трава', engName: 'grass', count: 160},
- *  ],
- *  type: 'armor',
- *  damage: 0,
- *  durability: 10,
- *  speed: 0,
- *  armor: 0
- * }
- *
  * Пример объекта предмета, восстанавливающего здоровье или влияющее на здоровье:
  * {
  *  name: 'Простой травяной бинт',
  *  engName: 'simpleHerbalBandage',
  *  description: 'Трава, связанная травой и украшенная тремя разноцветными цветами. Никакой пропаганды. Лечит так же, как и выглядит - на все 5 процентов. Хороший шанс получить какое-нибудь заражение. Проще будет помочиться на рану.',
  *  count: 1,
+ *  type: 'medical',
  *  cost: [
  *    {name: 'Трава', engName: 'grass', count: 40},
  *    {name: 'Обычный цветок', engName: 'commonFlower', count: 40},
  *  ],
- *  type: 'medical',
- *  numberUses: 1,
- *  positiveEffects: [],
- *  negativeEffects: []
+ *  info: [
+ *    {name: 'Количество использований', engName: 'numberUses', value: 1},
+ *    {name: 'Полезные свойства', engName: 'positiveEffects', value: []},
+ *    {name: 'Неполезные свойства', engName: 'negativeEffects', value: []},
+ *  ],
  * }
  *
  * @property {number} [numberUses] - количество использований
@@ -278,24 +275,28 @@ const recipes = reactive({
         {name: 'Ветка', engName: 'stick', count: 12}
       ],
       type: 'weapon',
-      damage: 3,
-      durability: 1,
-      speed: 30,
-      armor: -6
+      info: [
+        {name: 'Урон', engName: 'damage', value: 3},
+        {name: 'Прочность', engName: 'durability', value: 1},
+        {name: 'Скорость', engName: 'speed', value: 30},
+        {name: 'Броня', engName: 'armor', value: -6},
+      ],
     },
     {
-    name: 'Травяная панамка',
-    engName: 'herbalPanamaHat',
-    description: 'Будет выглядеть модно, если вы полугодовалый ребенок. Можно надеть сразу поверх вашего скафандра на смех всем полугодовалым детям в радиусе этого континента.',
-    count: 1,
-    cost: [
-      {name: 'Трава', engName: 'grass', count: 160},
-    ],
+      name: 'Травяная панамка',
+      engName: 'herbalPanamaHat',
+      description: 'Будет выглядеть модно, если вы полугодовалый ребенок. Можно надеть сразу поверх вашего скафандра на смех всем полугодовалым детям в радиусе этого континента.',
+      count: 1,
+      cost: [
+        {name: 'Трава', engName: 'grass', count: 160},
+      ],
       type: 'armor',
-      damage: 0,
-      durability: 10,
-      speed: 0,
-      armor: 0
+      info: [
+        {name: 'Урон', engName: 'damage', value: 0},
+        {name: 'Прочность', engName: 'durability', value: 10},
+        {name: 'Скорость', engName: 'speed', value: 0},
+        {name: 'Броня', engName: 'armor', value: 1},
+      ],
     },
     {
       name: 'Простой травяной бинт',
@@ -307,9 +308,11 @@ const recipes = reactive({
         {name: 'Обычный цветок', engName: 'commonFlower', count: 3},
       ],
       type: 'medical',
-      numberUses: 1,
-      positiveEffects: [],
-      negativeEffects: []
+      info: [
+        {name: 'Количество использований', engName: 'numberUses', value: 1},
+        {name: 'Полезные свойства', engName: 'positiveEffects', value: []},
+        {name: 'Неполезные свойства', engName: 'negativeEffects', value: []},
+      ],
     },
   ],
   create(recipe) {

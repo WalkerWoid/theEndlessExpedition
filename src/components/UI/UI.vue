@@ -64,6 +64,8 @@ const getActiveBtn = (window, buttonsArray) => {
   return buttonsArray[activeIndex].component
 }
 
+
+/** todo объединить эти методы в один toggleWindow*/
 const openWindow = (window) => {
   if (!window.visibility) {
     // console.log('открываем окно')

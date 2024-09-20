@@ -89,7 +89,7 @@ const types = {
   align-items: center;
   gap: 6px;
 }
-.info__row._description {
+.info__row._full {
   flex-direction: column;
   gap: 0;
   align-items: flex-start;

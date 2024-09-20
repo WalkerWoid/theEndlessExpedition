@@ -108,42 +108,24 @@ const itemCreate = (recipe) => {
     <!-- todo нарисовать стрелку для открытия инфы о предмете -->
     <span class="recipe__openInfo" @click="toggleInfoWindow($event)">+</span>
 
-    <div class="recipe__info" ref="recipeInfoRef">
-      <div class="info__row _description">
+    <ul class="recipe__info" ref="recipeInfoRef">
+      <li class="info__row _full">
         <h5>Описание:</h5>
         <p class="_little">{{recipe.description}}</p>
-      </div>
+      </li>
 
-      <div class="info__row">
+      <li class="info__row">
         <h5>Тип:</h5>
         <p class="_little">{{types[recipe.type]}};</p>
-      </div>
+      </li>
 
-      <div class="info__row" v-if="recipe.damage">
-        <h5>Урон:</h5>
-        <p class="_little">{{recipe.damage}};</p>
-      </div>
-
-      <div class="info__row" v-if="recipe.armor">
-        <h5>Броня:</h5>
-        <p class="_little">{{recipe.armor}};</p>
-      </div>
-
-      <div class="info__row" v-if="recipe.speed">
-        <h5>Скорость использования:</h5>
-        <p class="_little">{{recipe.speed}};</p>
-      </div>
-
-      <div class="info__row" v-if="recipe.durability">
-        <h5>Прочность:</h5>
-        <p class="_little">{{recipe.durability}};</p>
-      </div>
-
-      <div class="info__row" v-if="recipe.numberUses">
-        <h5>Количество использований:</h5>
-        <p class="_little">{{recipe.numberUses}};</p>
-      </div>
-    </div>
+      <template v-for="info of recipe.info" :key="info.engName">
+        <li class="info__row">
+          <h5>{{ info.name }}:</h5>
+          <p class="_little">{{ info.value }}</p>
+        </li>
+      </template>
+    </ul>
   </li>
 </template>
 
