@@ -91,6 +91,9 @@ h4 {
 ._hidden {
     opacity: 0;
 }
+._pointer {
+    cursor: pointer;
+}
 
 ._red {
     color: rgb(255, 69, 0);

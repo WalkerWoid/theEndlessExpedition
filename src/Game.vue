@@ -6,48 +6,169 @@ import {ref, reactive} from "vue";
 import Map from "@/components/Map/Map.vue";
 import UI from "@/components/UI/UI.vue";
 
+const resourcesBubbles = ref([])
+
 /**
  * Объект игрока.
  *
- * @property {string} [name] - имя игрока на русском
- * @property {string} [engName] - имя игрока на английском
+ * @property {string} [name] - Имя игрока на русском
+ * @property {number} [health] - Здоровье
+ * @property {number} [food] - Еда
+ * @property {number} [water] - Вода
+ * @property {string} [engName] - Имя игрока на английском
  * @property {string} [currentLocation] - engName локации, на которой находится игрок
- * @property {array} [inventory] - инвентарь со всеми ресурсами, предметами и так далее
- *           Ресурс будет вот в таком виде: {
+ * @property {array} [inventory] - Инвентарь со всеми ресурсами, предметами и так далее
+ *           Ресурс должен быть вот в таком виде: {
  *             name: 'Трава',
  *             engName: 'grass',
  *             count: 20,
- *             type: 'resource'
+ *             type: 'resource',
  *           }
+ *           Если это объект оружия или брони, то приходит такой же объект
+ * @property {object} [body] Объект тела со всеми надетыми предметами на персонажа
  *
- * @method [moveLocation] - переход в другую локацию
- * @method [getLocation] - получение локации из массива locations по имени
- * @method [toggleCurrentLocation] - смена локации
- * @method [addResource] - получение ресурса
- * @method [getInventoryResource] - получение ресурса, который находится в инвентаре
- * @method [decreaseResource] - трата определенного ресурса
+ * Методы смены локаций:
+ * @method [moveLocation] - Переход в другую локацию
+ * @method [getLocation] - Получение локации из массива locations по имени
+ * @method [toggleCurrentLocation] - Смена isCurrent значений локаций и currentLocation игрока
+ *
+ * Методы работы с ресурсами:
+ * @method [addResource] - Добавление ресурса в инвентарь
+ * @method [decreaseResource] - трата определенного ресурса.
+ * @method [addSomeCountToInventory] - Добавление количества к чему-либо в инвентаре
+ * @method [addSomeToInventory] - Добавление чего-либо нового в инвентарь. Через push
+ * @method [getInventoryResource] - Получение ресурса, который находится в инвентаре
+ * @method [showResourceBubble] - Добавление уведомления о ресурсе или предмете в бабл ресурсов
+ *
+ * Методы работы с предметами
+ * @method [addItem] - Добавление предмета в инвентарь
+ * @method [getInventoryItem] - Поиск опребеделеного предмета типа оружия или брони по имени и прочности.
+ * @method [isAnyItemEquipped] - экипирован ли какой-либо предмет
+ * @method [isEqualItemEquipped] - надет ли этот же предмет
+ * @method [getPartOfBody] - получение предмета, который сейчас находится на определенной части персонажа.
+ * @method [putOnItemHandler] - метод надевания предмета со всеми проверками
+ * @method [putOnItem] - метод надевания предмета в слот тела
+ * @method [takeOffItem] - снять предмет
+ *
+ * @method [addBrokenItem] - добавление сломанного предмета в инвентарь
+ * @method [getItemInfo] - получение какой либо информации из массива info предмета
+ * @method [isResourcesToCreateEnough] - достаточно ли ресурса на создание предмета
+ * @method [clearPartOfBody] - установка определенной части тела в false(ничего не надето)
+ * @method [getObjectCopy] - Возвращает копию объекта
+ * @method [destroyItem] - разобрать предмет.
+ * @method [removeItem] - удаляет предмет из инвентаря.
  *
  * */
+
 const player = reactive({
   name: 'Роуг Уолкер',
+  health: 200,
+  food: 300,
+  water: 100,
   engName: 'Rouge Walker',
   currentLocation: 'landingZone',
   inventory: [
+    {name: 'Трава', engName: 'grass',count: 320, type: 'resource'},
+    // {name: 'Златограйник', engName: 'goldenFlower', count: 1000, type: 'resource'},
+    // {name: 'Обычный цветок', engName: 'commonFlower', count: 1000, type: 'resource'},
+    // {name: 'Ветка', engName: 'stick', count: 1000, type: 'resource'},
     {
-      name: 'Трава',
-      engName: 'grass',
-      count: 200,
-      type: 'resource'
-    }
+      name: 'Травяная панамка',
+      engName: 'herbalPanamaHat',
+      description: 'Будет выглядеть модно, если вы полугодовалый ребенок. Можно надеть сразу поверх вашего скафандра на смех всем полугодовалым детям в радиусе этого континента.',
+      count: 10,
+      cost: [
+        {name: 'Трава', engName: 'grass', count: 160},
+      ],
+      type: 'armor',
+      bodyType: 'head',
+      durability: 10,
+      info: [
+        {name: 'Урон', engName: 'damage', value: 0},
+        {name: 'Прочность', engName: 'startedDurability', value: 10},
+        {name: 'Скорость', engName: 'speed', value: 0},
+        {name: 'Броня', engName: 'armor', value: 1},
+      ],
+      isEquipped: false
+    },
+    {
+      name: 'Травяная панамка',
+      engName: 'herbalPanamaHat',
+      description: 'Будет выглядеть модно, если вы полугодовалый ребенок. Можно надеть сразу поверх вашего скафандра на смех всем полугодовалым детям в радиусе этого континента.',
+      count: 1,
+      cost: [
+        {name: 'Трава', engName: 'grass', count: 160},
+      ],
+      type: 'armor',
+      bodyType: 'head',
+      durability: 5,
+      info: [
+        {name: 'Урон', engName: 'damage', value: 0},
+        {name: 'Прочность', engName: 'startedDurability', value: 10},
+        {name: 'Скорость', engName: 'speed', value: 0},
+        {name: 'Броня', engName: 'armor', value: 1},
+      ],
+      isEquipped: false
+    },
+    {
+      name: 'Каменная панамка',
+      engName: 'stoneHat',
+      description: 'Носите, если хотите накачать шею.',
+      count: 10,
+      cost: [
+        {name: 'Трава', engName: 'grass', count: 160},
+      ],
+      type: 'armor',
+      bodyType: 'head',
+      durability: 20,
+      info: [
+        {name: 'Урон', engName: 'damage', value: 0},
+        {name: 'Прочность', engName: 'startedDurability', value: 20},
+        {name: 'Скорость', engName: 'speed', value: 0},
+        {name: 'Броня', engName: 'armor', value: 1},
+      ],
+      isEquipped: false
+    },
+    // {
+    //   name: 'Каменный нагрудник',
+    //   engName: 'stoneChest',
+    //   description: 'Носите, если хотите накачать грудные мышцы.',
+    //   count: 2,
+    //   cost: [
+    //     {name: 'Трава', engName: 'grass', count: 160},
+    //   ],
+    //   type: 'armor',
+    //   bodyType: 'body',
+    //   durability: 20,
+    //   info: [
+    //     {name: 'Урон', engName: 'damage', value: 0},
+    //     {name: 'Прочность', engName: 'startedDurability', value: 20},
+    //     {name: 'Скорость', engName: 'speed', value: 0},
+    //     {name: 'Броня', engName: 'armor', value: 1},
+    //   ],
+    // },
   ],
+  body: {
+    head: false,
+    body: false,
+    leftArm: false,
+    rightArm: false,
+    leftWrist: false,
+    rightWrist: false,
+    leftLeg: false,
+    rightLeg: false
+  },
   moveLocation(locationName) {
-    if (locationName === this.currentLocation) {
-      // console.log('Мы уже в этой локации')
+    const isLocationCurrent = () => {
+      return locationName === this.currentLocation
+    }
+
+    if (isLocationCurrent()) {
+      console.log('Мы уже в этой локации')
       return
     }
 
-    // console.log('Идем в локацию')
-
+    console.log('Идем в локацию')
     const oldLocation = this.getLocation(this.currentLocation)
     const newLocation = this.getLocation(locationName)
 
@@ -61,21 +182,200 @@ const player = reactive({
     newLocation.isCurrent = true
     this.currentLocation = newLocation.engName
   },
-  addResource(resource) {
-    // console.clear()
 
-    if (this.getInventoryResource(resource)) {
-      this.getInventoryResource(resource).count += resource.count
-    } else {
-      this.inventory.push(resource)
+  addResource(resource) {
+    console.clear()
+    console.log('Ресурс для добавления в инвентарь, который приходит после обработки:', resource)
+    console.log('Добавляем обычный ресурс')
+
+    /** todo пока оставил проверку на ресурс или медицину. Когда буду делать медицину, посмотрю, в этом методе оставить
+          или перенести. */
+    if (resource.type === 'resource' || resource.type === 'medical') {
+
+      if (this.getInventoryResource(resource))
+        this.addSomeCountToInventory(resource)
+      else this.addSomeToInventory(resource)
     }
 
-    // console.log('Полученный ресурс', resource)
-    // console.log('Инвентарь', this.inventory)
+    console.log('Инвентарь после добавления ресурса или создания предмета:', this.inventory)
+  },
+  decreaseResource(resource) {
+    console.log('ресрус, приходящий в decrease resource при создании предмета', resource)
+
+    if (this.getInventoryResource(resource).count - resource.count === 0) {
+      console.log('После траты ресурсов, он становитя 0, значит удаляем его')
+      this.removeItem(resource)
+      return
+    }
+
+    this.getInventoryResource(resource).count -= resource.count
+  },
+  addSomeCountToInventory(something) {
+    this.getInventoryResource(something).count += something.count
+  },
+  addSomeToInventory(something) {
+    this.inventory.push(something)
   },
   getInventoryResource(resource) {
     return this.inventory.find(inventoryResource => inventoryResource.engName === resource.engName)
   },
+  showResourceBubble(resource, action) {
+    const cockedResource = this.getObjectCopy(resource)
+    cockedResource.action = action
+    resourcesBubbles.value.unshift(cockedResource)
+    console.log('бабл ресурсов:', resourcesBubbles.value)
+
+    // const timeOut = setTimeout(() => {
+    //   resourcesBubbles.value.pop()
+    // }, 2400)
+  },
+
+  addItem(item) {
+    console.log('Предмет, приходящий в addItem:', item)
+    console.log('Создаем оружие или броню')
+    const neededItem = this.getInventoryItem(item)
+    console.log('Предмет в инвентаре после поиска:', neededItem)
+
+    if (neededItem) {
+      console.log('Предмет существует')
+      this.addSomeCountToInventory(item)
+    } else {
+      console.log('Добавляем целый предмет в инвентарь')
+      this.addSomeToInventory(item)
+    }
+
+    console.log('Инвентарь после создания предмета:', this.inventory)
+  },
+  getInventoryItem(item, findEquipped = false) {
+    return this.inventory.find(inventoryItem => {
+      if (findEquipped) {
+        return inventoryItem.engName === item.engName
+            && inventoryItem.durability === item.durability
+            && inventoryItem.isEquipped === item.isEquipped
+      } else {
+        return inventoryItem.engName === item.engName && inventoryItem.durability === item.durability
+      }
+    })
+  },
+  isAnyItemEquipped(item) {
+    /** todo удалить, если не будет нигде использоваться */
+    return this.body[item.bodyType]
+  },
+  isEqualItemEquipped(itemToEquip, equippedItem) {
+    return itemToEquip.engName === equippedItem.engName
+        && itemToEquip.isEquipped === equippedItem.isEquipped
+        && itemToEquip.durability === equippedItem.durability
+  },
+  getPartOfBody(partOfBody) {
+    return this.body[partOfBody]
+  },
+  putOnItemHandler(item) {
+    console.clear()
+    console.log('Предмет, приходящий в PutOnItem. Выбранный ресурс(item)', item)
+    console.log('Инвентарь', this.inventory)
+
+    const itemToEquip = this.getObjectCopy(item)
+    itemToEquip.count = 1
+    console.log('Новая надеваемый предмет(newItemTiEquip)', itemToEquip)
+    const equippedItem = this.getPartOfBody(itemToEquip.bodyType)
+    console.log('Надетый предмет', equippedItem)
+
+    if (!equippedItem) {
+      console.log('Никакого предмета не надето, надеваем предмет')
+      this.putOnItem(item, itemToEquip)
+      console.log('Тело после надетого предмета', this.body)
+
+      return;
+    }
+
+    /** если надет такой же предмет, то ничего не делаем */
+    if (this.isEqualItemEquipped(itemToEquip, equippedItem)) {
+      console.log('Этот предмет уже надет!')
+      this.showResourceBubble(item, 'alreadyEquipped')
+      return
+    }
+
+    /**
+     *  если надет другой предмет, то:
+     *    1. Снимаем этот предмет
+     *    2. Надеваем новый предмет
+     * */
+    console.log('Какой-то предмет уже надет, будем снимать его')
+    this.takeOffItem(this.body[item.bodyType])
+    this.putOnItem(item, itemToEquip)
+
+  },
+  putOnItem(item, itemToEquip) {
+    itemToEquip.isEquipped = true
+    item.isEquipped = true
+
+    this.body[item.bodyType] = itemToEquip
+    item.count -= 1
+    this.showResourceBubble(item, 'putOnItem')
+
+    if (item.count === 0)
+      this.removeItem(item)
+  },
+  takeOffItem(item) {
+    console.clear()
+    console.log('Приходит предмет, который выбран в инвентаре(item)', item)
+
+    const itemOnBody = this.getPartOfBody(item.bodyType)
+    console.log('Предмет на теле(itemOnBody)', itemOnBody)
+    const inventoryItem = this.getInventoryItem(itemOnBody)
+    console.log('Надетый предмет, который должен быть в инвентаре. Ищется по имени и дурабилити(inventoryItem)', inventoryItem)
+
+    if (!itemOnBody) {
+      console.log('Никакой Предмет не надет. Ничего не снимаем')
+      this.showResourceBubble(item, 'notEquipped')
+      return
+    }
+    //
+    const startedDurability = this.getItemInfo(itemOnBody, 'startedDurability').value
+    const durability = itemOnBody.durability
+
+    /** Предмет на теле(itemOnBody) должен соответствовать по эквипу, дурабилити и имени с item */
+    if (!this.isEqualItemEquipped(item, itemOnBody)) {
+      console.log('Выбранный предмет не соответствует тому, котрый будем снимать')
+      this.showResourceBubble(item, 'notEquipped')
+      return
+    }
+
+    console.log('Снимаем')
+
+    if (inventoryItem) {
+      inventoryItem.isEquipped = false
+      item.isEquipped = false
+
+      console.log('Такой предмет существует в инвентаре')
+      if (durability === startedDurability) {
+        console.log('Предмет целёхонький, возвращаем его в инвентарь к существующему')
+
+        inventoryItem.count += 1
+        this.clearPartOfBody(itemOnBody.bodyType)
+      } else {
+        console.log('Предмет сломан, создаем копию с другим дурабилити')
+
+        this.addBrokenItem(item)
+        this.clearPartOfBody(item.bodyType)
+      }
+    } else {
+      console.log('Предмета нет, создаем его в инвентаре')
+      itemOnBody.isEquipped = false
+      this.addBrokenItem(this.getObjectCopy(itemOnBody))
+      this.clearPartOfBody(itemOnBody.bodyType)
+    }
+
+    this.showResourceBubble(itemOnBody, 'takeOffItem')
+  },
+
+  addBrokenItem(item) {
+    item.count = 1
+    this.inventory.push(item)
+  },
+  getItemInfo(item, typeOfInfo) {
+    return item.info.find(info => info.engName === typeOfInfo)
+  } ,
   isResourcesToCreateEnough(recipeCost) {
     const resourceConditions = []
 
@@ -95,9 +395,51 @@ const player = reactive({
 
     return resourceConditions.filter(condition => condition === false).length === 0
   },
-  decreaseResource(resource) {
-    this.getInventoryResource(resource).count -= resource.count
-  }
+  clearPartOfBody(partOfBody) {
+    this.body[partOfBody] = false
+  },
+  getObjectCopy(object) {
+    return Object.assign({}, object)
+  },
+  destroyItem(item) {
+    console.clear()
+    console.log('Разбираем предмет:', item)
+    const itemStartedDurability = this.getItemInfo(item, 'startedDurability').value
+    const isItemFull = () => {
+      return item.durability === itemStartedDurability
+    }
+    const isItemHalf = () => {
+      return item.durability >= Math.floor(itemStartedDurability/2) && item.durability < itemStartedDurability
+    }
+
+    if (isItemFull()) {
+      console.log('Разбираем целый предмет')
+      item.cost.forEach(resource => {
+        resource.action = 'farm'
+        console.log(resource)
+        this.showResourceBubble(resource)
+
+        this.addResource(resource)
+        console.log(this.inventory)
+      })
+      item.count -= 1
+
+      if (item.count === 0)
+        this.removeItem(item)
+    }
+
+    // console.log(isItemFull())
+    // console.log(isItemHalf())
+  },
+
+
+  removeItem(item) {
+    console.log('Удаляем: ', item, 'из инвентаря', this.inventory)
+    const itemToDelete = this.getInventoryItem(item)
+    const itemIndex = this.inventory.indexOf(itemToDelete)
+    console.log('Индекс удаляемого предмета', itemIndex)
+    this.inventory.splice(itemIndex, 1)
+  },
 })
 
 /**
@@ -142,30 +484,10 @@ const locations = ref([
     width: 135,
     height: 140,
     resources: [
-      {
-        chance: [0, 60],
-        name: 'Трава',
-        engName: 'grass',
-        count: [10, 20]
-      },
-      {
-        chance: [61, 80],
-        name: 'Ветка',
-        engName: 'stick',
-        count: [6, 10]
-      },
-      {
-        chance: [81, 98],
-        name: 'Обычный цветок',
-        engName: 'commonFlower',
-        count: [3, 7]
-      },
-      {
-        chance: [99, 100],
-        name: 'Золотой цветок',
-        engName: 'goldenFlower',
-        count: [1, 1]
-      }
+      {chance: [0, 60], name: 'Трава', engName: 'grass', count: [10, 20], type: 'resource'},
+      {chance: [61, 80], name: 'Ветка', engName: 'stick', count: [6, 10], type: 'resource'},
+      {chance: [81, 98], name: 'Обычный цветок', engName: 'commonFlower', count: [3, 7], type: 'resource'},
+      {chance: [99, 100], name: 'Златограйник', engName: 'goldenFlower', count: [1, 1], type: 'resource'}
     ],
     submenu: ['i', 'ресурсы', 'охота', 'задания', 'контракты', 'карта', 'ритуалы'],
     isCurrent: true
@@ -178,12 +500,6 @@ const locations = ref([
     width: 135,
     height: 140,
     resources: [
-      {
-        chance: [0, 100],
-        name: 'Камушек',
-        engName: 'littleStone',
-        count: [30, 60]
-      },
     ],
     submenu: ['i', 'ресурсы'],
     isCurrent: false
@@ -208,11 +524,13 @@ const locations = ref([
  * @property {array} [info] Массив объектов со второстепенной информацией. У каждого типа создаваемого предмета
  *                   своя информация.
  *
- *                   Для оружия и брони: Урон, Прочность, Скорость и Броня
- *                   Для медицины: Количество использований, Баффы и Дебаффы
+ *                   Для оружия и брони: Урон, Прочность, Скорость, Броня
+ *                   Для брони добавляется тип тела
+ *                   Для оружия добавляется левая, правая или обе руки.
+ *                   Для медицины: Количество использований, Баффы, Дебаффы
  *
  *
- * Пример объекта оружия(у брони такой же):
+ * Пример объекта оружия(у брони такой же, почти):
  * {
  *  name: 'Кривая палка',
  *  engName: 'crookedStick',
@@ -223,9 +541,11 @@ const locations = ref([
  *    {name: 'Ветка', engName: 'stick', count: 12}
  *  ],
  *  type: 'weapon',
+ *  weaponType: 'right',
+ *  durability: 1,
  *  info: [
  *    {name: 'Урон', engName: 'damage', value: 3},
- *    {name: 'Прочность', engName: 'durability', value: 1},
+ *    {name: 'Начальная прочность', engName: 'startedDurability', value: 1},
  *    {name: 'Скорость', engName: 'speed', value: 30},
  *    {name: 'Броня', engName: 'armor', value: -6},
  *  ],
@@ -233,8 +553,12 @@ const locations = ref([
  *
  * @property {number} [damage] - урон
  * @property {number} [durability] - прочность
+ * @property {number} [startedDurability] - начальная прочность
  * @property {number} [speed] - скорость
  * @property {number} [armor] - броня
+ * @property {string} [weaponType] - тип оружия: right, left или both
+ * @property {string} [bodyType] - часть тела, на которую надевается броня
+ * @property {boolean} [isEquipped] - надет ли предмет
  *
  * Пример объекта предмета, восстанавливающего здоровье или влияющее на здоровье:
  * {
@@ -260,6 +584,7 @@ const locations = ref([
  *
  * @method [create] - создание предмета
  * @method [addRecipe] - add recipe to recipes array - not implemented
+ * @method [getRecipeInfo] - получение определенной информации из массива info
  *
  *
  * */
@@ -268,19 +593,22 @@ const recipes = reactive({
     {
       name: 'Кривая палка',
       engName: 'crookedStick',
-      description: 'Ветки, наспех связанные сорванной в попыхах травой в своего большого собрата. Выглядит кривой, как культя дряхлой старухи. Бьет так же - небольно и сразу ломается. Не подходит в качестве чесалки для спины, но подходит для того, что бы выколоть кому-нибудь глаз... или даже два. Дешевое и бесполезное оружие. Но в умелых руках так же является бесполезным.',
+      description: 'Ветки, наспех связанные сорванной в попыхах травой в своего большого собрата. Выглядит кривой, как культя дряхлой старухи. Бьет так же - небольно и сразу ломается. Удовольствие на один раз. Не подходит в качестве чесалки для спины, но подходит для того, что бы выколоть кому-нибудь глаз... или даже два. Дешевое и бесполезное оружие. Но в умелых руках так же является бесполезным.',
       count: 1,
       cost: [
         {name: 'Трава', engName: 'grass', count: 20},
         {name: 'Ветка', engName: 'stick', count: 12}
       ],
       type: 'weapon',
+      weaponType: 'right',
+      durability: 1,
       info: [
         {name: 'Урон', engName: 'damage', value: 3},
-        {name: 'Прочность', engName: 'durability', value: 1},
+        {name: 'Прочность', engName: 'startedDurability', value: 1},
         {name: 'Скорость', engName: 'speed', value: 30},
         {name: 'Броня', engName: 'armor', value: -6},
       ],
+      isEquipped: false
     },
     {
       name: 'Травяная панамка',
@@ -291,12 +619,15 @@ const recipes = reactive({
         {name: 'Трава', engName: 'grass', count: 160},
       ],
       type: 'armor',
+      bodyType: 'head',
+      durability: 10,
       info: [
         {name: 'Урон', engName: 'damage', value: 0},
-        {name: 'Прочность', engName: 'durability', value: 10},
+        {name: 'Прочность', engName: 'startedDurability', value: 10},
         {name: 'Скорость', engName: 'speed', value: 0},
         {name: 'Броня', engName: 'armor', value: 1},
       ],
+      isEquipped: false
     },
     {
       name: 'Простой травяной бинт',
@@ -315,13 +646,25 @@ const recipes = reactive({
       ],
     },
   ],
+  /** todo проверить везде, что бы ресурсы в бабл передавались не по ссылке!
+   *  todo после создания, рабора и нового создания в рецептах где-то что-то передается по ссылке и по этому в самом рецепте ставится ресурс в 0, тип можно создать его
+   *    бесплатно, хотя нихуя*/
   create(recipe) {
-    if (player.isResourcesToCreateEnough(recipe.cost)) {
-      recipe.cost.forEach(resource => {
+    console.clear()
+    const recipeToCreate = player.getObjectCopy(recipe)
+    console.log('Рецепт на создание', recipeToCreate)
+
+    if (player.isResourcesToCreateEnough(recipeToCreate.cost)) {
+      console.log('Достаточно ресурсов для создания')
+      recipeToCreate.cost.forEach(resource => {
+        console.log('ресурс из рецепта, который надо потратить', resource)
+        resource.type = 'resource'
         player.decreaseResource(resource)
+        player.showResourceBubble(resource, 'resourceDecrease')
       })
 
-      player.addResource(Object.assign({}, recipe))
+      player.addItem(recipeToCreate)
+      player.showResourceBubble(recipeToCreate, 'itemCreated')
     }
   },
   addRecipe() {
@@ -331,7 +674,7 @@ const recipes = reactive({
 </script>
 
 <template>
-  <Map :player="player" :locations="locations" />
+  <Map :player="player" :locations="locations" :resourcesBubbles="resourcesBubbles" />
   <UI :inventory="player.inventory" :recipes="recipes" :player="player" />
 </template>
 

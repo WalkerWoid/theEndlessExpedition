@@ -6,8 +6,6 @@ import Recipe from "@/components/UI/MainUi/Recipe.vue";
 import {ref} from "vue";
 
 const definedProps = defineProps(['recipes', 'player'])
-const recipeInfoRef = ref(null) // удалить
-const isItemCreated = ref(false) // удалить
 
 const types = {
   armor: 'броня',
@@ -79,7 +77,7 @@ const types = {
   transition-duration: var(--transition);
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 0 12px;
 }
 
 .info__row {

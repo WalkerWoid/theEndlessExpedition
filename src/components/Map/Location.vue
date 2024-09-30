@@ -4,7 +4,6 @@
 import {computed} from "vue";
 
 const definedProps = defineProps(['location', 'player'])
-const definedEmits = defineEmits(['showResourceBubble'])
 const locationStyle = computed(() => {
   return {
     top: `${definedProps.location.coords[0]}px`,
@@ -20,19 +19,28 @@ const hoverEffectSrc = computed(() => {
 /**
  * Фарм ресурса при клике на соответствующую кнопку */
 const farmResource = () => {
-  // console.log('------------')
-  if (definedProps.location.resources.length === 0) return
+  const isLocationHasResources = () => {
+    return definedProps.location.resources.length !== 0
+  }
+  const getResource = (locationResources, randomValForResource) => {
+    return locationResources.find(resource => {
+      return resource.chance[0] <= randomValForResource && resource.chance[1] >= randomValForResource
+    })
+  }
+
+  if (!isLocationHasResources()) {
+    console.log('Ресурсов в локации нет!')
+    return
+  }
 
   const locationResources = definedProps.location.resources
   const randomValForResource = getRandomByRange([0, 100])
-  const resource = locationResources.find(resource => {
-    return resource.chance[0] <= randomValForResource && resource.chance[1] >= randomValForResource
-  })
-  let count = getRandomByRange(resource.count)
-  const newResource = getNewResource(resource, count)
+  const resource = getResource(locationResources, randomValForResource)
+  let resourceCount = getRandomByRange(resource.count)
+  const newResource = getCockedResource(resource, resourceCount)
 
   definedProps.player.addResource(newResource)
-  definedEmits('showResourceBubble', Object.assign({}, newResource))
+  definedProps.player.showResourceBubble(newResource, 'farm')
 }
 const getRandomByRange = (range) => {
   const [min, max] = range
@@ -41,8 +49,10 @@ const getRandomByRange = (range) => {
 
 /**
  * Получение объекта ресурса, который будет передаваться игроку в инвентарь */
-const getNewResource = (resource, count) => {
-  const newResource = Object.assign({}, resource)
+const getCockedResource = (resource, count) => {
+  console.log('Сырой ресурс, приходящий в getNewResource', resource)
+
+  const newResource = definedProps.player.getObjectCopy(resource)
   delete newResource.chance
   newResource.count = count
 

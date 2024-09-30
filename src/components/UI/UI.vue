@@ -5,7 +5,7 @@
 import {reactive} from "vue";
 import Recipes from "@/components/UI/MainUi/Recipes.vue";
 import Inventory from "@/components/UI/MainUi/Inventory.vue";
-import Profile from "@/components/UI/MainUi/Profile.vue";
+import Status from "@/components/UI/MainUi/Status.vue";
 
 const definedProps = defineProps(['inventory', 'recipes', 'player'])
 
@@ -51,8 +51,8 @@ const mainButtons = [
   },
   {
     name: 'Статус',
-    engName: 'profile',
-    component: Profile,
+    engName: 'status',
+    component: Status,
   }
 ]
 
@@ -99,7 +99,7 @@ const toggleVisibility = (window) => {
               происходит два раза. Вынести getActiveBtn('mainWindow', mainButtons) в отдельную переменную -->
       <Component :is="getActiveBtn('mainWindow', mainButtons)"
                  v-if="getActiveBtn('mainWindow', mainButtons).__name === 'Inventory'"
-                 :inventory="player.inventory"
+                 :player="player"
       />
 
       <Component :is="getActiveBtn('mainWindow', mainButtons)"
@@ -108,7 +108,9 @@ const toggleVisibility = (window) => {
       />
 
       <Component :is="getActiveBtn('mainWindow', mainButtons)"
-                 v-else />
+                 v-else-if="getActiveBtn('mainWindow', mainButtons).__name === 'Status'"
+                 :player="player"
+      />
     </div>
   </div>
 </template>
@@ -167,6 +169,6 @@ const toggleVisibility = (window) => {
   transform: translateY(0);
 }
 .ui__window._main._closed {
-  transform: translateY(100%);
+  transform: translateY(calc(100% + 62px));
 }
 </style>

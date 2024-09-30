@@ -2,40 +2,29 @@
 /**
  * Компонент отдельного рецепта */
 
-import {ref, onMounted} from "vue";
+import {ref, onMounted, onUpdated} from "vue";
 const definedProps = defineProps(['recipes', 'recipe', 'player', 'types'])
 const isItemCreated = ref(false)
 const recipeInfoRef = ref(null)
+
 
 onMounted(() => {
   initInfoHeight()
 })
 
 /**
- * Получение определенного ресурса из инвентаря по имени */
-const getResource = (resourceEngName) => {
-  return definedProps.player.inventory.find(resource => resource.engName === resourceEngName)
-}
-
-/**
  * Определяет, хватает ли определенного ресурса для крафта */
-const isResourceEnoughToCraft = (resourceEngName, resourceCount) => {
-  return getResource(resourceEngName) ? getResource(resourceEngName).count >= resourceCount : false
+const isResourceEnoughToCraft = (resource, recipeResourceCount) => {
+  const inventoryResource = definedProps.player.getInventoryResource(resource)
+  return inventoryResource ? inventoryResource.count >= recipeResourceCount : false
 }
 
 /**
- * Получение количества определенного ресурса, нужного для крафта */
-const getResourceCount = (resourceEngName) => {
-  return getResource(resourceEngName) ? getResource(resourceEngName).count : 0
+ * Получение количества определенного ресурса из инвентаря, нужного для отображения общего количество такого ресурса */
+const getInventoryResourceCount = (resource) => {
+  const neededResource = definedProps.player.getInventoryResource(resource)
+  return neededResource ? neededResource.count : 0
 }
-
-/**
- * Показывает удачно создан предмет или нет */
-const showCreatedItemCount = (recipe) => {
-  if (definedProps.player.isResourcesToCreateEnough(recipe.cost))
-    isItemCreated.value = true
-}
-
 
 /**
  * Установка высоты окна с информацией о предмете в 0 */
@@ -97,9 +86,9 @@ const itemCreate = (recipe) => {
       <ul class="recipe__cost">
         <li v-for="resource of recipe.cost"
             class="_little main__texture"
-            :class="{_green: isResourceEnoughToCraft(resource.engName, resource.count),
-                       _red: !isResourceEnoughToCraft(resource.engName, resource.count)}">
-          {{resource.name}}: {{resource.count}} ({{ getResourceCount(resource.engName) }})
+            :class="{_green: isResourceEnoughToCraft(resource, resource.count),
+                       _red: !isResourceEnoughToCraft(resource, resource.count)}">
+          {{resource.name}}: {{resource.count}} ({{ getInventoryResourceCount(resource) }})
         </li>
       </ul>
     </div>

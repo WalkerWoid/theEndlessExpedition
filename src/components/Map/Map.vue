@@ -2,21 +2,9 @@
 /**
  * Компонент карты */
 import Location from "@/components/Map/Location.vue";
-import {ref} from "vue";
 
-const definedProps = defineProps(['player', 'locations'])
-const resourcesBubbleContainerRef = ref(null)
-const resourcesBubbles = ref([])
+const definedProps = defineProps(['player', 'locations', 'resourcesBubbles'])
 
-/**
- * Показывает всплывающий зафармленный ресурс */
-const showResourceBubble = (resource) => {
-  resourcesBubbles.value.unshift(resource)
-
-  const timeOut = setTimeout(() => {
-    resourcesBubbles.value.pop()
-  }, 2400)
-}
 </script>
 
 <template>
@@ -27,13 +15,22 @@ const showResourceBubble = (resource) => {
               :location="location"
               :key="location.id"
               :player="player"
-              @showResourceBubble="showResourceBubble"
     />
   </div>
 
-  <ul class="resourceBubbles__container" ref="resourcesBubbleContainerRef">
+  <ul class="resourceBubbles__container">
     <li v-for="resource of resourcesBubbles" class="main__texture _little">
-      {{resource.name}}: {{resource.count}}
+      <template v-if="resource.type === 'resource'">
+        <span v-if="resource.action === 'resourceDecrease'" class="_red">-</span>
+        <span v-if="resource.action === 'farm'" class="_green">+</span> {{resource.name}}: {{resource.count}}
+      </template>
+      <template v-if="resource.type==='armor' || resource.type==='weapon' || resource.type==='medical'">
+        <span v-if="resource.action === 'alreadyEquipped'" class="_green">Уже надето:</span>
+        <span v-if="resource.action === 'itemCreated'" class="_green">Создано:</span>
+        <span v-if="resource.action === 'takeOffItem'" class="_red">Снято:</span>
+        <span v-if="resource.action === 'notEquipped'" class="_red">Этот предмет не надет:</span>
+        <span v-if="resource.action === 'putOnItem'" class="_green">Надето:</span> {{resource.name}}
+      </template>
     </li>
   </ul>
 </template>
