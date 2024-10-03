@@ -151,24 +151,25 @@ const player = reactive({
       ],
       isEquipped: false
     },
-    // {
-    //   name: 'Каменный нагрудник',
-    //   engName: 'stoneChest',
-    //   description: 'Носите, если хотите накачать грудные мышцы.',
-    //   count: 2,
-    //   cost: [
-    //     {name: 'Трава', engName: 'grass', count: 160},
-    //   ],
-    //   type: 'armor',
-    //   bodyType: 'body',
-    //   durability: 20,
-    //   info: [
-    //     {name: 'Урон', engName: 'damage', value: 0},
-    //     {name: 'Прочность', engName: 'startedDurability', value: 20},
-    //     {name: 'Скорость', engName: 'speed', value: 0},
-    //     {name: 'Броня', engName: 'armor', value: 1},
-    //   ],
-    // },
+    {
+      name: 'Каменный нагрудник',
+      engName: 'stoneChest',
+      description: 'Носите, если хотите накачать грудные мышцы.',
+      count: 2,
+      cost: [
+        {name: 'Трава', engName: 'grass', count: 160, type: 'resource'},
+      ],
+      type: 'armor',
+      bodyType: 'body',
+      durability: 20,
+      info: [
+        {name: 'Урон', engName: 'damage', value: 0},
+        {name: 'Прочность', engName: 'startedDurability', value: 20},
+        {name: 'Скорость', engName: 'speed', value: 0},
+        {name: 'Броня', engName: 'armor', value: 1},
+      ],
+      isEquipped: false
+    },
   ],
   body: {
     head: false,
@@ -367,10 +368,11 @@ const player = reactive({
 
     const itemOnBody = this.getPartOfBody(item.bodyType)
     console.log('Предмет на теле(itemOnBody)', itemOnBody)
-    const inventoryItem = this.getInventoryItem(itemOnBody)
+    let inventoryItem = this.getInventoryItem(itemOnBody)
     console.log('Надетый предмет, который должен быть в инвентаре. Ищется по имени и дурабилити(inventoryItem)', inventoryItem)
     const equippedItemInInventory = this.inventory.find(iItem => iItem.engName === item.engName
-        && iItem.isEquipped === item.isEquipped)
+        && iItem.isEquipped === item.isEquipped) // нужно для того, что бы чистить isEquipped, когда снимаем поломанный
+                                                 // предмет при условии, что надели его из стака целых
     console.log('Надетый предмет в инвентаре', equippedItemInInventory)
 
     if (!itemOnBody) {
@@ -395,24 +397,18 @@ const player = reactive({
       inventoryItem.isEquipped = false
       item.isEquipped = false
 
-      console.log('Такой предмет существует в инвентаре')
-      if (durability === startedDurability) {
-        console.log('Предмет целёхонький, возвращаем его в инвентарь к существующему')
-
-        inventoryItem.count += 1
-        this.clearPartOfBody(itemOnBody.bodyType)
-      } else {
-        console.log('Предмет сломан, создаем копию с другим дурабилити')
-
+      if (equippedItemInInventory)
         equippedItemInInventory.isEquipped = false
-        this.addBrokenItem(item)
-        this.clearPartOfBody(item.bodyType)
-      }
+
+      inventoryItem.count += 1
+      this.clearPartOfBody(itemOnBody.bodyType)
     } else {
       console.log('Предмета нет, создаем его в инвентаре')
       itemOnBody.isEquipped = false
+
       if (equippedItemInInventory)
         equippedItemInInventory.isEquipped = false
+
       this.addBrokenItem(this.getObjectCopy(itemOnBody))
       this.clearPartOfBody(itemOnBody.bodyType)
     }
@@ -420,13 +416,14 @@ const player = reactive({
     this.showResourceBubble(itemOnBody, 'takeOffItem')
   },
   getItemInfo(item, typeOfInfo) {
+    console.log(item.info.find(info => info.engName === typeOfInfo))
     return item.info.find(info => info.engName === typeOfInfo)
   },
   addBrokenItem(item) {
     item.count = 1
     this.inventory.push(item)
   },
-  /** сюда опять какие-то ебучие ссылки приходят блять ааааааааа */
+  /** todo при поломке предмета убирать еще его актуальную версию в инвентаре */
   destroyItemHandler(item) {
     console.clear()
     console.log('Разбираем предмет:', item)

@@ -52,7 +52,17 @@ const clearActiveResource = () => {
   <div class="ui__subWindow" v-else>
     <ul class="inventory">
       <!--  todo для каждого ресурса нарисовать свою иконку вместо того, что бы выводить названия. Названия выводить при ховере через title  -->
-      <li v-for="resource of player.inventory" class="resource" @click="setActiveResource(resource); console.log(activeResource)" :title="resource.durability ? `Оставшаяся прочность: ${resource.durability}` : ''">
+      <!--  todo сделать отдельный метод для проверки цвета  -->
+      <li v-for="resource of player.inventory"
+          class="resource"
+          @click="setActiveResource(resource); console.log(activeResource)"
+          :title="resource.durability ? `Оставшаяся прочность: ${resource.durability}` : ''"
+          :class="{
+            '_green': resource.isEquipped,
+            '_orange': resource.info ? resource.durability < player.getItemInfo(resource, 'startedDurability').value && resource.durability >= (Math.floor(player.getItemInfo(resource, 'startedDurability').value/2)) : '',
+            '_red': resource.info ? resource.durability < (Math.floor(player.getItemInfo(resource, 'startedDurability').value/2)) : '',
+          }"
+      >
         {{resource.name}}: {{resource.count}}
       </li>
     </ul>
