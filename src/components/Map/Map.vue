@@ -29,6 +29,7 @@ const definedProps = defineProps(['player', 'locations', 'resourcesBubbles'])
         <span v-if="resource.action === 'itemCreated'" class="_green">Создано:</span>
         <span v-if="resource.action === 'takeOffItem'" class="_red">Снято:</span>
         <span v-if="resource.action === 'notEquipped'" class="_red">Этот предмет не надет:</span>
+        <span v-if="resource.action === 'itemDestroy'" class="_red">Разобрано:</span>
         <span v-if="resource.action === 'putOnItem'" class="_green">Надето:</span> {{resource.name}}
       </template>
     </li>

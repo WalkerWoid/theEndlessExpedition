@@ -2,14 +2,17 @@
 /**
  * Главный компонент игры */
 
-import {ref, reactive} from "vue";
+import {ref, reactive, toRaw} from "vue";
 import Map from "@/components/Map/Map.vue";
 import UI from "@/components/UI/UI.vue";
 
 const resourcesBubbles = ref([])
 
+/** todo по нормальному переписать доку */
 /**
  * Объект игрока.
+ *
+ * @typedef {Object} Player
  *
  * @property {string} [name] - Имя игрока на русском
  * @property {number} [health] - Здоровье
@@ -17,7 +20,7 @@ const resourcesBubbles = ref([])
  * @property {number} [water] - Вода
  * @property {string} [engName] - Имя игрока на английском
  * @property {string} [currentLocation] - engName локации, на которой находится игрок
- * @property {array} [inventory] - Инвентарь со всеми ресурсами, предметами и так далее
+ * @property {array} inventory - Инвентарь со всеми ресурсами, предметами и так далее
  *           Ресурс должен быть вот в таком виде: {
  *             name: 'Трава',
  *             engName: 'grass',
@@ -28,7 +31,7 @@ const resourcesBubbles = ref([])
  * @property {object} [body] Объект тела со всеми надетыми предметами на персонажа
  *
  * Методы смены локаций:
- * @method [moveLocation] - Переход в другую локацию
+ * @property [function():void] moveLocation - Переход в другую локацию
  * @method [getLocation] - Получение локации из массива locations по имени
  * @method [toggleCurrentLocation] - Смена isCurrent значений локаций и currentLocation игрока
  *
@@ -39,6 +42,7 @@ const resourcesBubbles = ref([])
  * @method [addSomeToInventory] - Добавление чего-либо нового в инвентарь. Через push
  * @method [getInventoryResource] - Получение ресурса, который находится в инвентаре
  * @method [showResourceBubble] - Добавление уведомления о ресурсе или предмете в бабл ресурсов
+ * @method [isResourcesToCreateEnough] - достаточно ли ресурса на создание предмета
  *
  * Методы работы с предметами
  * @method [addItem] - Добавление предмета в инвентарь
@@ -49,17 +53,15 @@ const resourcesBubbles = ref([])
  * @method [putOnItemHandler] - метод надевания предмета со всеми проверками
  * @method [putOnItem] - метод надевания предмета в слот тела
  * @method [takeOffItem] - снять предмет
- *
- * @method [addBrokenItem] - добавление сломанного предмета в инвентарь
  * @method [getItemInfo] - получение какой либо информации из массива info предмета
- * @method [isResourcesToCreateEnough] - достаточно ли ресурса на создание предмета
+ * @method [addBrokenItem] - добавление сломанного предмета в инвентарь
+ * @method [destroyItemHandler] - метод разбора предмета со всеми проверками
+ * @method [destroyItem] - разобрать именно предмет
+ * @method [removeItem] - удаляет предмет из инвентаря
+ *
  * @method [clearPartOfBody] - установка определенной части тела в false(ничего не надето)
  * @method [getObjectCopy] - Возвращает копию объекта
- * @method [destroyItem] - разобрать предмет.
- * @method [removeItem] - удаляет предмет из инвентаря.
- *
  * */
-
 const player = reactive({
   name: 'Роуг Уолкер',
   health: 200,
@@ -78,7 +80,7 @@ const player = reactive({
       description: 'Будет выглядеть модно, если вы полугодовалый ребенок. Можно надеть сразу поверх вашего скафандра на смех всем полугодовалым детям в радиусе этого континента.',
       count: 10,
       cost: [
-        {name: 'Трава', engName: 'grass', count: 160},
+        {name: 'Трава', engName: 'grass', count: 160, type: 'resource'},
       ],
       type: 'armor',
       bodyType: 'head',
@@ -97,11 +99,30 @@ const player = reactive({
       description: 'Будет выглядеть модно, если вы полугодовалый ребенок. Можно надеть сразу поверх вашего скафандра на смех всем полугодовалым детям в радиусе этого континента.',
       count: 1,
       cost: [
-        {name: 'Трава', engName: 'grass', count: 160},
+        {name: 'Трава', engName: 'grass', count: 160, type: 'resource'},
       ],
       type: 'armor',
       bodyType: 'head',
       durability: 5,
+      info: [
+        {name: 'Урон', engName: 'damage', value: 0},
+        {name: 'Прочность', engName: 'startedDurability', value: 10},
+        {name: 'Скорость', engName: 'speed', value: 0},
+        {name: 'Броня', engName: 'armor', value: 1},
+      ],
+      isEquipped: false
+    },
+    {
+      name: 'Травяная панамка',
+      engName: 'herbalPanamaHat',
+      description: 'Будет выглядеть модно, если вы полугодовалый ребенок. Можно надеть сразу поверх вашего скафандра на смех всем полугодовалым детям в радиусе этого континента.',
+      count: 1,
+      cost: [
+        {name: 'Трава', engName: 'grass', count: 160, type: 'resource'},
+      ],
+      type: 'armor',
+      bodyType: 'head',
+      durability: 3,
       info: [
         {name: 'Урон', engName: 'damage', value: 0},
         {name: 'Прочность', engName: 'startedDurability', value: 10},
@@ -116,7 +137,8 @@ const player = reactive({
       description: 'Носите, если хотите накачать шею.',
       count: 10,
       cost: [
-        {name: 'Трава', engName: 'grass', count: 160},
+        {name: 'Трава', engName: 'grass', count: 160, type: 'resource'},
+        {name: 'Камешки', engName: 'smallStones', count: 20, type: 'resource'},
       ],
       type: 'armor',
       bodyType: 'head',
@@ -158,6 +180,10 @@ const player = reactive({
     leftLeg: false,
     rightLeg: false
   },
+  /** Переход в другую локацию
+   *
+   * @param {string} locationName - имя локации, в которую будет происходить переход
+   * @returns {void} */
   moveLocation(locationName) {
     const isLocationCurrent = () => {
       return locationName === this.currentLocation
@@ -184,7 +210,7 @@ const player = reactive({
   },
 
   addResource(resource) {
-    console.clear()
+    // console.clear()
     console.log('Ресурс для добавления в инвентарь, который приходит после обработки:', resource)
     console.log('Добавляем обычный ресурс')
 
@@ -225,9 +251,28 @@ const player = reactive({
     resourcesBubbles.value.unshift(cockedResource)
     console.log('бабл ресурсов:', resourcesBubbles.value)
 
-    // const timeOut = setTimeout(() => {
-    //   resourcesBubbles.value.pop()
-    // }, 2400)
+    const timeOut = setTimeout(() => {
+      resourcesBubbles.value.pop()
+    }, 2400)
+  },
+  isResourcesToCreateEnough(recipeCost) {
+    const resourceConditions = []
+
+    recipeCost.forEach(resource => {
+      if (!this.getInventoryResource(resource)) {
+        resourceConditions.push(false)
+
+        return
+      }
+
+      if (resource.count <= this.getInventoryResource(resource).count) {
+        resourceConditions.push(true)
+      } else {
+        resourceConditions.push(false)
+      }
+    })
+
+    return resourceConditions.filter(condition => condition === false).length === 0
   },
 
   addItem(item) {
@@ -324,6 +369,9 @@ const player = reactive({
     console.log('Предмет на теле(itemOnBody)', itemOnBody)
     const inventoryItem = this.getInventoryItem(itemOnBody)
     console.log('Надетый предмет, который должен быть в инвентаре. Ищется по имени и дурабилити(inventoryItem)', inventoryItem)
+    const equippedItemInInventory = this.inventory.find(iItem => iItem.engName === item.engName
+        && iItem.isEquipped === item.isEquipped)
+    console.log('Надетый предмет в инвентаре', equippedItemInInventory)
 
     if (!itemOnBody) {
       console.log('Никакой Предмет не надет. Ничего не снимаем')
@@ -356,52 +404,30 @@ const player = reactive({
       } else {
         console.log('Предмет сломан, создаем копию с другим дурабилити')
 
+        equippedItemInInventory.isEquipped = false
         this.addBrokenItem(item)
         this.clearPartOfBody(item.bodyType)
       }
     } else {
       console.log('Предмета нет, создаем его в инвентаре')
       itemOnBody.isEquipped = false
+      if (equippedItemInInventory)
+        equippedItemInInventory.isEquipped = false
       this.addBrokenItem(this.getObjectCopy(itemOnBody))
       this.clearPartOfBody(itemOnBody.bodyType)
     }
 
     this.showResourceBubble(itemOnBody, 'takeOffItem')
   },
-
+  getItemInfo(item, typeOfInfo) {
+    return item.info.find(info => info.engName === typeOfInfo)
+  },
   addBrokenItem(item) {
     item.count = 1
     this.inventory.push(item)
   },
-  getItemInfo(item, typeOfInfo) {
-    return item.info.find(info => info.engName === typeOfInfo)
-  } ,
-  isResourcesToCreateEnough(recipeCost) {
-    const resourceConditions = []
-
-    recipeCost.forEach(resource => {
-      if (!this.getInventoryResource(resource)) {
-        resourceConditions.push(false)
-
-        return
-      }
-
-      if (resource.count <= this.getInventoryResource(resource).count) {
-        resourceConditions.push(true)
-      } else {
-        resourceConditions.push(false)
-      }
-    })
-
-    return resourceConditions.filter(condition => condition === false).length === 0
-  },
-  clearPartOfBody(partOfBody) {
-    this.body[partOfBody] = false
-  },
-  getObjectCopy(object) {
-    return Object.assign({}, object)
-  },
-  destroyItem(item) {
+  /** сюда опять какие-то ебучие ссылки приходят блять ааааааааа */
+  destroyItemHandler(item) {
     console.clear()
     console.log('Разбираем предмет:', item)
     const itemStartedDurability = this.getItemInfo(item, 'startedDurability').value
@@ -414,31 +440,73 @@ const player = reactive({
 
     if (isItemFull()) {
       console.log('Разбираем целый предмет')
-      item.cost.forEach(resource => {
-        resource.action = 'farm'
-        console.log(resource)
-        this.showResourceBubble(resource)
+      this.destroyItem(this.getObjectCopy(item))
 
-        this.addResource(resource)
-        console.log(this.inventory)
-      })
       item.count -= 1
-
       if (item.count === 0)
         this.removeItem(item)
+      return
+    }
+    if (isItemHalf()) {
+      console.log('Разбираем половину предмета')
+      this.destroyItem(this.getObjectCopy(item), 'half')
+
+      item.count -= 1
+      if (item.count === 0)
+        this.removeItem(item)
+      return
     }
 
-    // console.log(isItemFull())
-    // console.log(isItemHalf())
+    console.log('Разбираем сломанный предмет')
+    this.destroyItem(this.getObjectCopy(item), 'damaged')
+    item.count -= 1
+    if (item.count === 0)
+      this.removeItem(item)
   },
-
-
+  destroyItem(item, itemDurabilityType = 'full') {
+    switch (itemDurabilityType) {
+      case 'full':
+        console.log('full')
+        item.cost.forEach(resource => {
+          this.addResource(resource)
+          this.showResourceBubble(resource, 'farm')
+        })
+        this.showResourceBubble(item, 'itemDestroy')
+        break
+      case 'half':
+        console.log('half')
+        item.cost.forEach(resource => {
+          resource.count = Math.floor(resource.count/2)
+          this.addResource(resource)
+          this.showResourceBubble(resource, 'farm')
+        })
+        this.showResourceBubble(item, 'itemDestroy')
+        break
+      case 'damaged':
+        console.log('damaged')
+        item.cost.forEach(resource => {
+          resource.count = Math.floor(resource.count * 0.25)
+          this.addResource(resource)
+          this.showResourceBubble(resource, 'farm')
+        })
+        this.showResourceBubble(item, 'itemDestroy')
+        break
+      default: return
+    }
+  },
   removeItem(item) {
     console.log('Удаляем: ', item, 'из инвентаря', this.inventory)
     const itemToDelete = this.getInventoryItem(item)
     const itemIndex = this.inventory.indexOf(itemToDelete)
     console.log('Индекс удаляемого предмета', itemIndex)
     this.inventory.splice(itemIndex, 1)
+  },
+
+  clearPartOfBody(partOfBody) {
+    this.body[partOfBody] = false
+  },
+  getObjectCopy(object) {
+    return structuredClone(toRaw(object))
   },
 })
 
@@ -537,8 +605,8 @@ const locations = ref([
  *  description: 'Ветки, наспех связанные сорванной в попыхах травой в своего большого собрата. Выглядит кривой, как культя дряхлой старухи. Бьет так же - небольно и сразу ломается. Не подходит в качестве чесалки для спины, но подходит для того, что бы выколоть кому-нибудь глаз... или даже два. Дешевое и бесполезное оружие. Но в умелых руках так же является бесполезным.',
  *  count: 1,
  *  cost: [
- *    {name: 'Трава', engName: 'grass', count: 20},
- *    {name: 'Ветка', engName: 'stick', count: 12}
+ *    {name: 'Трава', engName: 'grass', count: 20, type: 'resource'},
+ *    {name: 'Ветка', engName: 'stick', count: 12, type: 'resource'}
  *  ],
  *  type: 'weapon',
  *  weaponType: 'right',
@@ -568,8 +636,8 @@ const locations = ref([
  *  count: 1,
  *  type: 'medical',
  *  cost: [
- *    {name: 'Трава', engName: 'grass', count: 40},
- *    {name: 'Обычный цветок', engName: 'commonFlower', count: 40},
+ *    {name: 'Трава', engName: 'grass', count: 40, type: 'resource'},
+ *    {name: 'Обычный цветок', engName: 'commonFlower', count: 40, type: 'resource'},
  *  ],
  *  info: [
  *    {name: 'Количество использований', engName: 'numberUses', value: 1},
@@ -596,8 +664,8 @@ const recipes = reactive({
       description: 'Ветки, наспех связанные сорванной в попыхах травой в своего большого собрата. Выглядит кривой, как культя дряхлой старухи. Бьет так же - небольно и сразу ломается. Удовольствие на один раз. Не подходит в качестве чесалки для спины, но подходит для того, что бы выколоть кому-нибудь глаз... или даже два. Дешевое и бесполезное оружие. Но в умелых руках так же является бесполезным.',
       count: 1,
       cost: [
-        {name: 'Трава', engName: 'grass', count: 20},
-        {name: 'Ветка', engName: 'stick', count: 12}
+        {name: 'Трава', engName: 'grass', count: 20, type: 'resource'},
+        {name: 'Ветка', engName: 'stick', count: 12, type: 'resource'}
       ],
       type: 'weapon',
       weaponType: 'right',
@@ -616,7 +684,7 @@ const recipes = reactive({
       description: 'Будет выглядеть модно, если вы полугодовалый ребенок. Можно надеть сразу поверх вашего скафандра на смех всем полугодовалым детям в радиусе этого континента.',
       count: 1,
       cost: [
-        {name: 'Трава', engName: 'grass', count: 160},
+        {name: 'Трава', engName: 'grass', count: 160, type: 'resource'},
       ],
       type: 'armor',
       bodyType: 'head',
@@ -635,8 +703,8 @@ const recipes = reactive({
       description: 'Трава, связанная травой и украшенная тремя разноцветными цветами. Никакой пропаганды. Лечит так же, как и выглядит - на все 5 процентов. Хороший шанс получить какое-нибудь заражение. Проще будет помочиться на рану.',
       count: 1,
       cost: [
-        {name: 'Трава', engName: 'grass', count: 40},
-        {name: 'Обычный цветок', engName: 'commonFlower', count: 3},
+        {name: 'Трава', engName: 'grass', count: 40, type: 'resource'},
+        {name: 'Обычный цветок', engName: 'commonFlower', count: 3, type: 'resource'},
       ],
       type: 'medical',
       info: [
@@ -646,9 +714,6 @@ const recipes = reactive({
       ],
     },
   ],
-  /** todo проверить везде, что бы ресурсы в бабл передавались не по ссылке!
-   *  todo после создания, рабора и нового создания в рецептах где-то что-то передается по ссылке и по этому в самом рецепте ставится ресурс в 0, тип можно создать его
-   *    бесплатно, хотя нихуя*/
   create(recipe) {
     console.clear()
     const recipeToCreate = player.getObjectCopy(recipe)

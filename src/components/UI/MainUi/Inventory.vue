@@ -70,9 +70,8 @@ const clearActiveResource = () => {
         <p class="_little">{{activeResource.name}}(прочность: {{activeResource.durability}}):</p>
 
         <div class="resource__actions">
-          <button type="button" @click="player.destroyItem(activeResource); clearActiveResource()">Разобрать</button>
+          <button type="button" @click="player.destroyItemHandler(activeResource); clearActiveResource()">Разобрать</button>
           <button type="button" @click="player.putOnItemHandler(activeResource); clearActiveResource()">Надеть</button>
-<!--          <button type="button" @click="player.takeOffItem(player.getPartOfBody(activeResource.bodyType))">Снять</button>-->
           <button type="button" @click="player.takeOffItem(activeResource); clearActiveResource()">Снять</button>
         </div>
       </template>
