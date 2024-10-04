@@ -2,7 +2,7 @@
 /**
  * Компонент UI */
 
-import {reactive} from "vue";
+import {computed, reactive} from "vue";
 import Recipes from "@/components/UI/MainUi/Recipes.vue";
 import Inventory from "@/components/UI/MainUi/Inventory.vue";
 import Status from "@/components/UI/MainUi/Status.vue";
@@ -24,6 +24,9 @@ const uiWindows = reactive({
   mainWindow: {
     visibility: false,
     activeIndex: 0
+  },
+  topWindow: {
+    visibility: false
   },
   setNewActiveIndexToWindow(window, newIndex) {
     this[window].activeIndex = newIndex
@@ -81,10 +84,24 @@ const closeWindow = (window) => {
 const toggleVisibility = (window) => {
   window.visibility = !window.visibility
 }
+
+const healthPercentage = computed(() => {
+  return (definedProps.player.health/definedProps.player.maxHealth) * 100
+})
 </script>
 
 <template>
   <div class="ui">
+    <div class="ui__top main__texture" > <!--:class="{'_hidden': !uiWindows.topWindow.visibility}"-->
+      <p class="_little status__row status__time">Время: 22:00</p>
+      <p class="_little status__row">Здоровье: <span class="status__bar"><span class="_filled" :style="{'width': `${healthPercentage}%`}"></span></span></p>
+      <p class="_little status__row">Еда: <span class="status__bar"></span></p>
+      <p class="_little status__row">Вода: <span class="status__bar"></span></p>
+
+
+      <span @click="toggleVisibility(uiWindows.topWindow)" class="main__texture _big">^</span>
+    </div>
+
     <ul class="ui__buttons">
       <li class="main__btn _lil"
           @click="openWindow(uiWindows.mainWindow); uiWindows.setNewActiveIndexToWindow('mainWindow', index)"
@@ -170,5 +187,55 @@ const toggleVisibility = (window) => {
 }
 .ui__window._main._closed {
   transform: translateY(calc(100% + 62px));
+}
+
+.ui__top {
+  position: absolute;
+  top: 0;
+  //transform: translateX(-100%);
+  transition-duration: var(--transition);
+  z-index: 4;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 4px 8px;
+}
+.ui__top._hidden {
+  opacity: 1;
+  transform: translate(-50%, -100%);
+}
+.ui__top > span {
+  cursor: pointer;
+  position: absolute;
+  top: calc(100%);
+  left: 50%;
+  transform: translateX(-50%) rotate(180deg);
+  width: 16px;
+  height: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.status__row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.status__time {
+  grid-column: span 3;
+  justify-self: center;
+}
+.status__bar {
+  display: flex;
+  flex: 1;
+  min-width: 58px;
+  height: 18px;
+  border: 1px solid var(--border-color);
+}
+.status__bar._filled {
+  //background-color: ;
 }
 </style>

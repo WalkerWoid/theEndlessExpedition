@@ -2,32 +2,67 @@
 /**
  * Главный компонент игры */
 
-import {ref, reactive, toRaw} from "vue";
+import {ref, reactive, toRaw, computed} from "vue";
 import Map from "@/components/Map/Map.vue";
 import UI from "@/components/UI/UI.vue";
 
 const resourcesBubbles = ref([])
 
+/** Получение полного урона, наносимого игроком
+ *
+ * @returns {number} */
+const getFullDamage = computed(() => {
+  let fullDamage = 0
+
+  for (const bodyType in player.body) {
+    player.body[bodyType] ? fullDamage += player.getItemInfo(player.body[bodyType], 'damage').value : fullDamage += 0
+  }
+
+  return fullDamage
+})
+/** Получение полной брони игрока
+ *
+ * @returns {number} */
+const getFullArmor = computed(() => {
+  let fullArmor = 0
+
+  for (const bodyType in player.body) {
+    player.body[bodyType] ? fullArmor += player.getItemInfo(player.body[bodyType], 'armor').value : fullArmor += 0
+  }
+
+  return fullArmor
+})
+/** Получение полной скорости игрока
+ *
+ * @returns {number} */
+const getFullSpeed = computed(() => {
+  let fullSpeed = 0
+
+  for (const bodyType in player.body) {
+    player.body[bodyType] ? fullSpeed += player.getItemInfo(player.body[bodyType], 'speed').value : fullSpeed += 0
+  }
+
+  return fullSpeed
+})
+
 /** todo по нормальному переписать доку */
 /**
  * Объект игрока.
  *
- * @typedef {Object} Player
- *
+ * @typedef {Object} player
  * @property {string} [name] - Имя игрока на русском
  * @property {number} [health] - Здоровье
+ * @property {number} [maxHealth] - Максимальное здоровье
  * @property {number} [food] - Еда
+ * @property {number} [maxFood] - Максимальная еда
  * @property {number} [water] - Вода
+ * @property {number} [maxWater] - Максимальная вода
+ * @property {number} [fullDamage] - Вода
+ * @property {number} [fullArmor] - Вода
+ * @property {number} [fullSpeed] - Вода
  * @property {string} [engName] - Имя игрока на английском
  * @property {string} [currentLocation] - engName локации, на которой находится игрок
- * @property {array} inventory - Инвентарь со всеми ресурсами, предметами и так далее
- *           Ресурс должен быть вот в таком виде: {
- *             name: 'Трава',
- *             engName: 'grass',
- *             count: 20,
- *             type: 'resource',
- *           }
- *           Если это объект оружия или брони, то приходит такой же объект
+ * @property {array} [inventory] - Инвентарь со всеми ресурсами, предметами и так далее
  * @property {object} [body] Объект тела со всеми надетыми предметами на персонажа
  *
  * Методы смены локаций:
@@ -47,7 +82,6 @@ const resourcesBubbles = ref([])
  * Методы работы с предметами
  * @method [addItem] - Добавление предмета в инвентарь
  * @method [getInventoryItem] - Поиск опребеделеного предмета типа оружия или брони по имени и прочности.
- * @method [isAnyItemEquipped] - экипирован ли какой-либо предмет
  * @method [isEqualItemEquipped] - надет ли этот же предмет
  * @method [getPartOfBody] - получение предмета, который сейчас находится на определенной части персонажа.
  * @method [putOnItemHandler] - метод надевания предмета со всеми проверками
@@ -59,14 +93,26 @@ const resourcesBubbles = ref([])
  * @method [destroyItem] - разобрать именно предмет
  * @method [removeItem] - удаляет предмет из инвентаря
  *
+ * Методы работы с телом
  * @method [clearPartOfBody] - установка определенной части тела в false(ничего не надето)
+ *
+ * Методы работы со статусом
+ * not implemented
+ *
+ * Разные второстепенные методы
  * @method [getObjectCopy] - Возвращает копию объекта
  * */
 const player = reactive({
   name: 'Роуг Уолкер',
   health: 200,
+  maxHealth: 200,
   food: 300,
+  maxFood: 300,
   water: 100,
+  maxWater: 100,
+  fullDamage: getFullDamage,
+  fullArmor: getFullArmor,
+  fullSpeed: getFullSpeed,
   engName: 'Rouge Walker',
   currentLocation: 'landingZone',
   inventory: [
@@ -179,7 +225,9 @@ const player = reactive({
     leftWrist: false,
     rightWrist: false,
     leftLeg: false,
-    rightLeg: false
+    rightLeg: false,
+    weapon: false,
+    shield: false
   },
   /** Переход в другую локацию
    *
@@ -303,10 +351,6 @@ const player = reactive({
       }
     })
   },
-  isAnyItemEquipped(item) {
-    /** todo удалить, если не будет нигде использоваться */
-    return this.body[item.bodyType]
-  },
   isEqualItemEquipped(itemToEquip, equippedItem) {
     return itemToEquip.engName === equippedItem.engName
         && itemToEquip.isEquipped === equippedItem.isEquipped
@@ -380,11 +424,7 @@ const player = reactive({
       this.showResourceBubble(item, 'notEquipped')
       return
     }
-    //
-    const startedDurability = this.getItemInfo(itemOnBody, 'startedDurability').value
-    const durability = itemOnBody.durability
 
-    /** Предмет на теле(itemOnBody) должен соответствовать по эквипу, дурабилити и имени с item */
     if (!this.isEqualItemEquipped(item, itemOnBody)) {
       console.log('Выбранный предмет не соответствует тому, котрый будем снимать')
       this.showResourceBubble(item, 'notEquipped')
@@ -416,7 +456,6 @@ const player = reactive({
     this.showResourceBubble(itemOnBody, 'takeOffItem')
   },
   getItemInfo(item, typeOfInfo) {
-    console.log(item.info.find(info => info.engName === typeOfInfo))
     return item.info.find(info => info.engName === typeOfInfo)
   },
   addBrokenItem(item) {
@@ -502,10 +541,13 @@ const player = reactive({
   clearPartOfBody(partOfBody) {
     this.body[partOfBody] = false
   },
+
   getObjectCopy(object) {
     return structuredClone(toRaw(object))
   },
 })
+
+console.log(player.inventory)
 
 /**
  * Массив объектов локаций.
@@ -594,28 +636,6 @@ const locations = ref([
  *                   Для оружия добавляется левая, правая или обе руки.
  *                   Для медицины: Количество использований, Баффы, Дебаффы
  *
- *
- * Пример объекта оружия(у брони такой же, почти):
- * {
- *  name: 'Кривая палка',
- *  engName: 'crookedStick',
- *  description: 'Ветки, наспех связанные сорванной в попыхах травой в своего большого собрата. Выглядит кривой, как культя дряхлой старухи. Бьет так же - небольно и сразу ломается. Не подходит в качестве чесалки для спины, но подходит для того, что бы выколоть кому-нибудь глаз... или даже два. Дешевое и бесполезное оружие. Но в умелых руках так же является бесполезным.',
- *  count: 1,
- *  cost: [
- *    {name: 'Трава', engName: 'grass', count: 20, type: 'resource'},
- *    {name: 'Ветка', engName: 'stick', count: 12, type: 'resource'}
- *  ],
- *  type: 'weapon',
- *  weaponType: 'right',
- *  durability: 1,
- *  info: [
- *    {name: 'Урон', engName: 'damage', value: 3},
- *    {name: 'Начальная прочность', engName: 'startedDurability', value: 1},
- *    {name: 'Скорость', engName: 'speed', value: 30},
- *    {name: 'Броня', engName: 'armor', value: -6},
- *  ],
- * }
- *
  * @property {number} [damage] - урон
  * @property {number} [durability] - прочность
  * @property {number} [startedDurability] - начальная прочность
@@ -624,24 +644,6 @@ const locations = ref([
  * @property {string} [weaponType] - тип оружия: right, left или both
  * @property {string} [bodyType] - часть тела, на которую надевается броня
  * @property {boolean} [isEquipped] - надет ли предмет
- *
- * Пример объекта предмета, восстанавливающего здоровье или влияющее на здоровье:
- * {
- *  name: 'Простой травяной бинт',
- *  engName: 'simpleHerbalBandage',
- *  description: 'Трава, связанная травой и украшенная тремя разноцветными цветами. Никакой пропаганды. Лечит так же, как и выглядит - на все 5 процентов. Хороший шанс получить какое-нибудь заражение. Проще будет помочиться на рану.',
- *  count: 1,
- *  type: 'medical',
- *  cost: [
- *    {name: 'Трава', engName: 'grass', count: 40, type: 'resource'},
- *    {name: 'Обычный цветок', engName: 'commonFlower', count: 40, type: 'resource'},
- *  ],
- *  info: [
- *    {name: 'Количество использований', engName: 'numberUses', value: 1},
- *    {name: 'Полезные свойства', engName: 'positiveEffects', value: []},
- *    {name: 'Неполезные свойства', engName: 'negativeEffects', value: []},
- *  ],
- * }
  *
  * @property {number} [numberUses] - количество использований
  * @property {array} [positiveEffects] - баффы
@@ -665,7 +667,7 @@ const recipes = reactive({
         {name: 'Ветка', engName: 'stick', count: 12, type: 'resource'}
       ],
       type: 'weapon',
-      weaponType: 'right',
+      bodyType: 'weapon',
       durability: 1,
       info: [
         {name: 'Урон', engName: 'damage', value: 3},
