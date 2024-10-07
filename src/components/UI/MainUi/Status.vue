@@ -2,7 +2,6 @@
 /**
  * Компонент окна персонажа */
 
-import {onMounted} from "vue";
 const definedProps = defineProps(['player'])
 
 /**
@@ -18,6 +17,16 @@ const body = {
   rightLeg: 'Правая нога',
   weapon: 'Оружие',
   shield: 'Щит'
+}
+/**
+ * Объект описания негативных эффектов */
+const negativeEffects = {
+
+}
+/**
+ * Объект описания позитивных эффектов */
+const positiveEffects = {
+
 }
 
 /** Получение основной инфы предмета. Отображается при наведении на предмет.
@@ -44,7 +53,7 @@ const getMainInfo = (partOfBody) => {
 
   <div class="player__status">
     <div class="status__row">
-        <p>Имя: {{player.name}}</p>
+      <p>Имя: {{player.name}}</p>
     </div>
 
     <div class="status__row">
@@ -70,8 +79,8 @@ const getMainInfo = (partOfBody) => {
         {{body[key]}}: {{player.getPartOfBody(key) ? player.getPartOfBody(key).name : 'ничего не надето'}}.
         <span class="_little">{{player.getPartOfBody(key) ? 'Осталось прочности: '+player.getPartOfBody(key).durability : ''}}</span>
       </p>
-<!--      <button @click="console.log(player.getPartOfBody(key)); player.getPartOfBody(key).durability *= 0.5">Сломать предмет на половину</button>-->
-<!--      <button @click="console.log(player.getPartOfBody(key)); player.getPartOfBody(key).durability *= 0.25">Сломать предмет на четверть</button>-->
+      <!--      <button @click="console.log(player.getPartOfBody(key)); player.getPartOfBody(key).durability *= 0.5">Сломать предмет на половину</button>-->
+      <!--      <button @click="console.log(player.getPartOfBody(key)); player.getPartOfBody(key).durability *= 0.25">Сломать предмет на четверть</button>-->
     </div>
   </div>
 </template>

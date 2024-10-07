@@ -67,7 +67,6 @@ const getActiveBtn = (window, buttonsArray) => {
   return buttonsArray[activeIndex].component
 }
 
-
 /** todo объединить эти методы в один toggleWindow*/
 const openWindow = (window) => {
   if (!window.visibility) {
@@ -88,17 +87,40 @@ const toggleVisibility = (window) => {
 const healthPercentage = computed(() => {
   return (definedProps.player.health/definedProps.player.maxHealth) * 100
 })
+const foodPercentage = computed(() => {
+  return (definedProps.player.food/definedProps.player.maxFood) * 100
+})
+const waterPercentage = computed(() => {
+  return (definedProps.player.water/definedProps.player.maxWater) * 100
+})
 </script>
 
 <template>
   <div class="ui">
-    <div class="ui__top main__texture" > <!--:class="{'_hidden': !uiWindows.topWindow.visibility}"-->
+    <div class="ui__top main__texture" :class="{'_hidden': !uiWindows.topWindow.visibility}">
       <p class="_little status__row status__time">Время: 22:00</p>
-      <p class="_little status__row">Здоровье: <span class="status__bar"><span class="_filled" :style="{'width': `${healthPercentage}%`}"></span></span></p>
-      <p class="_little status__row">Еда: <span class="status__bar"></span></p>
-      <p class="_little status__row">Вода: <span class="status__bar"></span></p>
+      <p class="_little status__row">
+        <span class="status__bar _health _tiny">
+          <span class="status__value">{{player.health}}</span>
+          <span class="_filled" :style="{'width': `${healthPercentage}%`}"></span>
+        </span>
+      </p>
+      <p class="_little status__row">
+        <span class="status__bar _food _tiny">
+          <span class="status__value">{{player.food}}</span>
+          <span class="_filled" :style="{'width': `${foodPercentage}%`}"></span>
+        </span>
+      </p>
+      <p class="_little status__row">
+        <span class="status__bar _water _tiny">
+          <span class="status__value">{{player.water}}</span>
+          <span class="_filled" :style="{'width': `${waterPercentage}%`}"></span>
+        </span>
+      </p>
 
-
+      <p class="_little status__key" @click="player.health -= 20">здоровье</p>
+      <p class="_little status__key" @click="player.food -= 20">еда</p>
+      <p class="_little status__key" @click="player.water -= 20">вода</p>
       <span @click="toggleVisibility(uiWindows.topWindow)" class="main__texture _big">^</span>
     </div>
 
@@ -192,7 +214,7 @@ const healthPercentage = computed(() => {
 .ui__top {
   position: absolute;
   top: 0;
-  //transform: translateX(-100%);
+//transform: translateX(-100%);
   transition-duration: var(--transition);
   z-index: 4;
   left: 50%;
@@ -228,14 +250,48 @@ const healthPercentage = computed(() => {
   grid-column: span 3;
   justify-self: center;
 }
+
 .status__bar {
+  position: relative;
   display: flex;
   flex: 1;
   min-width: 58px;
   height: 18px;
   border: 1px solid var(--border-color);
+  background-color: var(--border-color);
 }
-.status__bar._filled {
-  //background-color: ;
+.status__key {
+  text-align: center;
+}
+.status__value {
+  position: absolute;
+  inset: 0;
+  text-align: center;
+  color: #fff;
+}
+.status__bar ._filled {
+  transition-duration: var(--transition);
+  display: flex;
+  align-content: center;
+  justify-content: center;
+  color: #ffffff;
+}
+.status__bar._health {
+  background-color: var(--health-empty-color);
+}
+.status__bar._health ._filled {
+  background-color: var(--health-color);
+}
+.status__bar._food {
+  background-color: var(--food-empty-color);
+}
+.status__bar._food ._filled {
+  background-color: var(--food-color);
+}
+.status__bar._water {
+  background-color: var(--water-empty-color);
+}
+.status__bar._water ._filled {
+  background-color: var(--water-color);
 }
 </style>

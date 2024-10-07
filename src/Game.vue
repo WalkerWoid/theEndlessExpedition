@@ -264,7 +264,7 @@ const player = reactive({
     console.log('Добавляем обычный ресурс')
 
     /** todo пока оставил проверку на ресурс или медицину. Когда буду делать медицину, посмотрю, в этом методе оставить
-          или перенести. */
+     или перенести. */
     if (resource.type === 'resource' || resource.type === 'medical') {
 
       if (this.getInventoryResource(resource))

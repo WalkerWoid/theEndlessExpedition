@@ -22,7 +22,12 @@ html, body {
     --main-color: rgb(232, 197, 76);
     --border-color: rgb(182, 148, 37);
     --transition: .4s;
-    /*--health-color:*/
+    --health-color: rgb(72, 6, 7);
+    --health-empty-color: rgb(144, 0, 32);
+    --food-color: rgb(54, 77, 29);
+    --food-empty-color: rgb(68, 148, 74);
+    --water-color: rgb(66, 170, 255);
+    --water-empty-color: rgb(171, 205, 239);
 }
 ::-webkit-scrollbar {
     width: 12px;
