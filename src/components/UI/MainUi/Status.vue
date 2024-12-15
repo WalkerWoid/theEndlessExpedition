@@ -1,8 +1,9 @@
 <script setup>
 /**
  * Компонент окна персонажа */
+import {inject, watch} from "vue";
 
-const definedProps = defineProps(['player'])
+const player = inject('player')
 
 /**
  * Описание частей тела */
@@ -18,32 +19,6 @@ const body = {
   weapon: 'Оружие',
   shield: 'Щит'
 }
-/**
- * Объект описания негативных эффектов */
-const negativeEffects = {
-
-}
-/**
- * Объект описания позитивных эффектов */
-const positiveEffects = {
-
-}
-
-/** Получение основной инфы предмета. Отображается при наведении на предмет.
- *
- * @param {object} partOfBody шмотка, лежащая в какой-то части тела.
- * @returns {string} */
-const getMainInfo = (partOfBody) => {
-  if (!partOfBody) {
-    return 'Информации нет'
-  }
-  const damage = definedProps.player.getItemInfo(partOfBody, 'damage').value
-  const armor = definedProps.player.getItemInfo(partOfBody, 'armor').value
-  const speed = definedProps.player.getItemInfo(partOfBody, 'speed').value
-
-  return `Урон: ${damage}, Броня: ${armor}, Скорость: ${speed}`
-}
-
 </script>
 
 <!-- todo сделать потом в статусе полноценное окно персонажа. ТИпа нарисованный силует перса с расставленными в разные
@@ -61,27 +36,37 @@ const getMainInfo = (partOfBody) => {
     </div>
 
     <div class="status__row">
-      <p>Урон: {{player.fullDamage}}</p>
+      <p>Псевдоним: {{player.secondName}}</p>
     </div>
 
     <div class="status__row">
-      <p>Броня: {{player.fullArmor}}</p>
+      <p>Порядковый номер: {{player.number}}</p>
     </div>
 
     <div class="status__row">
-      <p>Скорость: {{player.fullSpeed}}</p>
+      <p>Статус: {{player.status}}</p>
     </div>
 
-    <div class="status__row" v-for="(part, key) of player.body">
-      <p @click="player.takeOffItem(player.getPartOfBody(key))"
-         :class="{_pointer: player.getPartOfBody(key)}"
-         :title="getMainInfo(part)">
-        {{body[key]}}: {{player.getPartOfBody(key) ? player.getPartOfBody(key).name : 'ничего не надето'}}.
-        <span class="_little">{{player.getPartOfBody(key) ? 'Осталось прочности: '+player.getPartOfBody(key).durability : ''}}</span>
+<!--    <div class="status__row">-->
+<!--      <p>Урон: {{player.fullDamage}}</p>-->
+<!--    </div>-->
+
+<!--    <div class="status__row">-->
+<!--      <p>Броня: {{player.fullArmor}}</p>-->
+<!--    </div>-->
+
+<!--    <div class="status__row">-->
+<!--      <p>Скорость: {{player.fullSpeed}}</p>-->
+<!--    </div>-->
+
+    <div class="status__row" v-for="(part, key) of player.body" :class="{_pointer: player.body[key]}">
+      <p :title="'Осталось прочности ' + player.body[key].durability"
+         @click="player.body[key] && player.takeOffItem(part)">
+        {{body[key]}}: {{player.body[key].name ?? 'Ничего не надето'}}
       </p>
-      <!--      <button @click="console.log(player.getPartOfBody(key)); player.getPartOfBody(key).durability *= 0.5">Сломать предмет на половину</button>-->
-      <!--      <button @click="console.log(player.getPartOfBody(key)); player.getPartOfBody(key).durability *= 0.25">Сломать предмет на четверть</button>-->
+<!--      <button @click="player.body[key].durability -= 2">Минус два прочности</button>-->
     </div>
+
   </div>
 </template>
 

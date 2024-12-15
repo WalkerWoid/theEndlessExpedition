@@ -1,9 +1,13 @@
 <script setup>
 /**
  * Компонент отдельной локации */
-import {computed} from "vue";
 
-const definedProps = defineProps(['location', 'player'])
+import {computed, inject} from "vue";
+
+const player = inject('player')
+const definedProps = defineProps({
+  location: Object
+})
 const locationStyle = computed(() => {
   return {
     top: `${definedProps.location.coords[0]}px`,
@@ -15,68 +19,23 @@ const locationStyle = computed(() => {
 const hoverEffectSrc = computed(() => {
   return `/src/assets/images/hoverLocations/${definedProps.location.engName}HoverEffect.png`
 })
-
-/**
- * Фарм ресурса при клике на соответствующую кнопку */
-const farmResource = () => {
-  const isLocationHasResources = () => {
-    return definedProps.location.resources.length !== 0
-  }
-  const getResource = (locationResources, randomValForResource) => {
-    return locationResources.find(resource => {
-      return resource.chance[0] <= randomValForResource && resource.chance[1] >= randomValForResource
-    })
-  }
-
-  if (!isLocationHasResources()) {
-    console.log('Ресурсов в локации нет!')
-    return
-  }
-
-  const locationResources = definedProps.location.resources
-  const randomValForResource = getRandomByRange([0, 100])
-  const resource = getResource(locationResources, randomValForResource)
-  let resourceCount = getRandomByRange(resource.count)
-  const newResource = getCockedResource(resource, resourceCount)
-
-  definedProps.player.addResource(newResource)
-  definedProps.player.showResourceBubble(newResource, 'farm')
-}
-const getRandomByRange = (range) => {
-  const [min, max] = range
-  return Math.round(Math.random() * (max - min) + min);
-}
-
-/**
- * Получение объекта ресурса, который будет передаваться игроку в инвентарь */
-const getCockedResource = (resource, count) => {
-  console.log('Сырой ресурс, приходящий в getNewResource', resource)
-
-  const newResource = definedProps.player.getObjectCopy(resource)
-  delete newResource.chance
-  newResource.count = count
-
-  return newResource
-}
 </script>
 
 <!-- todo пока не делал анимацию фарма ресурсов. Думаю сделать так, что бы всплывала иконка ресурса и количество -->
+<!-- todo сделать для submenu локации свой компонент и выводить его через сложный список -->
 
 <template>
   <div class="location__container"
-       :style="locationStyle"
-       :class="{_active: location.isCurrent}"
-       @click="player.moveLocation(location.engName)"
-  >
-    <picture class="location__hover" v-show="!location.isCurrent"><img :src="hoverEffectSrc" alt="hoverLocation"></picture>
+       :style="locationStyle" :class="{_active: location.isCurrent}" @click="player.changeLocation(location.engName)">
+    <picture v-show="!location.isCurrent" class="location__hover"><img :src="hoverEffectSrc" alt="hoverLocation"></picture>
 
     <div class="location" :class="{_hidden: !location.isCurrent}">
       <p class="location__here main__texture">Вы <br> тут</p>
 
       <ul class="location__submenu">
-        <template v-for="(menuUnit) of location.submenu">
+        <template v-for="menuUnit of location.submenu">
           <li class="locationMenu__unit main__texture" v-if="menuUnit !== 'ресурсы'">{{menuUnit}}</li>
-          <li class="locationMenu__unit main__texture" v-else @click="farmResource">
+          <li class="locationMenu__unit main__texture" v-else @click="player.farmResource">
             {{menuUnit}}
           </li>
         </template>
@@ -93,27 +52,16 @@ const getCockedResource = (resource, count) => {
 .location__container:not(._active) {
   cursor: pointer;
 }
+.location__container._active .locationMenu__unit {
+  scale: 1;
+}
+
+
 .location {
   position: absolute;
   inset: 0;
   transition-duration: var(--transition);
 }
-
-.location__here {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 48px;
-  height: 48px;
-  text-align: center;
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1;
-}
-
 .location__hover {
   position: absolute;
   inset: -10px;
@@ -129,6 +77,21 @@ const getCockedResource = (resource, count) => {
   opacity: 1;
 }
 
+
+.location__here {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 48px;
+  height: 48px;
+  text-align: center;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1;
+}
 .locationMenu__unit {
   position: absolute;
   border-radius: var(--radius);
@@ -140,9 +103,6 @@ const getCockedResource = (resource, count) => {
   cursor: pointer;
   scale: 0;
   transition-duration: calc(var(--transition) * 2);
-}
-.location__container._active .locationMenu__unit {
-  scale: 1;
 }
 .locationMenu__unit:first-of-type {
   border-radius: 50%;

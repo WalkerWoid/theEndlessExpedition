@@ -1,10 +1,20 @@
 <script setup>
 /**
  * Компонент Инвентаря */
-import {ref, onMounted} from "vue";
 
-const definedProps = defineProps(['player'])
+import {inject, ref, watch} from "vue";
+const player = inject('player')
 const activeResource = ref(null)
+const activeResourceDescription = ref('')
+
+watch(activeResource, (newActiveResource, oldActiveResource) => {
+  // console.log('Новый активный ресурс', newActiveResource)
+  if (newActiveResource && resourcesDescription[newActiveResource.engName]) {
+    activeResourceDescription.value = resourcesDescription[newActiveResource.engName]
+  } else {
+    activeResourceDescription.value = 'Описания еще нет'
+  }
+})
 
 /**
  * Массив с описаниями всех ресурсов */
@@ -12,23 +22,39 @@ const resourcesDescription = {
   grass: 'Обычная трава. Ничего необычного.',
   stick: 'Жаль, не похожа на автомат, которым ты играл в детстве.',
   commonFlower: 'Охапка полевых цветов. С ними ты выглядишь как жених.',
-  goldenFlower: `Второе название - Золотой цветок. Очень редкий полевой цветок. Назван так из свойства переливаться
-                 характерным свечением на солнце. Его лепестки обладают хорошими лечебными свойствами.`,
+  goldenFlower: `Второе название - Золотой цветок. Очень редкий. Назван так из свойства переливаться
+                 характерным свечением на Солнце. Лепестки Златограйника обладают хорошими лечебными свойствами.`,
   littleStone: `Камушек. Используется в большом количестве при игре в "Камушки". И нет, они не могут делать того, о чем
                 ты подумал. Произнеси сто раз, что бы потерять смысл слова.`
 }
-
-onMounted(() => {
-  console.log('Инвентарь, после открытия окна инвентаря', definedProps.player.inventory);
-})
 
 const setActiveResource = (resource) => {
   activeResource.value = resource
 }
 const clearActiveResource = () => {
-  if (!definedProps.player.getInventoryItem(activeResource.value, true)) {
+  // console.log('activeResource.value', activeResource.value)
+  if (!player.getInventoryItem(activeResource.value)) {
     setActiveResource(null)
   }
+}
+
+const isEquippedColor = (resource) => {
+  return resource.isEquipped
+}
+const isSemiDamagedColor = (resource) => {
+  if (!resource.durability) {
+    return false
+  }
+
+  return resource.durability >= (Math.floor(player.getItemInfo(resource, 'startedDurability')/2)) &&
+      resource.durability < player.getItemInfo(resource, 'startedDurability')
+}
+const isDamagedColor = (resource) => {
+  if (!resource.durability) {
+    return false
+  }
+
+  return resource.durability < (Math.floor(player.getItemInfo(resource, 'startedDurability')/2))
 }
 </script>
 
@@ -37,12 +63,12 @@ const clearActiveResource = () => {
 
 <!-- todo в журнале написать, что при нажатии на пкм на ресурсе, можно будет открыть дополнительное окно -->
 
-<!-- todo вынести activeResource в компонент повыше. Там же, как раз, есть методы открытия и закрытия подокон -->
-
 <!-- todo подумать еще над подокном для ресурса. Может просто сделать, что бы при нажатии, котрывалось окно там, где
       находится курсор. -->
 
-<!-- todo выделять зеленым те предметы, что надеты -->
+<!--  todo для каждого ресурса нарисовать свою иконку вместо того, что бы выводить названия. Названия выводить при ховере через title  -->
+
+<!--  todo когда в описании златограйник, то при скрытии окна инвентаря оно уходит не полностью-->
 
 <template>
   <h2>Инвентарь</h2>
@@ -51,18 +77,15 @@ const clearActiveResource = () => {
 
   <div class="ui__subWindow" v-else>
     <ul class="inventory">
-      <!--  todo для каждого ресурса нарисовать свою иконку вместо того, что бы выводить названия. Названия выводить при ховере через title  -->
-      <!--  todo сделать отдельный метод для проверки цвета  -->
+
       <li v-for="resource of player.inventory"
-          class="resource"
-          @click="setActiveResource(resource); console.log(activeResource)"
+          class="resource" @click="setActiveResource(resource)"
           :title="resource.durability ? `Оставшаяся прочность: ${resource.durability}` : ''"
           :class="{
-            '_green': resource.isEquipped,
-            '_orange': resource.info ? resource.durability < player.getItemInfo(resource, 'startedDurability').value && resource.durability >= (Math.floor(player.getItemInfo(resource, 'startedDurability').value/2)) : '',
-            '_red': resource.info ? resource.durability < (Math.floor(player.getItemInfo(resource, 'startedDurability').value/2)) : '',
-          }"
-      >
+            '_green': isEquippedColor(resource),
+            '_orange': isSemiDamagedColor(resource),
+            '_red': isDamagedColor(resource),
+          }">
         {{resource.name}}: {{resource.count}}
       </li>
     </ul>
@@ -71,20 +94,23 @@ const clearActiveResource = () => {
       <template v-if="!activeResource">
         <p class="_little">Нажмите на ресурс, что бы увидеть способы взаимодействия с ним!</p>
       </template>
+
       <template v-else-if="activeResource.type === 'resource'">
         <p class="_little">
-          {{resourcesDescription[activeResource.engName] ? resourcesDescription[activeResource.engName] : 'Описания нет'}}
+          {{activeResourceDescription}}
         </p>
       </template>
+
       <template v-else-if="activeResource.type === 'armor' || activeResource.type === 'weapon'">
         <p class="_little">{{activeResource.name}}(прочность: {{activeResource.durability}}):</p>
 
         <div class="resource__actions">
-          <button type="button" @click="player.destroyItemHandler(activeResource); clearActiveResource()">Разобрать</button>
-          <button type="button" @click="player.putOnItemHandler(activeResource); clearActiveResource()">Надеть</button>
+          <button type="button" @click="player.disassembleItem(activeResource); clearActiveResource()">Разобрать</button>
+          <button type="button" @click="player.putOnItem(activeResource); clearActiveResource()">Надеть</button>
           <button type="button" @click="player.takeOffItem(activeResource); clearActiveResource()">Снять</button>
         </div>
       </template>
+
       <template v-else-if="activeResource.type === 'medical'">
         <p class="_little">{{activeResource.name}}:</p>
 

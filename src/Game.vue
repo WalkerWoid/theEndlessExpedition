@@ -2,308 +2,324 @@
 /**
  * Главный компонент игры */
 
-import {ref, reactive, toRaw, computed} from "vue";
-import Map from "@/components/Map/Map.vue";
-import UI from "@/components/UI/UI.vue";
+// import {ref, reactive, toRaw, computed} from "vue";
 
-const resourcesBubbles = ref([])
+import {defineAsyncComponent, ref, reactive, watch, provide, toRaw} from "vue";
 
-/** Получение полного урона, наносимого игроком
- *
- * @returns {number} */
-const getFullDamage = computed(() => {
-  let fullDamage = 0
+const Map = defineAsyncComponent(() => import("@/components/Map/Map.vue"))
+const UI = defineAsyncComponent(() => import("@/components/UI/UI.vue"))
 
-  for (const bodyType in player.body) {
-    player.body[bodyType] ? fullDamage += player.getItemInfo(player.body[bodyType], 'damage').value : fullDamage += 0
-  }
-
-  return fullDamage
-})
-/** Получение полной брони игрока
- *
- * @returns {number} */
-const getFullArmor = computed(() => {
-  let fullArmor = 0
-
-  for (const bodyType in player.body) {
-    player.body[bodyType] ? fullArmor += player.getItemInfo(player.body[bodyType], 'armor').value : fullArmor += 0
-  }
-
-  return fullArmor
-})
-/** Получение полной скорости игрока
- *
- * @returns {number} */
-const getFullSpeed = computed(() => {
-  let fullSpeed = 0
-
-  for (const bodyType in player.body) {
-    player.body[bodyType] ? fullSpeed += player.getItemInfo(player.body[bodyType], 'speed').value : fullSpeed += 0
-  }
-
-  return fullSpeed
-})
-
-/** todo по нормальному переписать доку */
 /**
- * Объект игрока.
- *
- * @typedef {Object} player
- * @property {string} [name] - Имя игрока на русском
- * @property {number} [health] - Здоровье
- * @property {number} [maxHealth] - Максимальное здоровье
- * @property {number} [food] - Еда
- * @property {number} [maxFood] - Максимальная еда
- * @property {number} [water] - Вода
- * @property {number} [maxWater] - Максимальная вода
- * @property {number} [fullDamage] - Вода
- * @property {number} [fullArmor] - Вода
- * @property {number} [fullSpeed] - Вода
- * @property {string} [engName] - Имя игрока на английском
- * @property {string} [currentLocation] - engName локации, на которой находится игрок
- * @property {array} [inventory] - Инвентарь со всеми ресурсами, предметами и так далее
- * @property {object} [body] Объект тела со всеми надетыми предметами на персонажа
- *
- * Методы смены локаций:
- * @property [function():void] moveLocation - Переход в другую локацию
- * @method [getLocation] - Получение локации из массива locations по имени
- * @method [toggleCurrentLocation] - Смена isCurrent значений локаций и currentLocation игрока
- *
- * Методы работы с ресурсами:
- * @method [addResource] - Добавление ресурса в инвентарь
- * @method [decreaseResource] - трата определенного ресурса.
- * @method [addSomeCountToInventory] - Добавление количества к чему-либо в инвентаре
- * @method [addSomeToInventory] - Добавление чего-либо нового в инвентарь. Через push
- * @method [getInventoryResource] - Получение ресурса, который находится в инвентаре
- * @method [showResourceBubble] - Добавление уведомления о ресурсе или предмете в бабл ресурсов
- * @method [isResourcesToCreateEnough] - достаточно ли ресурса на создание предмета
- *
- * Методы работы с предметами
- * @method [addItem] - Добавление предмета в инвентарь
- * @method [getInventoryItem] - Поиск опребеделеного предмета типа оружия или брони по имени и прочности.
- * @method [isEqualItemEquipped] - надет ли этот же предмет
- * @method [getPartOfBody] - получение предмета, который сейчас находится на определенной части персонажа.
- * @method [putOnItemHandler] - метод надевания предмета со всеми проверками
- * @method [putOnItem] - метод надевания предмета в слот тела
- * @method [takeOffItem] - снять предмет
- * @method [getItemInfo] - получение какой либо информации из массива info предмета
- * @method [addBrokenItem] - добавление сломанного предмета в инвентарь
- * @method [destroyItemHandler] - метод разбора предмета со всеми проверками
- * @method [destroyItem] - разобрать именно предмет
- * @method [removeItem] - удаляет предмет из инвентаря
- *
- * Методы работы с телом
- * @method [clearPartOfBody] - установка определенной части тела в false(ничего не надето)
- *
- * Методы работы со статусом
- * not implemented
- *
- * Разные второстепенные методы
- * @method [getObjectCopy] - Возвращает копию объекта
- * */
-const player = reactive({
-  name: 'Роуг Уолкер',
-  health: 200,
-  maxHealth: 200,
-  food: 300,
-  maxFood: 300,
-  water: 100,
-  maxWater: 100,
-  fullDamage: getFullDamage,
-  fullArmor: getFullArmor,
-  fullSpeed: getFullSpeed,
-  engName: 'Rouge Walker',
-  currentLocation: 'landingZone',
-  inventory: [
-    {name: 'Трава', engName: 'grass',count: 320, type: 'resource'},
-    // {name: 'Златограйник', engName: 'goldenFlower', count: 1000, type: 'resource'},
-    // {name: 'Обычный цветок', engName: 'commonFlower', count: 1000, type: 'resource'},
-    // {name: 'Ветка', engName: 'stick', count: 1000, type: 'resource'},
-    {
-      name: 'Травяная панамка',
-      engName: 'herbalPanamaHat',
-      description: 'Будет выглядеть модно, если вы полугодовалый ребенок. Можно надеть сразу поверх вашего скафандра на смех всем полугодовалым детям в радиусе этого континента.',
-      count: 10,
-      cost: [
-        {name: 'Трава', engName: 'grass', count: 160, type: 'resource'},
-      ],
-      type: 'armor',
-      bodyType: 'head',
-      durability: 10,
-      info: [
-        {name: 'Урон', engName: 'damage', value: 0},
-        {name: 'Прочность', engName: 'startedDurability', value: 10},
-        {name: 'Скорость', engName: 'speed', value: 0},
-        {name: 'Броня', engName: 'armor', value: 1},
-      ],
-      isEquipped: false
-    },
-    {
-      name: 'Травяная панамка',
-      engName: 'herbalPanamaHat',
-      description: 'Будет выглядеть модно, если вы полугодовалый ребенок. Можно надеть сразу поверх вашего скафандра на смех всем полугодовалым детям в радиусе этого континента.',
-      count: 1,
-      cost: [
-        {name: 'Трава', engName: 'grass', count: 160, type: 'resource'},
-      ],
-      type: 'armor',
-      bodyType: 'head',
-      durability: 5,
-      info: [
-        {name: 'Урон', engName: 'damage', value: 0},
-        {name: 'Прочность', engName: 'startedDurability', value: 10},
-        {name: 'Скорость', engName: 'speed', value: 0},
-        {name: 'Броня', engName: 'armor', value: 1},
-      ],
-      isEquipped: false
-    },
-    {
-      name: 'Травяная панамка',
-      engName: 'herbalPanamaHat',
-      description: 'Будет выглядеть модно, если вы полугодовалый ребенок. Можно надеть сразу поверх вашего скафандра на смех всем полугодовалым детям в радиусе этого континента.',
-      count: 1,
-      cost: [
-        {name: 'Трава', engName: 'grass', count: 160, type: 'resource'},
-      ],
-      type: 'armor',
-      bodyType: 'head',
-      durability: 3,
-      info: [
-        {name: 'Урон', engName: 'damage', value: 0},
-        {name: 'Прочность', engName: 'startedDurability', value: 10},
-        {name: 'Скорость', engName: 'speed', value: 0},
-        {name: 'Броня', engName: 'armor', value: 1},
-      ],
-      isEquipped: false
-    },
-    {
-      name: 'Каменная панамка',
-      engName: 'stoneHat',
-      description: 'Носите, если хотите накачать шею.',
-      count: 10,
-      cost: [
-        {name: 'Трава', engName: 'grass', count: 160, type: 'resource'},
-        {name: 'Камешки', engName: 'smallStones', count: 20, type: 'resource'},
-      ],
-      type: 'armor',
-      bodyType: 'head',
-      durability: 20,
-      info: [
-        {name: 'Урон', engName: 'damage', value: 0},
-        {name: 'Прочность', engName: 'startedDurability', value: 20},
-        {name: 'Скорость', engName: 'speed', value: 0},
-        {name: 'Броня', engName: 'armor', value: 1},
-      ],
-      isEquipped: false
-    },
-    {
-      name: 'Каменный нагрудник',
-      engName: 'stoneChest',
-      description: 'Носите, если хотите накачать грудные мышцы.',
-      count: 2,
-      cost: [
-        {name: 'Трава', engName: 'grass', count: 160, type: 'resource'},
-      ],
-      type: 'armor',
-      bodyType: 'body',
-      durability: 20,
-      info: [
-        {name: 'Урон', engName: 'damage', value: 0},
-        {name: 'Прочность', engName: 'startedDurability', value: 20},
-        {name: 'Скорость', engName: 'speed', value: 0},
-        {name: 'Броня', engName: 'armor', value: 1},
-      ],
-      isEquipped: false
-    },
-  ],
-  body: {
-    head: false,
-    body: false,
-    leftArm: false,
-    rightArm: false,
-    leftWrist: false,
-    rightWrist: false,
-    leftLeg: false,
-    rightLeg: false,
-    weapon: false,
-    shield: false
-  },
-  /** Переход в другую локацию
+ * Класс игрока */
+class Player {
+  constructor() {
+    this.#playerInit()
+  }
+
+  /**
+   * Инициализация игрока
    *
-   * @param {string} locationName - имя локации, в которую будет происходить переход
-   * @returns {void} */
-  moveLocation(locationName) {
-    const isLocationCurrent = () => {
-      return locationName === this.currentLocation
+   * @return {void}
+   *
+   * */
+  // 'Осужденный по законам 19(массовое убийство), 20(массовые пытки), 21(массовое сожжение) и 22(взятие в заложники особо ценных лиц).'
+  #playerInit = () => {
+    this.name = 'Фираксис Рейнхард'
+    this.secondName = 'Охотник'
+    this.number = 117
+    this.currentLocation = 'landingZone'
+    this.status = 'Осужденный по законам 19 - *Данные повреждены*; 20 - *Данные повреждены*; 21 - *Данные повреждены*; 22 - *Данные повреждены*; 698 - Убийство особо ценного объекта, а именно: *Данные повреждены*.'
+    this.health = 200
+    this.maxHealth = 200
+    this.food = 300
+    this.maxFood = 300
+    this.water = 100
+    this.maxWater = 100
+    this.inventory = [
+      { "name": "Трава", "engName": "grass", "count": 320, "type": "resource" },
+      { "name": "Обычный цветок", "engName": "commonFlower", "count": 40, "type": "resource" },
+      {
+        "name": "Травяная панамка",
+        "engName": "herbalPanamaHat",
+        "description": "Будет выглядеть модно, если вы полугодовалый ребенок. Можно надеть сразу поверх вашего скафандра на смех всем полугодовалым детям в радиусе этого континента.",
+        "count": 2,
+        "cost": [
+          {
+            "name": "Трава",
+            "engName": "grass",
+            "count": 160,
+            "type": "resource"
+          }
+        ],
+        "type": "armor",
+        "bodyType": "head",
+        "durability": 10,
+        "info": [
+          {
+            "name": "Урон",
+            "engName": "damage",
+            "value": 0
+          },
+          {
+            "name": "Прочность",
+            "engName": "startedDurability",
+            "value": 10
+          },
+          {
+            "name": "Скорость",
+            "engName": "speed",
+            "value": 0
+          },
+          {
+            "name": "Броня",
+            "engName": "armor",
+            "value": 1
+          }
+        ],
+        "isEquipped": false
+      },
+      {
+        "name": "Травяная панамка",
+        "engName": "herbalPanamaHat",
+        "description": "Будет выглядеть модно, если вы полугодовалый ребенок. Можно надеть сразу поверх вашего скафандра на смех всем полугодовалым детям в радиусе этого континента.",
+        "count": 2,
+        "cost": [
+          {
+            "name": "Трава",
+            "engName": "grass",
+            "count": 160,
+            "type": "resource"
+          }
+        ],
+        "type": "armor",
+        "bodyType": "head",
+        "durability": 6,
+        "info": [
+          {
+            "name": "Урон",
+            "engName": "damage",
+            "value": 0
+          },
+          {
+            "name": "Прочность",
+            "engName": "startedDurability",
+            "value": 10
+          },
+          {
+            "name": "Скорость",
+            "engName": "speed",
+            "value": 0
+          },
+          {
+            "name": "Броня",
+            "engName": "armor",
+            "value": 1
+          }
+        ],
+        "isEquipped": false
+      },
+    ]
+    this.body = {
+      head: false,
+      body: false,
+      leftArm: false,
+      rightArm: false,
+      leftWrist: false,
+      rightWrist: false,
+      leftLeg: false,
+      rightLeg: false,
+      weapon: false,
+      shield: false
     }
+  }
 
-    if (isLocationCurrent()) {
-      console.log('Мы уже в этой локации')
-      return
-    }
 
-    console.log('Идем в локацию')
-    const oldLocation = this.getLocation(this.currentLocation)
-    const newLocation = this.getLocation(locationName)
 
-    this.toggleCurrentLocation(oldLocation, newLocation)
-  },
+  /**
+   * Изменение названия текущей локации
+   *
+   * @param {string} newLocation - название новой локации
+   * @return {void}
+   *
+   * */
+  changeLocation(newLocation) {
+    this.currentLocation = newLocation
+  }
+
+  /**
+   * Получение объекта объекта локации по названию локации
+   *
+   * @param {string} locationName - название локации
+   * @return {Object}
+   *
+   * */
   getLocation(locationName) {
     return locations.value.find(loc => loc.engName === locationName)
-  },
-  toggleCurrentLocation(oldLocation, newLocation) {
-    oldLocation.isCurrent = false
-    newLocation.isCurrent = true
-    this.currentLocation = newLocation.engName
-  },
+  }
 
-  addResource(resource) {
-    // console.clear()
-    console.log('Ресурс для добавления в инвентарь, который приходит после обработки:', resource)
-    console.log('Добавляем обычный ресурс')
 
-    /** todo пока оставил проверку на ресурс или медицину. Когда буду делать медицину, посмотрю, в этом методе оставить
-     или перенести. */
-    if (resource.type === 'resource' || resource.type === 'medical') {
 
-      if (this.getInventoryResource(resource))
-        this.addSomeCountToInventory(resource)
-      else this.addSomeToInventory(resource)
+  /**
+   * Фарм ресурса при клике
+   *
+   * @return {void}
+   *
+   * */
+  farmResource() {
+    const currentLocationObject = this.getLocation(this.currentLocation)
+
+    /**
+     * Проверяет, есть ли ресурсы в определенной локации
+     *
+     * @return {boolean}
+     *
+     * */
+    const isLocationHasResources = () => {
+      return currentLocationObject.resources.length !== 0
     }
 
-    console.log('Инвентарь после добавления ресурса или создания предмета:', this.inventory)
-  },
-  decreaseResource(resource) {
-    console.log('ресрус, приходящий в decrease resource при создании предмета', resource)
+    /**
+     * Получает массив ресурсов локации
+     *
+     * @return {array}
+     *
+     * */
+    const getLocationResources = () => {
+      return currentLocationObject.resources
+    }
 
-    if (this.getInventoryResource(resource).count - resource.count === 0) {
-      console.log('После траты ресурсов, он становитя 0, значит удаляем его')
-      this.removeItem(resource)
+    /**
+     * Получение определенного объекта ресурса локации по рандомному числу
+     *
+     * @param {array} locationResources - массив ресурсов локации
+     * @param {number} randomValForResource - рандомное число ресурса
+     *
+     * @return {Object}
+     *
+     * */
+    const getResource = (locationResources, randomValForResource) => {
+      return locationResources.find(resource => {
+        return resource.chance[0] <= randomValForResource && resource.chance[1] >= randomValForResource
+      })
+    }
+
+    /**
+     * Возвращает готовый ресурс, который будет добавляться в инвентарь
+     *
+     * @param {Object} resource - сырой объект ресурса
+     * @param {number} count - количество ресурса
+     *
+     * @return {Object}
+     *
+     * */
+    const getCockedResource = (resource, count) => {
+      console.log('Сырой ресурс, приходящий в getCockedResource', resource)
+
+      const cockedResource = this.getObjectCopy(resource)
+      delete cockedResource.chance
+      cockedResource.count = count
+
+      return cockedResource
+    }
+
+    if (!isLocationHasResources()) {
       return
     }
 
+    console.clear()
+    const locationResources = getLocationResources()
+    const randomValForResource = this.getRandomByRange([0, 100])
+    const resource = getResource(locationResources, randomValForResource)
+    const resourceCount = this.getRandomByRange(resource.count)
+    const cockedResource = getCockedResource(resource, resourceCount)
+    this.addResource(cockedResource)
+    console.log('Инвентарь', this.inventory)
+
+    /*
+    console.log('Рандомное число', randomValForResource)
+    console.log('Лутаем ресурс', resource)
+    console.log('В количестве', resourceCount)
+    console.log('Готовый ресурс', cockedResource)
+    console.log('Инвентарь', toRaw(this.inventory))
+    */
+  }
+
+  /**
+   * Добавление готового ресурса в инвентарь
+   *
+   * @param {Object} cockedResource - готовый объект ресурса для добавления в инвертарь
+   *
+   * @return {void}
+   *
+   * */
+  addResource(cockedResource) {
+    if (cockedResource.type === 'resource' || cockedResource.type === 'medical') {
+      console.log('Ресурс, приходящий в addResource', this.getInventoryResource(cockedResource))
+      if (this.getInventoryResource(cockedResource)){
+        console.log('Ресурс есть, добавляем количество')
+        this.addSomeResourceCountToInventory(cockedResource)
+      } else {
+        console.log('Ресурса нет, добавляем полный')
+        this.addSomeToInventory(cockedResource)
+      }
+    }
+  }
+
+  /**
+   * Уменьшение ресурса
+   *
+   * @param {Object} resource - ресурс, который надо потратить
+   *
+   * */
+  decreaseResource(resource) {
     this.getInventoryResource(resource).count -= resource.count
-  },
-  addSomeCountToInventory(something) {
-    this.getInventoryResource(something).count += something.count
-  },
-  addSomeToInventory(something) {
-    this.inventory.push(something)
-  },
+    const indexOfResource = this.inventory.indexOf(this.getInventoryResource(resource))
+
+    if (this.getInventoryResource(resource).count <= 0)
+      this.deleteFromInventory(indexOfResource)
+      // this.inventory.splice(indexOfResource, 1)
+  }
+
+  /**
+   * Добавление количества ресурса к ресурсу в инвентаре
+   *
+   * @param {Object} resource - объект готового(cocked) ресурса
+   * @return {void}
+   *
+   * */
+  addSomeResourceCountToInventory(resource) {
+    this.getInventoryResource(resource).count += Math.floor(resource.count)
+  }
+
+  /**
+   * Получение ресурса из инвентаря
+   *
+   * @param {Object} resource - объект готового ресурса для поиска
+   * @return {Object|undefined}
+   *
+   * */
   getInventoryResource(resource) {
     return this.inventory.find(inventoryResource => inventoryResource.engName === resource.engName)
-  },
-  showResourceBubble(resource, action) {
-    const cockedResource = this.getObjectCopy(resource)
-    cockedResource.action = action
-    resourcesBubbles.value.unshift(cockedResource)
-    console.log('бабл ресурсов:', resourcesBubbles.value)
+  }
 
-    const timeOut = setTimeout(() => {
-      resourcesBubbles.value.pop()
-    }, 2400)
-  },
+  /**
+   * Получение количества определенного ресурса
+   *
+   * @param {Object} resource - объект ресурса, количество которого нужно узнать ресурс
+   * @return {number}
+   *
+   * */
+  getInventoryResourceCount(resource) {
+    return this.getInventoryResource(resource) ? this.getInventoryResource(resource).count : 0
+  }
+
+  /**
+   * Метод проверки хватает ли ресурсов для создания предмета
+   *
+   * @param {array} recipeCost - массив ресурсов, необходимых для создания
+   * @return {boolean}
+   *
+   * */
   isResourcesToCreateEnough(recipeCost) {
     const resourceConditions = []
 
@@ -322,264 +338,356 @@ const player = reactive({
     })
 
     return resourceConditions.filter(condition => condition === false).length === 0
-  },
+  }
 
-  addItem(item) {
-    console.log('Предмет, приходящий в addItem:', item)
-    console.log('Создаем оружие или броню')
+
+
+  /**
+   * Добавление предмета в инвентарь
+   *
+   * @param {Object} item - объект предмета, который будем добавлять
+   * @return {void}
+   *
+   * */
+  addItemToInventory(item) {
+    /** Принцип работы
+     * 1. Если нет предмета по такому имени, дурабилити и экипированности, добавляем чистый предмет в инвентарь
+     * 2. Если предмет существует по по такому имени, дурабилити и экипированности, делаем +1 к количеству. */
+
     const neededItem = this.getInventoryItem(item)
-    console.log('Предмет в инвентаре после поиска:', neededItem)
-
+    console.log('Найденный предмет:', neededItem)
     if (neededItem) {
-      console.log('Предмет существует')
-      this.addSomeCountToInventory(item)
+      neededItem.count += 1
     } else {
-      console.log('Добавляем целый предмет в инвентарь')
       this.addSomeToInventory(item)
     }
+    console.log('Инвентарь после добавления предмета:', this.inventory)
+  }
 
-    console.log('Инвентарь после создания предмета:', this.inventory)
-  },
-  getInventoryItem(item, findEquipped = false) {
+  /**
+   * Поиск предмета в инвентаре
+   *
+   * @param {Object} item - объект предмета для поиска
+   * @return {Object|undefined}
+   *
+   * */
+  getInventoryItem(item) {
+
     return this.inventory.find(inventoryItem => {
-      if (findEquipped) {
-        return inventoryItem.engName === item.engName
-            && inventoryItem.durability === item.durability
-            && inventoryItem.isEquipped === item.isEquipped
-      } else {
-        return inventoryItem.engName === item.engName && inventoryItem.durability === item.durability
-      }
+      return inventoryItem.engName === item.engName
+          && inventoryItem.isEquipped === item.isEquipped
+          && inventoryItem.durability === item.durability
     })
-  },
-  isEqualItemEquipped(itemToEquip, equippedItem) {
-    return itemToEquip.engName === equippedItem.engName
-        && itemToEquip.isEquipped === equippedItem.isEquipped
-        && itemToEquip.durability === equippedItem.durability
-  },
-  getPartOfBody(partOfBody) {
-    return this.body[partOfBody]
-  },
-  putOnItemHandler(item) {
+  }
+
+  /**
+   * Разобрать предмет
+   *
+   * @param {Object} item - предмет, который надо разобрать. Должна быть копия предмета без передачи по ссылке.
+   *
+   * */
+  disassembleItem(item) {
+    /** Принцип работы
+     * 1. Узнаем, является ли предмет целым
+     * 2. Узнаем, является ли предмет на половину сломанным. Между половиной и целым
+     * 3. Узнаем, является ли предмет почти сломанным. Между 0 и половиной
+     * 4. Если предмет один - удаляем его и возвращаем ресурсы, в зависимости от целостности предмета
+     * 5. Если предмета больше, чем 1 - вычитаем 1 и возвращаем ресурсы, в зависимости от целостности предмета
+     */
     console.clear()
-    console.log('Предмет, приходящий в PutOnItem. Выбранный ресурс(item)', item)
-    console.log('Инвентарь', this.inventory)
+    console.log('Предмет, который будем разбирать', item)
+    const itemStartedDurability = this.getItemInfo(item, 'startedDurability')
+    const itemCost = this.getObjectCopy(item).cost
 
-    const itemToEquip = this.getObjectCopy(item)
-    itemToEquip.count = 1
-    console.log('Новая надеваемый предмет(newItemTiEquip)', itemToEquip)
-    const equippedItem = this.getPartOfBody(itemToEquip.bodyType)
-    console.log('Надетый предмет', equippedItem)
-
-    if (!equippedItem) {
-      console.log('Никакого предмета не надето, надеваем предмет')
-      this.putOnItem(item, itemToEquip)
-      console.log('Тело после надетого предмета', this.body)
-
-      return;
-    }
-
-    /** если надет такой же предмет, то ничего не делаем */
-    if (this.isEqualItemEquipped(itemToEquip, equippedItem)) {
-      console.log('Этот предмет уже надет!')
-      this.showResourceBubble(item, 'alreadyEquipped')
-      return
-    }
-
-    /**
-     *  если надет другой предмет, то:
-     *    1. Снимаем этот предмет
-     *    2. Надеваем новый предмет
-     * */
-    console.log('Какой-то предмет уже надет, будем снимать его')
-    this.takeOffItem(this.body[item.bodyType])
-    this.putOnItem(item, itemToEquip)
-
-  },
-  putOnItem(item, itemToEquip) {
-    itemToEquip.isEquipped = true
-    item.isEquipped = true
-
-    this.body[item.bodyType] = itemToEquip
-    item.count -= 1
-    this.showResourceBubble(item, 'putOnItem')
-
-    if (item.count === 0)
-      this.removeItem(item)
-  },
-  takeOffItem(item) {
-    console.clear()
-    console.log('Приходит предмет, который выбран в инвентаре(item)', item)
-
-    const itemOnBody = this.getPartOfBody(item.bodyType)
-    console.log('Предмет на теле(itemOnBody)', itemOnBody)
-    let inventoryItem = this.getInventoryItem(itemOnBody)
-    console.log('Надетый предмет, который должен быть в инвентаре. Ищется по имени и дурабилити(inventoryItem)', inventoryItem)
-    const equippedItemInInventory = this.inventory.find(iItem => iItem.engName === item.engName
-        && iItem.isEquipped === item.isEquipped) // нужно для того, что бы чистить isEquipped, когда снимаем поломанный
-                                                 // предмет при условии, что надели его из стака целых
-    console.log('Надетый предмет в инвентаре', equippedItemInInventory)
-
-    if (!itemOnBody) {
-      console.log('Никакой Предмет не надет. Ничего не снимаем')
-      this.showResourceBubble(item, 'notEquipped')
-      return
-    }
-
-    if (!this.isEqualItemEquipped(item, itemOnBody)) {
-      console.log('Выбранный предмет не соответствует тому, котрый будем снимать')
-      this.showResourceBubble(item, 'notEquipped')
-      return
-    }
-
-    console.log('Снимаем')
-
-    if (inventoryItem) {
-      inventoryItem.isEquipped = false
-      item.isEquipped = false
-
-      if (equippedItemInInventory)
-        equippedItemInInventory.isEquipped = false
-
-      inventoryItem.count += 1
-      this.clearPartOfBody(itemOnBody.bodyType)
-    } else {
-      console.log('Предмета нет, создаем его в инвентаре')
-      itemOnBody.isEquipped = false
-
-      if (equippedItemInInventory)
-        equippedItemInInventory.isEquipped = false
-
-      this.addBrokenItem(this.getObjectCopy(itemOnBody))
-      this.clearPartOfBody(itemOnBody.bodyType)
-    }
-
-    this.showResourceBubble(itemOnBody, 'takeOffItem')
-  },
-  getItemInfo(item, typeOfInfo) {
-    return item.info.find(info => info.engName === typeOfInfo)
-  },
-  addBrokenItem(item) {
-    item.count = 1
-    this.inventory.push(item)
-  },
-  /** todo при поломке предмета убирать еще его актуальную версию в инвентаре */
-  destroyItemHandler(item) {
-    console.clear()
-    console.log('Разбираем предмет:', item)
-    const itemStartedDurability = this.getItemInfo(item, 'startedDurability').value
     const isItemFull = () => {
       return item.durability === itemStartedDurability
     }
-    const isItemHalf = () => {
-      return item.durability >= Math.floor(itemStartedDurability/2) && item.durability < itemStartedDurability
+    const isItemSemiDamaged = () => {
+      return item.durability >= Math.floor(itemStartedDurability)/2
+          && item.durability < itemStartedDurability
+    }
+    const isItemDamaged = () => {
+      return item.durability > 0 && item.durability < Math.floor(itemStartedDurability)/2
+    }
+    const getBackResources = (cost, price) => {
+      cost.forEach(resource => {
+        resource.count *= price
+        this.addResource(resource)
+      })
     }
 
     if (isItemFull()) {
-      console.log('Разбираем целый предмет')
-      this.destroyItem(this.getObjectCopy(item))
+      console.log('Предмет целый, возвращаем все ресурсы')
+      getBackResources(itemCost, 1)
+    }
+    if (isItemSemiDamaged()) {
+      console.log('Предмет на половину сломан, возвращаем 0.5 ресурсов')
+      getBackResources(itemCost, 0.5)
+    }
+    if (isItemDamaged()) {
+      console.log('Предмет сломан, возвращаем 0.25 ресурсов')
+      getBackResources(itemCost, 0.25)
+    }
 
-      item.count -= 1
-      if (item.count === 0)
-        this.removeItem(item)
+    this.quantityItemCheck(item)
+  }
+
+  /**
+   * Надеть предмет
+   *
+   * @param {Object} item - предмет, который надо будет надеть
+   * @return {void}
+   *
+   * */
+  putOnItem(item) {
+    /**
+     * Принцип работы
+     * 1. Если предмета в теле нет, надеваем его. return
+     * 2. Если предмет в теле есть и он не такой, какой надеваем, то переодеваем предмет:
+     *  * Снимаем предыдущий
+     *  * Надеваем новый
+     * 3. Если предмет на теле такой же, какой надеваем, то ничего не происходит.
+     * */
+    console.clear()
+
+    /**
+     * Если item такой же, как и надетый на тело предмет */
+    if (this.isEquippedItemEqual(item)) {
+      console.log('Такой предмет уже надет')
       return
     }
-    if (isItemHalf()) {
-      console.log('Разбираем половину предмета')
-      this.destroyItem(this.getObjectCopy(item), 'half')
 
-      item.count -= 1
-      if (item.count === 0)
-        this.removeItem(item)
+    const bodyType = item.bodyType
+    const itemToEquip = this.getObjectCopy(item)
+    itemToEquip.count = 1
+
+    /**
+     * Если на теле ничего нет. */
+    if (!this.body[bodyType]) {
+      console.log('Надеваем предмет в', bodyType)
+      console.log('Предмет, который будем надевать', itemToEquip)
+      console.log('Слот тела пустой, надеваем предмет')
+
+      this.body[bodyType] = itemToEquip
+      this.quantityItemCheck(item)
+      console.log('Тело после надевания предмета', this.body)
+      return
+    }
+    /**
+     * Если предмет уже есть на теле.
+     * 1. Снимаем предыдущий.
+     * 2. Надеваем новый. */
+    if (this.body[bodyType]) {
+      console.log('Снимаем предмет на теле', this.body[bodyType])
+      console.log('Надеваем', itemToEquip)
+
+      this.takeOffItem(this.body[bodyType])
+      this.body[bodyType] = itemToEquip
+      this.quantityItemCheck(item)
+      console.log('Тело после надевания предмета', this.body)
+    }
+  }
+
+  /**
+   * Снимаем предмет
+   *
+   * @param {Object} item - объект предмета, который будем снимать
+   * @return {void}
+   *
+   * */
+  takeOffItem(item) {
+    /**
+     * Принцип работы
+     * 1. Если предмета на теле нет, ничего не происходит
+     * 2. Если предмет такой уже есть, плюсуем единичку
+     * 3. Если предмета в инвентаре такого нет, просто добавляем в инвентарь
+     *
+     * */
+    console.clear()
+    console.log('Предмет, который будем снимать', item)
+
+    const bodyType = item.bodyType
+
+    if (!this.body[bodyType])
+      return
+
+    if (!this.isEquippedItemEqual(item))
+      return
+
+    if (this.getInventoryItem(this.body[bodyType])) {
+      console.log('Снимаемый предмет есть в инвентаре, прибавляем единичку')
+      this.getInventoryItem(this.body[bodyType]).count += 1
+      this.clearPartOfBody(bodyType)
       return
     }
 
-    console.log('Разбираем сломанный предмет')
-    this.destroyItem(this.getObjectCopy(item), 'damaged')
-    item.count -= 1
-    if (item.count === 0)
-      this.removeItem(item)
-  },
-  destroyItem(item, itemDurabilityType = 'full') {
-    switch (itemDurabilityType) {
-      case 'full':
-        console.log('full')
-        item.cost.forEach(resource => {
-          this.addResource(resource)
-          this.showResourceBubble(resource, 'farm')
-        })
-        this.showResourceBubble(item, 'itemDestroy')
-        break
-      case 'half':
-        console.log('half')
-        item.cost.forEach(resource => {
-          resource.count = Math.floor(resource.count/2)
-          this.addResource(resource)
-          this.showResourceBubble(resource, 'farm')
-        })
-        this.showResourceBubble(item, 'itemDestroy')
-        break
-      case 'damaged':
-        console.log('damaged')
-        item.cost.forEach(resource => {
-          resource.count = Math.floor(resource.count * 0.25)
-          this.addResource(resource)
-          this.showResourceBubble(resource, 'farm')
-        })
-        this.showResourceBubble(item, 'itemDestroy')
-        break
-      default: return
-    }
-  },
-  removeItem(item) {
-    console.log('Удаляем: ', item, 'из инвентаря', this.inventory)
-    const itemToDelete = this.getInventoryItem(item)
-    const itemIndex = this.inventory.indexOf(itemToDelete)
-    console.log('Индекс удаляемого предмета', itemIndex)
-    this.inventory.splice(itemIndex, 1)
-  },
+    console.log('Такого предмета в инвентаре нет, создаем новый')
+    this.addItemToInventory(this.body[bodyType])
+    this.clearPartOfBody(bodyType)
+  }
 
-  clearPartOfBody(partOfBody) {
-    this.body[partOfBody] = false
-  },
+  /**
+   * Проверяет, экипирован ли такой же предмет или нет на теде
+   *
+   * @param {Object} itemToEquip - объект предмета, который будем сравнивать с уже экипированным
+   * @return {boolean}
+   *
+   * */
+  isEquippedItemEqual(itemToEquip) {
+    const itemOnBody = this.body[itemToEquip.bodyType]
+    console.log('Предмет на теле', itemOnBody)
+    console.log('itemToEquip Сравниваем с', itemOnBody)
+    console.log('Равно ли имя', itemToEquip.engName === itemOnBody.engName)
+    console.log('Равен ли дурабилити', itemToEquip.durability === itemOnBody.durability)
+    console.log('Равен ли isEquipped', itemToEquip.isEquipped === itemOnBody.isEquipped)
 
+    return itemToEquip.engName === itemOnBody.engName &&
+        itemToEquip.durability === itemOnBody.durability &&
+        itemToEquip.isEquipped === itemOnBody.isEquipped
+  }
+
+  /**
+   * Получение строчки информации предмета
+   *
+   * @param {Object} item - предмет, информацию которого надо получить
+   * @param {string} infoType - тип информации
+   *
+   * @return {Object|undefined}
+   * */
+  getItemInfo(item, infoType) {
+    return item.info && item.info.find(info => info.engName === infoType).value
+  }
+
+  /**
+   * Проверка количества предмета после уменьшения количества
+   *
+   * @param {Object} item - предмет, количество которого будем проверять
+   * @return {void}
+   *
+   * */
+  quantityItemCheck(item) {
+    const indexOfItem = this.inventory.indexOf(item)
+
+    if (item.count > 1)
+      item.count -= 1
+    else
+      this.deleteFromInventory(indexOfItem)
+  }
+
+  /**
+   * Чистим часть тела от шмоток
+   *
+   * @param {string} bodyType - название части тела
+   * @return {void}
+   *
+   * */
+  clearPartOfBody(bodyType) {
+    this.body[bodyType] = false
+  }
+
+
+
+  /**
+   * @param {Object} something - объект предмета или ресурса(чего-угодно), который надо будет добавить в инвентарь
+   *
+   * @return {void}
+   *
+   * */
+  addSomeToInventory(something) {
+    this.inventory.push(something)
+  }
+
+  /**
+   * Получение рандомного числа на основе переданного диапазона
+   *
+   * @param {number[]} range - диапазон
+   * @return {number}
+   *
+   * */
+  getRandomByRange(range) {
+    const [min, max] = range
+    return Math.round(Math.random() * (max - min) + min);
+  }
+
+  /**
+   * Получение реактивного клона объекта
+   *
+   * @param {Object} object - объект, копию которого надо получить
+   *
+   * @return {Object}
+   * */
   getObjectCopy(object) {
     return structuredClone(toRaw(object))
-  },
-})
+  }
 
-console.log(player.inventory)
+  /**
+   * Удаление чего-либо из инвентаря по индексу
+   *
+   * @param {number} indexOfItem - индекс предмета на удаление
+   * @return {void}
+   *
+   * */
+  deleteFromInventory(indexOfItem) {
+    this.inventory.splice(indexOfItem, 1)
+  }
+
+  /**
+   * @param {Object} resource - объект ресурса или предмета, который надо будет показать в уведомлениях
+   * @param {String} action - строковый тип действия
+   *
+   * @return {void}
+   *
+   * */
+  // showResourceBubble(resource, action) {
+  //   const cockedResource = this.getObjectCopy(resource)
+  //   cockedResource.action = action
+  //   resourcesBubbles.value.unshift(cockedResource)
+  //   console.log('бабл ресурсов:', resourcesBubbles.value)
+  //
+  //   const timeOut = setTimeout(() => {
+  //     resourcesBubbles.value.pop()
+  //   }, 2400)
+  // }
+}
+
+const player = reactive(new Player())
+
+/**
+ * Вотчер наблюдения за названием текущей локации */
+watch(() => player.currentLocation, (newLocationName, oldLocationName) => {
+  player.getLocation(oldLocationName).isCurrent = false
+  player.getLocation(newLocationName).isCurrent = true
+})
 
 /**
  * Массив объектов локаций.
  *
- * Объект локации:
- * @property {number} [id] id локации
- * @property {string} [name] имя локации на русском
- * @property {string} [engName] имя локации на английском
- * @property {array} [coords] начальные координаты по X и Y
- * @property {number} [width] ширина локации
- * @property {number} [height] высота локации
- * @property {array} [resources] массив объектов ресурсов, которые можно получить на локации
- *            chance - массив. 0 - минимальный шанс, 1 - максимальный шанс. Шансы включительно
- *           engName - название ресурса на английском
- *              name - название ресурса на русском
- *             count - массив. 0 - минимальное количество, 1 - максимальное количество
+ * @type {Location[]}
  *
- *           Пример: {
- *             chance: [0, 10],
- *             name: 'трава',
- *             engName: 'grass',
- *             count: [10, 20]
- *           }
- * @property {array} [submenu] массив кнопок подменю локации, которые могут быть у локации
- *           Значения:       i - info
- *                     ресурсы - фармежка ресурсов
- *                     задания - задания
- *                       охота - возможность охоты на локации
- *                     ритуалы - ритуалы локации
- *                       карта - карта локации
- *                   контракты - контракты охоты за головами
- * @property {boolean} [isCurrent] - является ли локация текущей(на которой находится игрок) или нет
+ * @typedef {Object} Location
+ * @property {number} id - Уникальный идентефикатор локации.
+ * @property {string} name - Название локации на русском.
+ * @property {string} engName - Название локации на английском.
+ * @property {number[]} coords - Координаты локации.
+ * @property {number} width - Ширина локации.
+ * @property {number} height - Высота локации.
+ * @property {Resource[]} resources - Список ресурсов, доступных в локации.
+ * @property {string[]} submenu - Список доступных подменю в меню локации:
+ *                                  i - info,
+ *                                  ресурсы - фармежка ресурсов,
+ *                                  задания - задания,
+ *                                  охота - возможность охоты на локации,
+ *                                  ритуалы - ритуалы локации,
+ *                                  карта - карта локации,
+ *                                  контракты - контракты охоты за головами.
+ * @property {boolean} isCurrent - Указывает, является ли локация текущей.
+ *
+ * @typedef {Object} Resource
+ * @property {number[]} chance - Диапазон вероятностей выпадения ресурса.
+ * @property {string} name - Название ресурса на русском.
+ * @property {string} engName - Название ресурса на английском.
+ * @property {number[]} count - Диапазон количества выпадающего ресурса.
+ * @property {string} type - Тип ресурса: resource
  *
  * */
 const locations = ref([
@@ -607,6 +715,7 @@ const locations = ref([
     width: 135,
     height: 140,
     resources: [
+      {chance: [99, 100], name: 'Златограйник', engName: 'goldenFlower', count: [1, 1], type: 'resource'}
     ],
     submenu: ['i', 'ресурсы'],
     isCurrent: false
@@ -614,45 +723,30 @@ const locations = ref([
 ])
 
 /**
- * Объект рецептов.
+ * @type {Recipe[]}
  *
- * @property {array} [recipes] - Массив Объектов рецептов.
+ * @typedef {Object} Recipe
+ * @property {string} name - название рецепта
+ * @property {string} engName - название рецепта на английском
+ * @property {string} description - описание рецепта
+ * @property {number} count - количество предмета, получаемое при крафте
+ * @property {Cost[]} cost - массив ресурсов, нужных для создания
+ * @property {string} type - тип рецепта
+ * @property {string} bodyType - тип тела, на которое будет надеваться предмет
+ * @property {number} durability - прочность предмета
+ * @property {Info[]} info - массив описаний предмета
+ * @property {boolean} isEquipped - экипирован ли предмет
  *
+ * @typedef {Object} Cost
+ * @property {string} name - название необходимого ресурса для создания предмета
+ * @property {string} engName - название на английском
+ * @property {number} count - количество ресурса
+ * @property {string} type - тип ресурса
  *
- * @property {string} [name] - Имя на русском
- * @property {string} [engName] - Имя на английском
- * @property {string} [description] - Описание
- * @property {number} [count] - Количество предметов, созданных за один раз
- * @property {array} [cost] - Стоимость в ресурсах
- * @property {string} [type] - Тип
- *           weapon - оружие
- *           armor - броня
- *           medical - медицина
- * @property {array} [info] Массив объектов со второстепенной информацией. У каждого типа создаваемого предмета
- *                   своя информация.
- *
- *                   Для оружия и брони: Урон, Прочность, Скорость, Броня
- *                   Для брони добавляется тип тела
- *                   Для оружия добавляется левая, правая или обе руки.
- *                   Для медицины: Количество использований, Баффы, Дебаффы
- *
- * @property {number} [damage] - урон
- * @property {number} [durability] - прочность
- * @property {number} [startedDurability] - начальная прочность
- * @property {number} [speed] - скорость
- * @property {number} [armor] - броня
- * @property {string} [weaponType] - тип оружия: right, left или both
- * @property {string} [bodyType] - часть тела, на которую надевается броня
- * @property {boolean} [isEquipped] - надет ли предмет
- *
- * @property {number} [numberUses] - количество использований
- * @property {array} [positiveEffects] - баффы
- * @property {array} [negativeEffects] - дебаффы
- *
- * @method [create] - создание предмета
- * @method [addRecipe] - add recipe to recipes array - not implemented
- * @method [getRecipeInfo] - получение определенной информации из массива info
- *
+ * @typedef {Object} Info
+ * @property {string} name - заголовок информации предмета
+ * @property {string} engName - заголовок информации на английском
+ * @property {number} value - количество, которое дает тот или иной аспект предмета
  *
  * */
 const recipes = reactive({
@@ -715,31 +809,39 @@ const recipes = reactive({
   ],
   create(recipe) {
     console.clear()
+    console.log('Создаем предмет', recipe)
     const recipeToCreate = player.getObjectCopy(recipe)
-    console.log('Рецепт на создание', recipeToCreate)
+    console.log('Рецепт на создание(копия)', recipeToCreate)
 
-    if (player.isResourcesToCreateEnough(recipeToCreate.cost)) {
-      console.log('Достаточно ресурсов для создания')
-      recipeToCreate.cost.forEach(resource => {
-        console.log('ресурс из рецепта, который надо потратить', resource)
-        resource.type = 'resource'
-        player.decreaseResource(resource)
-        player.showResourceBubble(resource, 'resourceDecrease')
-      })
-
-      player.addItem(recipeToCreate)
-      player.showResourceBubble(recipeToCreate, 'itemCreated')
+    if (!player.isResourcesToCreateEnough(recipeToCreate.cost)) {
+      console.log('Недостаточно ресурсов для создания')
+      return
     }
-  },
-  addRecipe() {
 
-  }
+    console.log('Достаточно ресурсов для создания')
+    recipeToCreate.cost.forEach(resource => {
+      console.log('ресурс из рецепта, который надо потратить', resource)
+      player.decreaseResource(resource)
+    //     player.showResourceBubble(resource, 'resourceDecrease')
+    })
+
+      player.addItemToInventory(recipeToCreate)
+    //   player.showResourceBubble(recipeToCreate, 'itemCreated')
+  },
 })
+
+
+// // теория
+// import Test from "@/components/Test.vue";
+
+provide('locations', locations.value)
+provide('player', player)
+provide('recipes', recipes)
 </script>
 
 <template>
-  <Map :player="player" :locations="locations" :resourcesBubbles="resourcesBubbles" />
-  <UI :inventory="player.inventory" :recipes="recipes" :player="player" />
+  <Map />
+  <UI />
 </template>
 
 <style>

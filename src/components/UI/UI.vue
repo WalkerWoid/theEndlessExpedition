@@ -1,103 +1,40 @@
 <script setup>
 /**
  * Компонент UI */
+import {computed, defineAsyncComponent, inject, reactive, ref} from "vue";
 
-import {computed, reactive} from "vue";
-import Recipes from "@/components/UI/MainUi/Recipes.vue";
-import Inventory from "@/components/UI/MainUi/Inventory.vue";
-import Status from "@/components/UI/MainUi/Status.vue";
+const TopMenu = defineAsyncComponent(() => import("@/components/UI/TopMenu.vue"))
+const Recipes = defineAsyncComponent(() => import("@/components/UI/MainUi/Recipes.vue"))
+const Inventory = defineAsyncComponent(() => import("@/components/UI/MainUi/Inventory.vue"))
+const Status = defineAsyncComponent(() => import("@/components/UI/MainUi/Status.vue"))
+const player = inject('player')
 
-const definedProps = defineProps(['inventory', 'recipes', 'player'])
-
-/**
- * Объект разных всплывающих окон
- *
- * @property {boolean} [visibility] видимо ли окно или нет
- * @property {number} [activeIndex] индекс активного окна. По не му будет выбираться нужный компонент из массива
- *  компонентов для этого окна:
- *    * mainWindow - mainButtons
- *
- * @method [setNewActiveIndexToWindow] устанавливает новый активный индекс кнопки у переданного окна
- *
- * */
-const uiWindows = reactive({
-  mainWindow: {
-    visibility: false,
-    activeIndex: 0
-  },
-  topWindow: {
-    visibility: false
-  },
-  setNewActiveIndexToWindow(window, newIndex) {
-    this[window].activeIndex = newIndex
-  }
+const activeWindow = ref('Status')
+const topMenuButtons = {
+  'Recipes': Recipes,
+  'Inventory': Inventory,
+  'Status': Status
+}
+const uiWindowsVisibility = reactive({
+  topMenu: true,
+  statusMenu: true
 })
 
-/**
- * Массив кнопок сверху
- *
- * @property {string} [name] имя кнопки
- * @property {string} [engName] имя кнопки на английском
- * @property {Component} [component] компонент, который отвечает на кнопку
- *
- * */
-const mainButtons = [
-  {
-    name: 'Рецепты',
-    engName: 'recipes',
-    component: Recipes,
-  },
-  {
-    name: 'Инвентарь',
-    engName: 'inventory',
-    component: Inventory,
-  },
-  {
-    name: 'Статус',
-    engName: 'status',
-    component: Status,
-  }
-]
-
-/**
- * Получение компонента активной кнопки у окна по переданному массиву кнопок */
-const getActiveBtn = (window, buttonsArray) => {
-  const activeIndex = uiWindows[window].activeIndex
-
-  return buttonsArray[activeIndex].component
-}
-
-/** todo объединить эти методы в один toggleWindow*/
-const openWindow = (window) => {
-  if (!window.visibility) {
-    // console.log('открываем окно')
-    toggleVisibility(window)
-  }
-}
-const closeWindow = (window) => {
-  if (window.visibility) {
-    // console.log('закрываем окно')
-    toggleVisibility(window)
-  }
-}
-const toggleVisibility = (window) => {
-  window.visibility = !window.visibility
-}
 
 const healthPercentage = computed(() => {
-  return (definedProps.player.health/definedProps.player.maxHealth) * 100
+  return (player.health/player.maxHealth) * 100
 })
 const foodPercentage = computed(() => {
-  return (definedProps.player.food/definedProps.player.maxFood) * 100
+  return (player.food/player.maxFood) * 100
 })
 const waterPercentage = computed(() => {
-  return (definedProps.player.water/definedProps.player.maxWater) * 100
+  return (player.water/player.maxWater) * 100
 })
 </script>
 
 <template>
   <div class="ui">
-    <div class="ui__top main__texture" :class="{'_hidden': !uiWindows.topWindow.visibility}">
+    <div class="ui__top main__texture" :class="{'_hidden': !uiWindowsVisibility.statusMenu}">
       <p class="_little status__row status__time">Время: 22:00</p>
       <p class="_little status__row">
         <span class="status__bar _health _tiny">
@@ -121,35 +58,21 @@ const waterPercentage = computed(() => {
       <p class="_little status__key" @click="player.health -= 20">здоровье</p>
       <p class="_little status__key" @click="player.food -= 20">еда</p>
       <p class="_little status__key" @click="player.water -= 20">вода</p>
-      <span @click="toggleVisibility(uiWindows.topWindow)" class="main__texture _big">^</span>
+      <span @click="uiWindowsVisibility.statusMenu = !uiWindowsVisibility.statusMenu"
+            class="main__texture _big">^</span>
     </div>
 
-    <ul class="ui__buttons">
-      <li class="main__btn _lil"
-          @click="openWindow(uiWindows.mainWindow); uiWindows.setNewActiveIndexToWindow('mainWindow', index)"
-          v-for="(button, index) of mainButtons"
-          :key="button.engName">{{button.name}}</li>
-    </ul>
+    <TopMenu v-model:active-window="activeWindow" :uiWindowsVisibility="uiWindowsVisibility">
+      <template #recipes>Рецепты</template>
+      <template #inventory>Инвентарь</template>
+      <template #status>Статус</template>
+    </TopMenu>
 
-    <div class="ui__window _main main__texture" :class="{_closed: !uiWindows.mainWindow.visibility}">
-      <span class="window__close" @click="closeWindow(uiWindows.mainWindow)">X</span>
-
-      <!--   todo из за проверки v-if и последующего вызова этого метода, то обновление activeIndex
-              происходит два раза. Вынести getActiveBtn('mainWindow', mainButtons) в отдельную переменную -->
-      <Component :is="getActiveBtn('mainWindow', mainButtons)"
-                 v-if="getActiveBtn('mainWindow', mainButtons).__name === 'Inventory'"
-                 :player="player"
-      />
-
-      <Component :is="getActiveBtn('mainWindow', mainButtons)"
-                 v-else-if="getActiveBtn('mainWindow', mainButtons).__name === 'Recipes'"
-                 :recipes="recipes" :player="player"
-      />
-
-      <Component :is="getActiveBtn('mainWindow', mainButtons)"
-                 v-else-if="getActiveBtn('mainWindow', mainButtons).__name === 'Status'"
-                 :player="player"
-      />
+    <div class="ui__window _main main__texture" :class="{_closed: !uiWindowsVisibility.topMenu}">
+      <div class="ui__window _main main__texture">
+        <span class="window__close" @click="uiWindowsVisibility.topMenu = false">X</span>
+        <Component :is="topMenuButtons[activeWindow]" />
+      </div>
     </div>
   </div>
 </template>
@@ -159,21 +82,6 @@ const waterPercentage = computed(() => {
   position: fixed;
   inset: 0;
   z-index: 1;
-}
-.ui__buttons {
-  display: flex;
-  z-index: 3;
-  position: relative;
-  gap: 6px;
-  justify-content: flex-end;
-}
-.ui__buttons li {
-  cursor: pointer;
-  transition-duration: var(--transition);
-  transform: translateY(-50%);
-}
-.ui__buttons li:hover {
-  transform: translateY(0);
 }
 
 .ui__window {
@@ -214,7 +122,6 @@ const waterPercentage = computed(() => {
 .ui__top {
   position: absolute;
   top: 0;
-//transform: translateX(-100%);
   transition-duration: var(--transition);
   z-index: 4;
   left: 50%;
