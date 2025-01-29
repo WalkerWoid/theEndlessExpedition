@@ -115,7 +115,7 @@ const isDamagedColor = (resource) => {
         <p class="_little">{{activeResource.name}}:</p>
 
         <div class="resource__actions">
-          <button type="button">Использовать</button>
+          <button type="button" @click="player.useItem(activeResource)">Использовать</button>
         </div>
       </template>
     </div>

@@ -6,54 +6,28 @@ import {defineAsyncComponent, inject} from "vue";
 const Location = defineAsyncComponent(() => import("@/components/Map/Location.vue"))
 
 const locations = inject('locations', [])
-// const definedProps = defineProps(['player', 'locations', 'resourcesBubbles'])
+const uiWindowsVisibility = inject('uiWindowsVisibility')
+
+const activeWindow = inject('activeWindow')
+const openSubWindow = (newActiveWindow) => {
+  activeWindow.value = `${newActiveWindow}`
+  uiWindowsVisibility.topMenu = true
+}
+
 </script>
 
 <template>
   <div class="map">
     <picture class="map__container"><img src="@/assets/map/map.png" alt="map-img"></picture>
 
-    <Location v-for="location of locations"
-              :location="location" :key="location.id" />
+    <Location v-for="location of locations" @openSubWindow="openSubWindow"
+              :location="location" :key="location.id" :uiWindowsVisibility />
   </div>
-<!-- todo переедет в UI  -->
-<!--  <ul class="resourceBubbles__container">-->
-<!--    <li v-for="resource of resourcesBubbles" class="main__texture _little">-->
-<!--      <template v-if="resource.type === 'resource'">-->
-<!--        <span v-if="resource.action === 'resourceDecrease'" class="_red">-</span>-->
-<!--        <span v-if="resource.action === 'farm'" class="_green">+</span> {{resource.name}}: {{resource.count}}-->
-<!--      </template>-->
-<!--      <template v-if="resource.type==='armor' || resource.type==='weapon' || resource.type==='medical'">-->
-<!--        <span v-if="resource.action === 'alreadyEquipped'" class="_green">Уже надето:</span>-->
-<!--        <span v-if="resource.action === 'itemCreated'" class="_green">Создано:</span>-->
-<!--        <span v-if="resource.action === 'takeOffItem'" class="_red">Снято:</span>-->
-<!--        <span v-if="resource.action === 'notEquipped'" class="_red">Этот предмет не надет:</span>-->
-<!--        <span v-if="resource.action === 'itemDestroy'" class="_red">Разобрано:</span>-->
-<!--        <span v-if="resource.action === 'putOnItem'" class="_green">Надето:</span> {{resource.name}}-->
-<!--      </template>-->
-<!--    </li>-->
-<!--  </ul>-->
 </template>
 
 <style>
 .map {
   position: relative;
 }
-/*
-.resourceBubbles__container {
-  position: fixed;
-  z-index: 2;
-  top: 30px;
-  right: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 6px;
-}
-.resourceBubbles__container li {
-  transition-duration: var(--transition);
-  border-radius: 5px;
-  padding: 4px 8px;
-}
-*/
+
 </style>

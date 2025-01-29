@@ -2,12 +2,141 @@
 /**
  * Главный компонент игры */
 
-// import {ref, reactive, toRaw, computed} from "vue";
-
-import {defineAsyncComponent, ref, reactive, watch, provide, toRaw} from "vue";
+import {defineAsyncComponent, ref, reactive, watch, provide, toRaw, onMounted, onUpdated} from "vue";
+import Dialogues from "@/Characters/NonPlayerCharacters.js"
+import Quests from "@/Characters/Quests.js";
 
 const Map = defineAsyncComponent(() => import("@/components/Map/Map.vue"))
 const UI = defineAsyncComponent(() => import("@/components/UI/UI.vue"))
+
+const positiveEffects = {
+  heal: {
+    simpleHerbalBandage: {
+      name: 'Слабое Лечение',
+      chance: 100,
+      health: 3,
+      ticks: 2
+    }
+  }
+}
+const negativeEffects = {
+  bloodPoisoning: {
+    simpleHerbalBandage: {
+      name: 'Заражение крови',
+      chance: 8,
+      food: -4,
+      water: -6,
+      ticks: 40
+    }
+  },
+  wormsUnderTheSkin: {
+    simpleHerbalBandage: {
+      name: 'Заражение червями',
+      chance: 50,
+      health: -1,
+      food: -12,
+      water: -20,
+      sanity: -20,
+      ticks: 70
+    }
+  }
+}
+const clock = ref(1)
+const resourcesBubbles = ref([])
+
+const activeWindow = ref('Inventory')
+const uiWindowsVisibility = reactive({
+  topMenu: true,
+  statusMenu: true,
+})
+
+/**
+ * @param {boolean} notification - видели ли мы эту подсказку. Отображается зеленым цветом
+ * @param {boolean} wasShown - добавлялась ли эта подсказка
+ * */
+const allHints = reactive({
+  awakingThoughts1: {
+    title: 'awakingThoughts1',
+    text: `Спустя два часа после пробуждения я все-таки нашел тетрадь и ручку, которые валялись около моих ног,
+    на самом видном месте. Пора записать всё с начала. Я очнулся в каком-то непонятном саркофаге. Голова раскалывается.
+    Первая мысль - я мертв, но чувство неумолимой жажды говорит об обратном. Я не знаю что это за место и кто я такой.
+    Так же на меня надет непонятный скафандр, который снять пока не получается. Что делать - тоже остается загадкой.`,
+    notification: true,
+    wasShown: false
+  },
+  awakingThoughts2: {
+    title: 'awakingThoughts2',
+    text: `При беглом осмотре саркофага выяснилось, что это не саркофаг а какая-то капсула с кучей систем
+    жизнеобеспечения. Экраны, экраны, экраны с миллионом разных показателей. Но один выделялся: зеленый мониторчик,
+    прямо над моим местом, с цифрой 1017. Что это значит? В голове пустота. В капсуле я нашёл бортовой журнал. Запустить
+    его оказалось проще простого. Это странно: я ничего не помню, но техническая часть выглядит… понятной. Как будто мои
+    руки знают, что делать, даже если мозг — нет. Амнезия?`,
+    notification: true,
+    wasShown: false
+  },
+  awakingThoughts3: {
+    title: 'awakingThoughts3',
+    text: `Судя по бортовому журналу, который капсула мне заботливо предоставила, я был отправлен на эту планету с целью
+    ее изучения. Воздух токсичен, фауна и флора - опасна. Поэтому я тут. Почему? Не могу сказать - другая часть
+    информации по какой-то причине недоступна. Мысли в кучу, сложно их изъяснять даже в голове. Хочется пить и есть.
+    Поищу еду и воду в капсуле.`,
+    notification: true,
+    wasShown: false
+  },
+  awakingThoughts4: {
+    title: 'awakingThoughts4',
+    text: `PS: наткнулся на "Пад", который предоставил мне всю информацию обо мне. Удобная вещь, разделил мне всю
+    информацию по окошкам. Даже какие-то "Рецепты" есть, и журнал. Отныне записываю свои наблюдения теперь тут. Так же
+    выкрою немного времени для изучения пада и, пожалуй, буду носить его с собой.`,
+    notification: true,
+    wasShown: false
+  },
+  firstTimeOpenStatus: {
+    title: 'firstTimeOpenStatus',
+    text: `Окно статуса. Показывает основную информацию обо мне... Фираксис, значит. Необычное имя. Место, псевдоним,
+    порядковый номер, бла-бла-бла. Ой вой, осужденный по законам? Убийство ценного объекта? Так нет, нет, нет, нет, нет.
+    Это какая-то ошибка...`,
+    notification: true,
+    wasShown: false
+  },
+  firstTimeOpenInventory: {
+    title: 'firstTimeOpenInventory',
+    text: `Инвентарь. Тут будут отображаться мои ресурсы и предметы? А куда они будут складываться физически? Интересно.
+    Бортовой журнал, я хочу кое-что узнать!`,
+    notification: true,
+    wasShown: false
+  },
+  firstTimeOpenRecipes: {
+    title: 'firstTimeOpenRecipes',
+    text: `Окно рецептов. Пока не знаю, что про него сказать. Может быть тут будут рецепты, а может и нет... Если я и
+    правда отправлен на эту планету для ее изучения, то вкладка рецептов будет очень полезна, так же как и вкладка
+    инвентаря.`,
+    notification: true,
+    wasShown: false
+  },
+  firstTimeOpenQuests: {
+    title: 'firstTimeOpenQuests',
+    text: `Журнал активных заданий, ничего сложного.`,
+    notification: true,
+    wasShown: false
+  },
+  deleteHints: {
+    title: 'deleteHints',
+    text: `Понятно, по нажатию на какую-либо запись, она удалится из журнала. Checked.`,
+    notification: true,
+    wasShown: false
+  },
+  questFirstClick: {
+    title: 'questClick',
+    text: `Клик по заданию ничего не дал, но если задержать на нем курсор - можно получить небольшую подсказку к
+    заданию! Так же у задания есть статус. И пока этот статус - в процессе. Как только буду уверен в том, что задача
+    выполнена, снова кликну по ней. Что же случится?`,
+    notification: true,
+    wasShown: false
+  },
+})
+const dialogues = reactive(new Dialogues())
+
 
 /**
  * Класс игрока */
@@ -24,11 +153,13 @@ class Player {
    * */
   // 'Осужденный по законам 19(массовое убийство), 20(массовые пытки), 21(массовое сожжение) и 22(взятие в заложники особо ценных лиц).'
   #playerInit = () => {
+    this.iteration = 1
     this.name = 'Фираксис Рейнхард'
     this.secondName = 'Охотник'
     this.number = 117
     this.currentLocation = 'landingZone'
-    this.status = 'Осужденный по законам 19 - *Данные повреждены*; 20 - *Данные повреждены*; 21 - *Данные повреждены*; 22 - *Данные повреждены*; 698 - Убийство особо ценного объекта, а именно: *Данные повреждены*.'
+    this.status = `Осужденный по законам 19 - *Данные повреждены*; 20 - *Данные повреждены*; 21 - *Данные повреждены*;
+    22 - *Данные повреждены*; 698 - Убийство особо ценного объекта, а именно: *Данные повреждены*.`
     this.health = 200
     this.maxHealth = 200
     this.food = 300
@@ -38,6 +169,8 @@ class Player {
     this.inventory = [
       { "name": "Трава", "engName": "grass", "count": 320, "type": "resource" },
       { "name": "Обычный цветок", "engName": "commonFlower", "count": 40, "type": "resource" },
+      { name: 'Ветка', engName: 'stick', count: 200, type: 'resource'},
+      { name: 'Камушек', engName: 'littleStone', count: 200, type: 'resource'},
       {
         "name": "Травяная панамка",
         "engName": "herbalPanamaHat",
@@ -131,6 +264,37 @@ class Player {
       weapon: false,
       shield: false
     }
+    this.effects = []
+    this.quests = new Quests()
+    this.conditions = []
+
+    this.journal = []
+    this.activeQuests = {
+      findStartedResources: {
+        id: 'findStartedResources',
+        title: 'Обыскать капсулу',
+        text: 'Если меня отправили на эту планету с какой-то целью, то и припасами должны были снабдить. Верно же, да?',
+        text2: `Нет, нихрена не верно. Я нашел в капсуле лишь пустые банки из под консерв и кожаные бурдюки. Без воды,
+        между прочим. Похоже, пока я лежал в анабиозе, кто-то вскрыл капсулу и съел все. Но вот что странно, ничего не
+        было тронуто: ни я, ни что другое. Так же нет следов взлома. Похоже, мне придется разобраться в том, кто же этот
+        ловкий вор, что обворовал меня.`,
+        hint: 'Обыскать свою капсулу',
+        status: 'inProgress',
+        wasStarted: true,
+        isNew: true,
+        conditions: {
+          otherConditions: [
+            'podWasExplored'
+          ]
+        },
+        awards: false,
+        visibility: true
+      }
+    }
+    this.addHint(allHints.awakingThoughts1)
+    this.addHint(allHints.awakingThoughts2)
+    this.addHint(allHints.awakingThoughts3)
+    this.addHint(allHints.awakingThoughts4)
   }
 
 
@@ -229,19 +393,24 @@ class Player {
     console.clear()
     const locationResources = getLocationResources()
     const randomValForResource = this.getRandomByRange([0, 100])
-    const resource = getResource(locationResources, randomValForResource)
+    // const randomValForResource = 100
+    const resource = getResource(locationResources, randomValForResource) ?? false
+
+    if (!resource) {
+      this.showResourceBubble(resource, 'resourceNotFarmed')
+      return;
+    }
+
     const resourceCount = this.getRandomByRange(resource.count)
     const cockedResource = getCockedResource(resource, resourceCount)
     this.addResource(cockedResource)
     console.log('Инвентарь', this.inventory)
 
-    /*
     console.log('Рандомное число', randomValForResource)
     console.log('Лутаем ресурс', resource)
     console.log('В количестве', resourceCount)
     console.log('Готовый ресурс', cockedResource)
     console.log('Инвентарь', toRaw(this.inventory))
-    */
   }
 
   /**
@@ -263,6 +432,8 @@ class Player {
         this.addSomeToInventory(cockedResource)
       }
     }
+
+    this.showResourceBubble(cockedResource, 'farm')
   }
 
   /**
@@ -430,6 +601,7 @@ class Player {
     }
 
     this.quantityItemCheck(item)
+    this.showResourceBubble(item, 'disassembleItem')
   }
 
   /**
@@ -454,6 +626,7 @@ class Player {
      * Если item такой же, как и надетый на тело предмет */
     if (this.isEquippedItemEqual(item)) {
       console.log('Такой предмет уже надет')
+      this.showResourceBubble(item, 'alreadyEquipped')
       return
     }
 
@@ -471,6 +644,7 @@ class Player {
       this.body[bodyType] = itemToEquip
       this.quantityItemCheck(item)
       console.log('Тело после надевания предмета', this.body)
+      this.showResourceBubble(item, 'equipped')
       return
     }
     /**
@@ -484,6 +658,7 @@ class Player {
       this.takeOffItem(this.body[bodyType])
       this.body[bodyType] = itemToEquip
       this.quantityItemCheck(item)
+      this.showResourceBubble(item, 'equipped')
       console.log('Тело после надевания предмета', this.body)
     }
   }
@@ -508,15 +683,21 @@ class Player {
 
     const bodyType = item.bodyType
 
-    if (!this.body[bodyType])
+    if (!this.body[bodyType]) {
+      this.showResourceBubble(item, 'bodyClear')
       return
+    }
 
-    if (!this.isEquippedItemEqual(item))
+
+    if (!this.isEquippedItemEqual(item)) {
+      this.showResourceBubble(item, 'itemNotEquipped')
       return
+    }
 
     if (this.getInventoryItem(this.body[bodyType])) {
       console.log('Снимаемый предмет есть в инвентаре, прибавляем единичку')
       this.getInventoryItem(this.body[bodyType]).count += 1
+      this.showResourceBubble(item, 'unEquipped')
       this.clearPartOfBody(bodyType)
       return
     }
@@ -524,6 +705,7 @@ class Player {
     console.log('Такого предмета в инвентаре нет, создаем новый')
     this.addItemToInventory(this.body[bodyType])
     this.clearPartOfBody(bodyType)
+    this.showResourceBubble(item, 'unEquipped')
   }
 
   /**
@@ -588,6 +770,118 @@ class Player {
 
 
   /**
+   * Использование предмета
+   *
+   * @param {Object} item - используемый предмет
+   * */
+  useItem(item) {
+    console.clear()
+    console.log('Используем', item)
+
+    clock.value += 1
+    const {positiveEffects, negativeEffects} = item
+    const allItemEffects = [...positiveEffects, ...negativeEffects]
+    console.log('Все эффекты предмета', allItemEffects)
+
+    allItemEffects.forEach(effect => {
+      const randomVal = this.getRandomByRange([0, 100])
+      if (effect.chance >= randomVal) {
+        this.addEffect(effect)
+        this.showResourceBubble(effect, 'getEffect')
+      }
+      console.log('Сгенерированное число для определенного эффекта', randomVal)
+    })
+    console.log('Полученные эффекты', this.effects)
+
+    this.showResourceBubble(item, 'useItem')
+  }
+
+  /**
+   * todo - способ задавать айдишники для эффектов, что бы их можно было удобно чистить. Если какой-то из эффектов будет тик 0, то просто чистим все эффеекты */
+  /**
+   * Считает действие эффектов при тике
+   *
+   * @param {Object} effect - объект эффекта, который надо "скалькулировать"
+   * @return {void}
+   *
+   * */
+  calcEffect(effect) {
+    effect.ticks -= 1
+
+    if (effect.health && player.health <= player.maxHealth) {
+      this.changeHealth(effect.health)
+    }
+    if (effect.food) {
+      this.changeFood(effect.food)
+    }
+    if (effect.water) {
+      this.changeWater(effect.water)
+    }
+    if (effect.sanity) {
+      this.changeSanity(effect.sanity)
+    }
+
+    if (effect.ticks === 0) {
+      this.effects = this.effects.filter(effect => effect.ticks >= 1)
+      this.showResourceBubble(effect, 'deleteEffect')
+    }
+  }
+
+  clearEffect(name = false) {
+  }
+  clearEffects() {
+    this.effects = []
+  }
+  addEffect(effect) {
+    this.effects.push(this.getObjectCopy(effect))
+  }
+
+  changeHealth(health) {
+    this.health += health
+  }
+  changeFood(food) {
+    this.food += food
+  }
+  changeWater(water) {
+    this.water += water
+  }
+  changeSanity(sanity) {
+    this.sanity += sanity
+  }
+
+  resetHealth() {
+    this.health = this.maxHealth
+  }
+  resetFood() {
+    this.food = this.maxFood
+  }
+  resetWater() {
+    this.water = this.maxWater
+  }
+  addIteration() {
+    this.iteration += 1
+  }
+  clearInventory() {
+    this.inventory = []
+  }
+
+
+  getActiveQuest(id) {
+    return this.activeQuests[id]
+  }
+  hideQuest(id) {
+    this.getActiveQuest(id).visibility = false
+  }
+  addCondition(condition) {
+    if (this.conditions.filter(cond => cond === condition).length === 0) {
+      this.conditions.push(condition)
+    }
+    console.log('кондишонс', this.conditions)
+  }
+
+
+
+  /**
    * @param {Object} something - объект предмета или ресурса(чего-угодно), который надо будет добавить в инвентарь
    *
    * @return {void}
@@ -638,16 +932,95 @@ class Player {
    * @return {void}
    *
    * */
-  // showResourceBubble(resource, action) {
-  //   const cockedResource = this.getObjectCopy(resource)
-  //   cockedResource.action = action
-  //   resourcesBubbles.value.unshift(cockedResource)
-  //   console.log('бабл ресурсов:', resourcesBubbles.value)
-  //
-  //   const timeOut = setTimeout(() => {
-  //     resourcesBubbles.value.pop()
-  //   }, 2400)
-  // }
+  showResourceBubble(resource, action) {
+    const rowObj = {
+      text: 'Сломано',
+      secondText: 'Наручи из жопы дракона',
+      className: '_green'
+    }
+
+    switch (action) {
+      case "farm":
+        rowObj.text = '+'
+        rowObj.secondText = `${resource.name}: ${resource.count}`
+        break
+      case "resourceDecrease":
+        rowObj.text = '-'
+        rowObj.secondText = `${resource.name}: ${resource.count}`
+        rowObj.className = '_red'
+        break
+      case "itemCreated":
+        rowObj.text = 'Создано'
+        rowObj.secondText = `${resource.name}`
+        break
+      case "disassembleItem":
+        rowObj.text = 'Разобрано'
+        rowObj.secondText = `${resource.name}`
+        rowObj.className = '_red'
+        break
+      case "alreadyEquipped":
+        rowObj.text = 'Уже экипировано'
+        rowObj.secondText = `${resource.name}`
+        break
+      case "equipped":
+        rowObj.text = 'Экипировано'
+        rowObj.secondText = `${resource.name}`
+        break
+      case "unEquipped":
+        rowObj.text = 'Снято'
+        rowObj.secondText = `${resource.name}`
+        rowObj.className = '_red'
+        break
+      case "bodyClear":
+        rowObj.text = 'На теле ничего нет!'
+        rowObj.secondText = ``
+        rowObj.className = '_red'
+        break
+      case "itemNotEquipped":
+        rowObj.text = 'Этот предмет не надет'
+        rowObj.secondText = `${resource.name}`
+        rowObj.className = '_red'
+        break
+      case "useItem":
+        rowObj.text = 'Использовано'
+        rowObj.secondText = `${resource.name}`
+        break
+      case "getEffect":
+        rowObj.text = '+'
+        rowObj.secondText = `${resource.name}`
+        break
+      case "deleteEffect":
+        rowObj.text = '-'
+        rowObj.secondText = `${resource.name}`
+        rowObj.className = '_red'
+        break
+      case "playerDead":
+        rowObj.text = 'Персонаж погиб'
+        rowObj.secondText = ``
+        rowObj.className = '_red'
+        break
+      case "resourceNotFarmed":
+        rowObj.text = 'Увы, ничего не нашли'
+        rowObj.secondText = ``
+        rowObj.className = '_red'
+        break
+    }
+
+    resourcesBubbles.value.unshift(rowObj)
+    // console.log('бабл ресурсов:', resourcesBubbles.value)
+
+    const timeOut = setTimeout(() => {
+      resourcesBubbles.value.pop()
+    }, 2400)
+  }
+
+  addHint(hint) {
+    if (hint.wasShown)
+      return
+
+    hint.wasShown = !hint.wasShown
+    this.journal.push(hint)
+  }
 }
 
 const player = reactive(new Player())
@@ -657,6 +1030,51 @@ const player = reactive(new Player())
 watch(() => player.currentLocation, (newLocationName, oldLocationName) => {
   player.getLocation(oldLocationName).isCurrent = false
   player.getLocation(newLocationName).isCurrent = true
+})
+
+/**
+ * Вотчер наблюдения за тиками */
+watch(clock, (newClock, oldClock) => {
+  // console.clear()
+
+  player.effects.forEach(effect => {
+    player.calcEffect(effect)
+  })
+
+  // console.log('Все эффекты игрока', player.effects)
+  player.effects.forEach(effect => console.log(effect))
+
+  if (player.water <= 0) {
+    player.water = 0
+    player.changeHealth(-10)
+  } else if (player.water > player.maxWater) {
+    player.water = player.maxWater
+  }
+
+  if (player.food <= 0) {
+    player.food = 0
+    player.changeHealth(-4)
+  } else if (player.food > player.maxFood) {
+    player.food = player.maxFood
+  }
+})
+
+/** todo посмотреть про вотчеры еще раз и узнать, как сделать привязку к нескольким переменным */
+watch(() => player.health, (newHealth, oldHealth) => {
+  if (newHealth <= 0) {
+    console.log('Персонаж погиб')
+    player.resetHealth()
+    player.resetWater()
+    player.resetFood()
+    player.addIteration()
+    player.clearEffects()
+    player.clearInventory()
+    player.showResourceBubble(player, 'playerDead')
+  } else if (player.health > player.maxHealth) {
+    console.log(player.health)
+    player.health = player.maxHealth
+    console.log('Персонаж полностью исцелен')
+  }
 })
 
 /**
@@ -699,13 +1117,21 @@ const locations = ref([
     width: 135,
     height: 140,
     resources: [
-      {chance: [0, 60], name: 'Трава', engName: 'grass', count: [10, 20], type: 'resource'},
-      {chance: [61, 80], name: 'Ветка', engName: 'stick', count: [6, 10], type: 'resource'},
-      {chance: [81, 98], name: 'Обычный цветок', engName: 'commonFlower', count: [3, 7], type: 'resource'},
-      {chance: [99, 100], name: 'Златограйник', engName: 'goldenFlower', count: [1, 1], type: 'resource'}
+      {chance: [0, 59], name: 'Трава', engName: 'grass', count: [10, 20], type: 'resource'},
+      {chance: [60, 79], name: 'Ветка', engName: 'stick', count: [6, 10], type: 'resource'},
+      {chance: [80, 98], name: 'Обычный цветок', engName: 'commonFlower', count: [3, 7], type: 'resource'},
+      {chance: [99, 99], name: 'Златограйник', engName: 'goldenFlower', count: [1, 1], type: 'resource'}
     ],
-    submenu: ['i', 'ресурсы', 'охота', 'задания', 'контракты', 'карта', 'ритуалы'],
-    isCurrent: true
+    submenu: [
+      {title: 'i', id: 'info'},
+      {title: 'ресурсы', id: 'resources'},
+      {title: 'охота', id: 'hunt'},
+      {title: 'контракты', id: 'contracts'},
+      {title: 'карта', id: 'map'},
+      {title: 'ритуалы', id: 'rituals'}
+    ],
+    isCurrent: true,
+    npc: ['logbook']
   },
   {
     id: 1,
@@ -715,10 +1141,14 @@ const locations = ref([
     width: 135,
     height: 140,
     resources: [
-      {chance: [99, 100], name: 'Златограйник', engName: 'goldenFlower', count: [1, 1], type: 'resource'}
+      {chance: [99, 99], name: 'Златограйник', engName: 'goldenFlower', count: [1, 1], type: 'resource'}
     ],
-    submenu: ['i', 'ресурсы'],
-    isCurrent: false
+    submenu: [
+      {title: 'i', id: 'info'},
+      {title: 'ресурсы', id: 'resources'}
+    ],
+    isCurrent: false,
+    npc: ['satyr']
   }
 ])
 
@@ -735,6 +1165,8 @@ const locations = ref([
  * @property {string} bodyType - тип тела, на которое будет надеваться предмет
  * @property {number} durability - прочность предмета
  * @property {Info[]} info - массив описаний предмета
+ * @property {array} positiveEffects - массив положительных эффектов
+ * @property {array} negativeEffects - массив негативных эффектов
  * @property {boolean} isEquipped - экипирован ли предмет
  *
  * @typedef {Object} Cost
@@ -793,7 +1225,7 @@ const recipes = reactive({
     {
       name: 'Простой травяной бинт',
       engName: 'simpleHerbalBandage',
-      description: 'Трава, связанная травой и украшенная тремя разноцветными цветами. Никакой пропаганды. Лечит так же, как и выглядит - на все 5 процентов. Хороший шанс получить какое-нибудь заражение. Проще будет помочиться на рану.',
+      description: 'Трава, связанная травой и украшенная тремя разноцветными цветами. Никакой пропаганды. Лечит так же, как и выглядит - на троечку. Хороший шанс получить какое-нибудь заражение. Проще будет помочиться на рану.',
       count: 1,
       cost: [
         {name: 'Трава', engName: 'grass', count: 40, type: 'resource'},
@@ -802,9 +1234,14 @@ const recipes = reactive({
       type: 'medical',
       info: [
         {name: 'Количество использований', engName: 'numberUses', value: 1},
-        {name: 'Полезные свойства', engName: 'positiveEffects', value: []},
-        {name: 'Неполезные свойства', engName: 'negativeEffects', value: []},
       ],
+      positiveEffects: [
+        positiveEffects.heal.simpleHerbalBandage
+      ],
+      negativeEffects: [
+        negativeEffects.bloodPoisoning.simpleHerbalBandage,
+        negativeEffects.wormsUnderTheSkin.simpleHerbalBandage
+      ]
     },
   ],
   create(recipe) {
@@ -822,11 +1259,11 @@ const recipes = reactive({
     recipeToCreate.cost.forEach(resource => {
       console.log('ресурс из рецепта, который надо потратить', resource)
       player.decreaseResource(resource)
-    //     player.showResourceBubble(resource, 'resourceDecrease')
+      player.showResourceBubble(resource, 'resourceDecrease')
     })
 
       player.addItemToInventory(recipeToCreate)
-    //   player.showResourceBubble(recipeToCreate, 'itemCreated')
+      player.showResourceBubble(recipeToCreate, 'itemCreated')
   },
 })
 
@@ -837,11 +1274,17 @@ const recipes = reactive({
 provide('locations', locations.value)
 provide('player', player)
 provide('recipes', recipes)
+provide('clock', clock)
+provide('journal', player.journal)
+provide('allHints', allHints)
+provide('activeWindow', activeWindow)
+provide('uiWindowsVisibility', uiWindowsVisibility)
+provide('dialogues', dialogues)
 </script>
 
 <template>
   <Map />
-  <UI />
+  <UI :resourcesBubbles />
 </template>
 
 <style>

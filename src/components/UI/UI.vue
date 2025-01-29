@@ -1,24 +1,33 @@
 <script setup>
 /**
  * Компонент UI */
-import {computed, defineAsyncComponent, inject, reactive, ref} from "vue";
+import {computed, defineAsyncComponent, inject, reactive, ref, watch} from "vue";
 
 const TopMenu = defineAsyncComponent(() => import("@/components/UI/TopMenu.vue"))
 const Recipes = defineAsyncComponent(() => import("@/components/UI/MainUi/Recipes.vue"))
 const Inventory = defineAsyncComponent(() => import("@/components/UI/MainUi/Inventory.vue"))
 const Status = defineAsyncComponent(() => import("@/components/UI/MainUi/Status.vue"))
-const player = inject('player')
+const Journal = defineAsyncComponent(() => import("@/components/UI/MainUi/Journal.vue"))
+const Questions = defineAsyncComponent(() => import("@/components/UI/MainUi/Questions.vue"))
+const LocationInfo = defineAsyncComponent(() => import("@/components/LocationMenu/Info.vue"))
 
-const activeWindow = ref('Status')
+const player = inject('player')
+const clock = inject('clock')
+const allHints = inject('allHints')
+const definedProps = defineProps({
+  'resourcesBubbles': Array
+})
+
+const activeWindow = inject('activeWindow')
 const topMenuButtons = {
+  'Journal': Journal,
+  'Questions': Questions,
   'Recipes': Recipes,
   'Inventory': Inventory,
-  'Status': Status
+  'Status': Status,
+  'info': LocationInfo
 }
-const uiWindowsVisibility = reactive({
-  topMenu: true,
-  statusMenu: true
-})
+const uiWindowsVisibility = inject('uiWindowsVisibility')
 
 
 const healthPercentage = computed(() => {
@@ -29,6 +38,21 @@ const foodPercentage = computed(() => {
 })
 const waterPercentage = computed(() => {
   return (player.water/player.maxWater) * 100
+})
+
+watch(activeWindow, (newActiveWindow, oldActiveWindow) => {
+  if (newActiveWindow === 'Status') {
+    player.addHint(allHints.firstTimeOpenStatus)
+  }
+  if (newActiveWindow === 'Recipes') {
+    player.addHint(allHints.firstTimeOpenRecipes)
+  }
+  if (newActiveWindow === 'Inventory') {
+    player.addHint(allHints.firstTimeOpenInventory)
+  }
+  if (newActiveWindow === 'Questions') {
+    player.addHint(allHints.firstTimeOpenQuests)
+  }
 })
 </script>
 
@@ -55,35 +79,38 @@ const waterPercentage = computed(() => {
         </span>
       </p>
 
-      <p class="_little status__key" @click="player.health -= 20">здоровье</p>
+      <p class="_little status__key" @click="player.changeHealth(-80)">здоровье</p>
       <p class="_little status__key" @click="player.food -= 20">еда</p>
       <p class="_little status__key" @click="player.water -= 20">вода</p>
+      <p>Время: {{clock}} </p>
+      <p @click="clock+=1">+1 к часу</p>
+
       <span @click="uiWindowsVisibility.statusMenu = !uiWindowsVisibility.statusMenu"
             class="main__texture _big">^</span>
     </div>
 
     <TopMenu v-model:active-window="activeWindow" :uiWindowsVisibility="uiWindowsVisibility">
+      <template #journal>Журнал</template>
+      <template #quests>Задания</template>
       <template #recipes>Рецепты</template>
       <template #inventory>Инвентарь</template>
       <template #status>Статус</template>
     </TopMenu>
 
     <div class="ui__window _main main__texture" :class="{_closed: !uiWindowsVisibility.topMenu}">
-      <div class="ui__window _main main__texture">
-        <span class="window__close" @click="uiWindowsVisibility.topMenu = false">X</span>
-        <Component :is="topMenuButtons[activeWindow]" />
-      </div>
+      <span class="window__close" @click="uiWindowsVisibility.topMenu = false">X</span>
+      <Component :is="topMenuButtons[activeWindow]" />
     </div>
+
+    <ul class="resourceBubbles__container">
+      <li v-for="rowObj of resourcesBubbles" class="main__texture _little">
+        <span :class="rowObj.className">{{rowObj.text}}</span> {{rowObj.secondText}}
+      </li>
+    </ul>
   </div>
 </template>
 
 <style>
-.ui {
-  position: fixed;
-  inset: 0;
-  z-index: 1;
-}
-
 .ui__window {
   position: absolute;
   transition-duration: var(--transition);
@@ -91,6 +118,12 @@ const waterPercentage = computed(() => {
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+.ui {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
 }
 .ui__subWindow {
   max-height: 100%;
@@ -130,6 +163,8 @@ const waterPercentage = computed(() => {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   gap: 4px 8px;
+  max-width: 290px;
+  width: 100%;
 }
 .ui__top._hidden {
   opacity: 1;
@@ -200,5 +235,21 @@ const waterPercentage = computed(() => {
 }
 .status__bar._water ._filled {
   background-color: var(--water-color);
+}
+
+.resourceBubbles__container {
+  position: fixed;
+  z-index: 2;
+  top: 30px;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+.resourceBubbles__container li {
+  transition-duration: var(--transition);
+  border-radius: 5px;
+  padding: 4px 8px;
 }
 </style>

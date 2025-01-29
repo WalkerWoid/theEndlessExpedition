@@ -109,7 +109,22 @@ const itemCreate = (recipe) =>  {
       <template v-for="info of recipe.info" :key="info.engName">
         <li class="info__row">
           <h5>{{ info.name }}:</h5>
-          <p class="_little">{{ info.value }}</p>
+          <p class="_little">
+            {{ info.value }}
+            {{info.value.typeof}}
+          </p>
+        </li>
+        <li v-if="recipe.positiveEffects" class="info__row">
+          <h5>Положительные эффекты:</h5>
+          <p v-for="positive of recipe.positiveEffects" :key="positive.name" class="_little">
+            {{positive.name}}({{positive.chance}}%)
+          </p>
+        </li>
+        <li v-if="recipe.negativeEffects" class="info__row">
+          <h5>Негативные эффекты:</h5>
+          <p v-for="negative of recipe.negativeEffects" :key="negative.name" class="_little">
+            {{negative.name}}({{negative.chance}}%)
+          </p>
         </li>
       </template>
     </ul>

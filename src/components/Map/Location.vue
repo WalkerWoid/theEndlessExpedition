@@ -8,6 +8,7 @@ const player = inject('player')
 const definedProps = defineProps({
   location: Object
 })
+const definedEmits = defineEmits(['openSubWindow'])
 const locationStyle = computed(() => {
   return {
     top: `${definedProps.location.coords[0]}px`,
@@ -19,6 +20,7 @@ const locationStyle = computed(() => {
 const hoverEffectSrc = computed(() => {
   return `/src/assets/images/hoverLocations/${definedProps.location.engName}HoverEffect.png`
 })
+
 </script>
 
 <!-- todo пока не делал анимацию фарма ресурсов. Думаю сделать так, что бы всплывала иконка ресурса и количество -->
@@ -33,10 +35,13 @@ const hoverEffectSrc = computed(() => {
       <p class="location__here main__texture">Вы <br> тут</p>
 
       <ul class="location__submenu">
-        <template v-for="menuUnit of location.submenu">
-          <li class="locationMenu__unit main__texture" v-if="menuUnit !== 'ресурсы'">{{menuUnit}}</li>
+        <template v-for="menuUnit of location.submenu" :key="menuUnit.id">
+          <li class="locationMenu__unit main__texture"
+              v-if="menuUnit.id !== 'resources'" @click="$emit('openSubWindow', menuUnit.id)">
+            {{menuUnit.title}}
+          </li>
           <li class="locationMenu__unit main__texture" v-else @click="player.farmResource">
-            {{menuUnit}}
+            {{menuUnit.title}}
           </li>
         </template>
       </ul>

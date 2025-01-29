@@ -4,6 +4,7 @@
 import {inject, watch} from "vue";
 
 const player = inject('player')
+const dialogues = inject('dialogues')
 
 /**
  * Описание частей тела */
@@ -18,6 +19,23 @@ const body = {
   rightLeg: 'Правая нога',
   weapon: 'Оружие',
   shield: 'Щит'
+}
+
+const firstClickStatus = () => {
+  if (player.quests.quests.checkMyStatus.wasStarted) {
+    return
+  }
+
+  player.quests.addQuest(player.activeQuests, player.quests.quests.checkMyStatus)
+
+  dialogues.handleConsequence({
+    type: 'changeButtonVisibility',
+    character: 'logbook', // всегда
+    mainButton: 'knowMyStatus', // всегда
+    action: 'show', // всегда
+    secondButton: false, // опционально
+    additionalButton: false // опционально
+  }, player)
 }
 </script>
 
@@ -43,30 +61,29 @@ const body = {
       <p>Порядковый номер: {{player.number}}</p>
     </div>
 
-    <div class="status__row">
-      <p>Статус: {{player.status}}</p>
-    </div>
-
-<!--    <div class="status__row">-->
-<!--      <p>Урон: {{player.fullDamage}}</p>-->
-<!--    </div>-->
-
-<!--    <div class="status__row">-->
-<!--      <p>Броня: {{player.fullArmor}}</p>-->
-<!--    </div>-->
-
-<!--    <div class="status__row">-->
-<!--      <p>Скорость: {{player.fullSpeed}}</p>-->
-<!--    </div>-->
-
     <div class="status__row" v-for="(part, key) of player.body" :class="{_pointer: player.body[key]}">
       <p :title="'Осталось прочности ' + player.body[key].durability"
          @click="player.body[key] && player.takeOffItem(part)">
         {{body[key]}}: {{player.body[key].name ?? 'Ничего не надето'}}
       </p>
-<!--      <button @click="player.body[key].durability -= 2">Минус два прочности</button>-->
     </div>
 
+    <div class="status__row _pointer" @click="firstClickStatus()">
+      <p>Статус: {{player.status}}</p>
+    </div>
+
+    <div class="status__row">
+      <p>Полученные эффекты и травмы:
+        <span class="_little"
+              v-for="effect of player.effects"
+              :key="effect.name"
+              :title="'Осталось тиков ' + effect.ticks">
+          {{effect.name}};
+        </span>
+
+        <span v-if="player.effects.length === 0">Эффектов нет</span>
+      </p>
+    </div>
   </div>
 </template>
 
