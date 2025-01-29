@@ -12,7 +12,6 @@ const Questions = defineAsyncComponent(() => import("@/components/UI/MainUi/Ques
 const LocationInfo = defineAsyncComponent(() => import("@/components/LocationMenu/Info.vue"))
 
 const player = inject('player')
-const clock = inject('clock')
 const allHints = inject('allHints')
 const definedProps = defineProps({
   'resourcesBubbles': Array
@@ -59,7 +58,8 @@ watch(activeWindow, (newActiveWindow, oldActiveWindow) => {
 <template>
   <div class="ui">
     <div class="ui__top main__texture" :class="{'_hidden': !uiWindowsVisibility.statusMenu}">
-      <p class="_little status__row status__time">Время: 22:00</p>
+      <p class="_little status__row status__time">
+        Время: {{ player.getTime('hours') }}:{{ player.getTime('minutes')}} | День: {{player.days}}</p>
       <p class="_little status__row">
         <span class="status__bar _health _tiny">
           <span class="status__value">{{player.health}}</span>
@@ -82,8 +82,6 @@ watch(activeWindow, (newActiveWindow, oldActiveWindow) => {
       <p class="_little status__key" @click="player.changeHealth(-80)">здоровье</p>
       <p class="_little status__key" @click="player.food -= 20">еда</p>
       <p class="_little status__key" @click="player.water -= 20">вода</p>
-      <p>Время: {{clock}} </p>
-      <p @click="clock+=1">+1 к часу</p>
 
       <span @click="uiWindowsVisibility.statusMenu = !uiWindowsVisibility.statusMenu"
             class="main__texture _big">^</span>

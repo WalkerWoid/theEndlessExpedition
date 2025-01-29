@@ -2,6 +2,22 @@
 /**
  * Главный компонент игры */
 
+/**
+ * todo делаю механику времени
+ * todo фарм ферм ресурса - сделал
+ * todo надевание предмета - сделал
+ * todo снимание предмета - сделал
+ * todo разбор предмета - сделал
+ * todo создание предмета - сделал
+ * todo переход между локациями - сделал
+ * todo разговор с нпс - сделал
+ *
+ * Добавить уведомления
+ * todo переход между локациями
+ * todo знакомство с персонажами
+ *
+ * */
+
 import {defineAsyncComponent, ref, reactive, watch, provide, toRaw, onMounted, onUpdated} from "vue";
 import Dialogues from "@/Characters/NonPlayerCharacters.js"
 import Quests from "@/Characters/Quests.js";
@@ -41,7 +57,6 @@ const negativeEffects = {
     }
   }
 }
-const clock = ref(1)
 const resourcesBubbles = ref([])
 
 const activeWindow = ref('Inventory')
@@ -267,6 +282,9 @@ class Player {
     this.effects = []
     this.quests = new Quests()
     this.conditions = []
+    this.minutes = 0
+    this.hours = 23
+    this.days = 0
 
     this.journal = []
     this.activeQuests = {
@@ -404,6 +422,7 @@ class Player {
     const resourceCount = this.getRandomByRange(resource.count)
     const cockedResource = getCockedResource(resource, resourceCount)
     this.addResource(cockedResource)
+    this.changeTime(29, 0)
     console.log('Инвентарь', this.inventory)
 
     console.log('Рандомное число', randomValForResource)
@@ -567,6 +586,7 @@ class Player {
      */
     console.clear()
     console.log('Предмет, который будем разбирать', item)
+    this.changeTime(30, 0)
     const itemStartedDurability = this.getItemInfo(item, 'startedDurability')
     const itemCost = this.getObjectCopy(item).cost
 
@@ -633,6 +653,7 @@ class Player {
     const bodyType = item.bodyType
     const itemToEquip = this.getObjectCopy(item)
     itemToEquip.count = 1
+    this.changeTime(15, 0)
 
     /**
      * Если на теле ничего нет. */
@@ -661,6 +682,7 @@ class Player {
       this.showResourceBubble(item, 'equipped')
       console.log('Тело после надевания предмета', this.body)
     }
+
   }
 
   /**
@@ -688,6 +710,7 @@ class Player {
       return
     }
 
+    this.changeTime(15, 0)
 
     if (!this.isEquippedItemEqual(item)) {
       this.showResourceBubble(item, 'itemNotEquipped')
@@ -777,8 +800,9 @@ class Player {
   useItem(item) {
     console.clear()
     console.log('Используем', item)
+    console.log(this.inventory)
 
-    clock.value += 1
+    this.changeTime(0, 4)
     const {positiveEffects, negativeEffects} = item
     const allItemEffects = [...positiveEffects, ...negativeEffects]
     console.log('Все эффекты предмета', allItemEffects)
@@ -791,7 +815,11 @@ class Player {
       }
       console.log('Сгенерированное число для определенного эффекта', randomVal)
     })
-    console.log('Полученные эффекты', this.effects)
+    item.count -= 1
+    if (item.count === 0) {
+      this.deleteFromInventory(this.inventory.indexOf(this.getInventoryItem(item)))
+    }
+
 
     this.showResourceBubble(item, 'useItem')
   }
@@ -863,6 +891,19 @@ class Player {
   }
   clearInventory() {
     this.inventory = []
+  }
+
+
+  getTime(typeOfTime) {
+    if (this[typeOfTime].toString().length === 1) {
+      return `0${this[typeOfTime]}`
+    } else {
+      return this[typeOfTime]
+    }
+  }
+  changeTime(minutes = 0, hours = 0) {
+    this.minutes += minutes
+    this.hours += hours
   }
 
 
@@ -1004,6 +1045,10 @@ class Player {
         rowObj.secondText = ``
         rowObj.className = '_red'
         break
+      case "doSomeAction":
+        rowObj.text = 'Выполнено'
+        rowObj.secondText = `${resource.action}`
+        break
     }
 
     resourcesBubbles.value.unshift(rowObj)
@@ -1030,11 +1075,12 @@ const player = reactive(new Player())
 watch(() => player.currentLocation, (newLocationName, oldLocationName) => {
   player.getLocation(oldLocationName).isCurrent = false
   player.getLocation(newLocationName).isCurrent = true
+  player.changeTime(0, 1)
 })
 
 /**
  * Вотчер наблюдения за тиками */
-watch(clock, (newClock, oldClock) => {
+watch([() => player.hours, () => player.minutes], ([newHours, newMinutes], [oldHours, oldMinutes]) => {
   // console.clear()
 
   player.effects.forEach(effect => {
@@ -1057,7 +1103,23 @@ watch(clock, (newClock, oldClock) => {
   } else if (player.food > player.maxFood) {
     player.food = player.maxFood
   }
+
+  if (newMinutes >= 60) {
+    player.minutes = newMinutes%60
+    player.changeTime(0, 1)
+  }
+
+  if (newHours === 24 && newMinutes > 0) {
+    player.days += 1
+    player.hours = 0
+  }
+
+  if (newHours > 24) {
+    player.days += 1
+    player.hours = newHours%24
+  }
 })
+
 
 /** todo посмотреть про вотчеры еще раз и узнать, как сделать привязку к нескольким переменным */
 watch(() => player.health, (newHealth, oldHealth) => {
@@ -1262,8 +1324,14 @@ const recipes = reactive({
       player.showResourceBubble(resource, 'resourceDecrease')
     })
 
-      player.addItemToInventory(recipeToCreate)
-      player.showResourceBubble(recipeToCreate, 'itemCreated')
+    player.addItemToInventory(recipeToCreate)
+    player.showResourceBubble(recipeToCreate, 'itemCreated')
+    if (recipeToCreate.type === 'medical') {
+      player.changeTime(10, 0)
+    }
+    if (recipeToCreate.type === 'armor' || recipeToCreate.type === 'weapon') {
+      player.changeTime(45, 0)
+    }
   },
 })
 
@@ -1274,7 +1342,6 @@ const recipes = reactive({
 provide('locations', locations.value)
 provide('player', player)
 provide('recipes', recipes)
-provide('clock', clock)
 provide('journal', player.journal)
 provide('allHints', allHints)
 provide('activeWindow', activeWindow)

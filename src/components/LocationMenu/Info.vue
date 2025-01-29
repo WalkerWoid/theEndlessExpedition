@@ -25,6 +25,7 @@ const switchActiveCharacter = (newCharacter) => {
   !dialogues.activeButton && dialogues.switchActiveCharacter(newCharacter)
   dialoguesWindowVisibility.value = true
   player.addCondition(`met${newCharacter}`)
+  player.changeTime(20, 0)
 }
 const showBackBtn = computed(() => {
   if (!dialogues.activeMessages.additionalButtons) {
@@ -51,7 +52,7 @@ const showBackBtn = computed(() => {
 
     <div>
       <button v-if="player.getActiveQuest('findStartedResources').status === 'inProgress' && player.getActiveQuest('findStartedResources').visibility"
-          @click="player.addCondition('podWasExplored');"
+          @click="player.addCondition('podWasExplored'); player.showResourceBubble({action: 'Обыскать капсулу',},  'doSomeAction')"
               class="main__btn _little _pointer _lil" type="button">
         Обыскать капсулу
       </button>
@@ -84,7 +85,7 @@ const showBackBtn = computed(() => {
               :list-source="dialogues.activeCharacter.dialogue"
               class="dialogue__buttons" key-name="title">
           <template #objElement="button">
-            <li v-if="button.visibility" @click="dialogues.switchActiveButton(button)" class="dialogue__btn">{{button.title}}</li>
+            <li v-if="button.visibility" @click="dialogues.switchActiveButton(button); player.changeTime(10, 0)" class="dialogue__btn">{{button.title}}</li>
           </template>
         </List>
 
@@ -103,7 +104,7 @@ const showBackBtn = computed(() => {
               <button v-if="button.visibility"
                       type="button"
                       class="message-btn _little"
-                      @click="dialogues.handleButton(button, player)">
+                      @click="dialogues.handleButton(button, player); player.changeTime(2)">
                 {{button.text}}
               </button>
             </template>
