@@ -10,6 +10,7 @@ const Status = defineAsyncComponent(() => import("@/components/UI/MainUi/Status.
 const Journal = defineAsyncComponent(() => import("@/components/UI/MainUi/Journal.vue"))
 const Questions = defineAsyncComponent(() => import("@/components/UI/MainUi/Questions.vue"))
 const LocationInfo = defineAsyncComponent(() => import("@/components/LocationMenu/Info.vue"))
+const Hunting = defineAsyncComponent(() => import("@/components/UI/MainUi/Hunting.vue"))
 
 const player = inject('player')
 const allHints = inject('allHints')
@@ -24,18 +25,28 @@ const topMenuButtons = {
   'Recipes': Recipes,
   'Inventory': Inventory,
   'Status': Status,
-  'info': LocationInfo
+  'info': LocationInfo,
+  'hunt': Hunting
 }
 const uiWindowsVisibility = inject('uiWindowsVisibility')
 
 
 const healthPercentage = computed(() => {
+  if(player.health <= 0) {
+    return 0
+  }
   return (player.health/player.maxHealth) * 100
 })
 const foodPercentage = computed(() => {
+  if(player.food <= 0) {
+    return 0
+  }
   return (player.food/player.maxFood) * 100
 })
 const waterPercentage = computed(() => {
+  if(player.water <= 0) {
+    return 0
+  }
   return (player.water/player.maxWater) * 100
 })
 
@@ -62,26 +73,26 @@ watch(activeWindow, (newActiveWindow, oldActiveWindow) => {
         Время: {{ player.getTime('hours') }}:{{ player.getTime('minutes')}} | День: {{player.days}}</p>
       <p class="_little status__row">
         <span class="status__bar _health _tiny">
-          <span class="status__value">{{player.health}}</span>
+          <span class="status__value">{{player.health > 0 ? player.health : 0}}</span>
           <span class="_filled" :style="{'width': `${healthPercentage}%`}"></span>
         </span>
       </p>
       <p class="_little status__row">
         <span class="status__bar _food _tiny">
-          <span class="status__value">{{player.food}}</span>
+          <span class="status__value">{{player.food > 0 ? player.food : 0}}</span>
           <span class="_filled" :style="{'width': `${foodPercentage}%`}"></span>
         </span>
       </p>
       <p class="_little status__row">
         <span class="status__bar _water _tiny">
-          <span class="status__value">{{player.water}}</span>
+          <span class="status__value">{{player.water > 0 ? player.water : 0}}</span>
           <span class="_filled" :style="{'width': `${waterPercentage}%`}"></span>
         </span>
       </p>
 
-      <p class="_little status__key" @click="player.changeHealth(-80)">здоровье</p>
-      <p class="_little status__key" @click="player.food -= 20">еда</p>
-      <p class="_little status__key" @click="player.water -= 20">вода</p>
+      <p class="_little status__key">здоровье</p>
+      <p class="_little status__key">еда</p>
+      <p class="_little status__key">вода</p>
 
       <span @click="uiWindowsVisibility.statusMenu = !uiWindowsVisibility.statusMenu"
             class="main__texture _big">^</span>

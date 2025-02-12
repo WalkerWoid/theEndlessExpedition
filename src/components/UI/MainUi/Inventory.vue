@@ -25,7 +25,9 @@ const resourcesDescription = {
   goldenFlower: `Второе название - Золотой цветок. Очень редкий. Назван так из свойства переливаться
                  характерным свечением на Солнце. Лепестки Златограйника обладают хорошими лечебными свойствами.`,
   littleStone: `Камушек. Используется в большом количестве при игре в "Камушки". И нет, они не могут делать того, о чем
-                ты подумал. Произнеси сто раз, что бы потерять смысл слова.`
+                ты подумал. Произнеси сто раз, что бы потерять смысл слова.`,
+  distilledWater: `Мама говорила, что дистилированную воду пить опасно. Сейчас посмотрм, правда это или нет.`,
+  dryFood: 'На вкус как копыта коня вперемешку с его гривой.'
 }
 
 const setActiveResource = (resource) => {
@@ -55,6 +57,11 @@ const isDamagedColor = (resource) => {
   }
 
   return resource.durability < (Math.floor(player.getItemInfo(resource, 'startedDurability')/2))
+}
+const useFood = (activeResource) => {
+  activeResource.type === 'food' && player.changeFood(activeResource.food)
+  activeResource.type === 'water' && player.changeWater(activeResource.water)
+  activeResource.engName === 'distilledWater' && player.changeHealth(-1)
 }
 </script>
 
@@ -108,6 +115,15 @@ const isDamagedColor = (resource) => {
           <button type="button" @click="player.disassembleItem(activeResource); clearActiveResource()">Разобрать</button>
           <button type="button" @click="player.putOnItem(activeResource); clearActiveResource()">Надеть</button>
           <button type="button" @click="player.takeOffItem(activeResource); clearActiveResource()">Снять</button>
+        </div>
+      </template>
+
+      <template v-else-if="activeResource.type === 'water' || activeResource.type === 'food'">
+        <p class="_little">
+          {{activeResourceDescription}}
+        </p>
+        <div class="resource__actions">
+          <button type="button" @click="useFood(activeResource)">Использовать</button>
         </div>
       </template>
 

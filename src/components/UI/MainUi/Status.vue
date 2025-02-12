@@ -77,7 +77,7 @@ const firstClickStatus = () => {
         <span class="_little"
               v-for="effect of player.effects"
               :key="effect.name"
-              :title="'Осталось тиков ' + effect.ticks">
+              :title="'Осталось часов ' + effect.ticks">
           {{effect.name}};
         </span>
 

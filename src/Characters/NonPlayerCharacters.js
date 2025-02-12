@@ -7,6 +7,7 @@ const characters = {
     logbook: {
         id: 1,
         name: 'Бортовой журнал',
+        engName: 'logbook',
         description: 'Компьютеры тихонько пискнули, отвечая на ваше присутствие.',
         imgSrc: '',
         met: true,
@@ -55,6 +56,7 @@ const characters = {
     satyr: {
         id: 0,
         name: 'Сатир с великих полей',
+        engName: 'satyr',
         description: `Спиной к вам стоит сатир, полностью волосатый с головы до пят. На его шее виднеется полосатый
         зеленый шарф. Сатир напевает какую-то мелодию, не обращая на вас никакого внимания. Или же это вы не
         представляете для сатира никакой опасности?`,
@@ -64,7 +66,7 @@ const characters = {
             helloBtn: {
                 id: 'helloBtn',
                 title: 'Поприветствовать',
-                once: false,
+                once: true,
                 visibility: true,
                 messages: {
                     text: [
@@ -74,20 +76,16 @@ const characters = {
                         неважно. Мне это, все-равно, не очень-то и интересно!`,
                     ],
                     additionalButtons: {
-                        beatSatyr: { text: 'Поставить Наглого сатира на место', next: 'beatSatyr', visibility: true },
-                        listenSilently: {
-                            text: 'Молча слушать', next: 'listenSilently', visibility: true,
+                        beatSatyr: {
+                            text: 'Поставить Наглого сатира на место', next: 'beatSatyr', visibility: true,
                             consequences: [
                                 {
-                                    type: 'changeButtonVisibility',
-                                    character: 'logbook', // всегда
-                                    mainButton: 'testBtn', // всегда
-                                    action: 'show', // всегда
-                                    secondButton: false, // опционально
-                                    additionalButton: false // опционально
+                                    type: 'migrateCharacter',
+                                    characterName: 'satyr'
                                 }
                             ]
                         },
+                        listenSilently: { text: 'Молча слушать', next: 'listenSilently', visibility: true },
                     }
                 },
                 beatSatyr: {
@@ -104,13 +102,6 @@ const characters = {
                         `- Ну, чего хотел то? У меня не очень много времени.`
                     ]
                 },
-                askForgiveness: {
-                    text: [
-                        `Вы сжалились над козленком и простили его за дерзость, которую он проявил. Вы молодцы. Плюс в карму!`,
-                        `Он удивленно посмотрел на вас, затем встал и молвил`,
-                        `- Ладно, прощаю, черт с тобой, - махнул рукой и пошатываясь побрел в сторону ближайшего леса.`
-                    ]
-                }
             },
             askResources: {
                 id: 'askResources',
@@ -197,8 +188,10 @@ class Dialogues {
 
     switchActiveCharacter(newCharacter = undefined) {
         this.activeCharacter = characters[newCharacter]
-        if (this.activeCharacter)
+        if (this.activeCharacter && !this.activeCharacter.met) {
             this.activeCharacter.met = true
+        }
+
         console.log(this.characters)
     }
     switchActiveButton(newButton = undefined) {
@@ -217,6 +210,7 @@ class Dialogues {
         this.switchActiveMessages()
     }
     backDialogue() {
+        console.log('active character', this.activeCharacter)
         if (this.activeButton.once) {
             this.activeCharacter.dialogue[this.activeButton.id].visibility = false
         }
@@ -249,11 +243,10 @@ class Dialogues {
                 }
             */
             const {resources} = consequence
-
-            resources.forEach(resource => player.addResource(resource))
+            console.log(resources)
+            resources.forEach(resource => player.addResource(player.getObjectCopy(resource)))
         }
         const changeButtonVisibility = () => {
-            console.clear()
             /** Пример объекта consequence:
                 {
                     type: 'changeButtonVisibility',
@@ -262,7 +255,7 @@ class Dialogues {
                     action: 'hide', // всегда
                     secondButton: 'askResourcesByGood', // опционально. Если не указана, меняется видимость
                                                         additionalButton в messages главной кнопки.
-                    additionalButton: 'inspectStump' // опционально. Если не указана - меняется видимость главной кнопка
+                    additionalButton: 'inspectStump' // опционально. Если не указана - меняется видимость главной кнопки
                 }
              */
 
@@ -307,7 +300,6 @@ class Dialogues {
                 console.log(neededCharacter)
             }
         }
-
         const addPlayerCondition = () => {
             /** Пример объекта consequence:
                 {
@@ -319,6 +311,11 @@ class Dialogues {
 
             player.addCondition(conditionTitle)
         }
+        const migrateCharacter = () => {
+            const {characterName} = consequence
+            const location = player.getLocation(player.currentLocation)
+            location.npc.splice(location.npc.indexOf(characterName), 1)
+        }
 
         switch (consequence.type) {
             case "farmResources":
@@ -329,6 +326,9 @@ class Dialogues {
                 break
             case "addPlayerCondition":
                 addPlayerCondition()
+                break
+            case "migrateCharacter":
+                migrateCharacter()
                 break
         }
     }

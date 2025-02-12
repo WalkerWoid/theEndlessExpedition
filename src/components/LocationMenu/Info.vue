@@ -38,6 +38,11 @@ const showBackBtn = computed(() => {
     else return true
   }
 })
+
+const checkCharacterExists = () => {
+  console.log('xyi', player.getLocation(player.currentLocation).npc.find(npc => npc === dialogues.activeCharacter.engName))
+  return player.getLocation(player.currentLocation).npc.find(npc => npc === dialogues.activeCharacter.engName)
+}
 </script>
 
 <template>
@@ -50,17 +55,19 @@ const showBackBtn = computed(() => {
       </template>
     </List>
 
-    <div>
-      <button v-if="player.getActiveQuest('findStartedResources').status === 'inProgress' && player.getActiveQuest('findStartedResources').visibility"
-          @click="player.addCondition('podWasExplored'); player.showResourceBubble({action: 'Обыскать капсулу',},  'doSomeAction')"
+    <div class="location__actions">
+      <button v-if="player.getActiveQuest('findStartedResources').status === 'inProgress'
+      && player.getActiveQuest('findStartedResources').visibility
+      && player.currentLocation === 'landingZone'"
+          @click="player.addCondition('podWasExplored'); player.showResourceBubble({action: 'Обыскать капсулу'},  'doSomeAction')"
               class="main__btn _little _pointer _lil" type="button">
         Обыскать капсулу
       </button>
 
-      <button class="_little _pointer main__btn _lil" type="button"
-              @click="player.quests.addQuest(player.activeQuests, player.quests.quests.farmResources)">
-        Добавить квест "Необходимо собрать начальные ресурсы."
-      </button>
+<!--      <button class="_little _pointer main__btn _lil" type="button"-->
+<!--              @click="player.quests.addQuest(player.activeQuests, player.quests.quests.farmResources)">-->
+<!--        Добавить квест "Необходимо собрать начальные ресурсы."-->
+<!--      </button>-->
     </div>
 
     <List v-if="activeLocation.npc && activeLocation.npc.length > 0"
@@ -104,7 +111,8 @@ const showBackBtn = computed(() => {
               <button v-if="button.visibility"
                       type="button"
                       class="message-btn _little"
-                      @click="dialogues.handleButton(button, player); player.changeTime(2)">
+                      @click="dialogues.handleButton(button, player);
+                      player.changeTime(2)">
                 {{button.text}}
               </button>
             </template>
@@ -112,7 +120,8 @@ const showBackBtn = computed(() => {
 
           <div v-if="showBackBtn"  class="btn__container">
             <button type="button"
-                    class="message-btn _little" @click="dialogues.backDialogue()">
+                    class="message-btn _little" @click="dialogues.backDialogue();
+                    checkCharacterExists() ? '' : dialoguesWindowVisibility = false">
               Назад
             </button>
           </div>
@@ -213,5 +222,8 @@ const showBackBtn = computed(() => {
   align-content: center;
 }
 
-
+.location__actions .main__btn {
+  border-radius: 5px;
+  border-top: 1px solid var(--border-color);
+}
 </style>

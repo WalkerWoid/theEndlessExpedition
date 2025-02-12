@@ -24,7 +24,7 @@ const menuCounters = reactive({
     greenBorder: true
   },
   quests: {
-    new: 1,
+    new: 2,
     greenBorder: true
   }
 })

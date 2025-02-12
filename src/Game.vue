@@ -3,19 +3,23 @@
  * Главный компонент игры */
 
 /**
- * todo делаю механику времени
- * todo фарм ферм ресурса - сделал
- * todo надевание предмета - сделал
- * todo снимание предмета - сделал
- * todo разбор предмета - сделал
- * todo создание предмета - сделал
- * todo переход между локациями - сделал
- * todo разговор с нпс - сделал
+ * Сделал todo сделать убавление еды и воды каждый час
+ * Пока что это не буду делать todo рандомные эвенты при переходе из локации в локацию: бои, рандомная информация. Для
+ *  этого надо создать компонент эвентов
+ * todo сделать объект монстров, которых можно будет встретить в каждой локации
+ * todo сделать окно охоты на монстров и животных в локации
+ * todo сделать боевку
  *
- * Добавить уведомления
- * todo переход между локациями
- * todo знакомство с персонажами
+ * Для релиза:
+ * todo придумать начальные квесты
+ * todo дорисовать лиственный лес
+ * todo дорисовать домик ведьмы
  *
+ * Главные квесты:
+ * todo Встреча с китой
+ * todo Встреча с волшнбным ведьменским цветком.
+ *
+ * todo перенести все на Pinia
  * */
 
 import {defineAsyncComponent, ref, reactive, watch, provide, toRaw, onMounted, onUpdated} from "vue";
@@ -24,13 +28,18 @@ import Quests from "@/Characters/Quests.js";
 
 const Map = defineAsyncComponent(() => import("@/components/Map/Map.vue"))
 const UI = defineAsyncComponent(() => import("@/components/UI/UI.vue"))
+const Events = defineAsyncComponent(() => import("@/Game/Events.vue"))
+const HuntWindow = defineAsyncComponent(() => import("@/Game/Battle.vue"))
+const DeveloperPanel = defineAsyncComponent(() => import("@/Game/DeveloperPanel.vue"))
+const battleWindowVisibility = ref(false)
+const eventsWindowVisibility = ref(false)
 
 const positiveEffects = {
   heal: {
     simpleHerbalBandage: {
       name: 'Слабое Лечение',
       chance: 100,
-      health: 3,
+      health: 20,
       ticks: 2
     }
   }
@@ -152,6 +161,79 @@ const allHints = reactive({
 })
 const dialogues = reactive(new Dialogues())
 
+/*
+  todo у каждого противника будет полоска агрессивности, в заивимости от неебудет увеличиваться скорость и атака. Пока
+    не реализовано
+  todo от полоски адреналина, которая будет увеличиваться по мере уменьшения здоровья, будут использоваться все более
+    опасные атаки.
+  todo я же хотел сделать так, что будет описание приготовления врага, но игрок не будет знать, что враг будет делать.
+    У игрока будут несколько выборов типа атаковать или стоять на месте
+*/
+const enemies = {
+  littleSlime: {
+    chance: [0, 100],
+    name: 'Маленький слайм',
+    description:
+        `Маленький сгусток живой воды, переливающийся на солнце зеленым цветом. Глубоко внутри него виднеется темный
+        шарик - его желудок, скорее всего.`,
+    meetText: [
+        `В поисках приключений вы наткнулись на слайма, мирно развалившегося на камне. Он пристально смотрит на вас...
+        или не на вас, а может он смотрит налево или вообще повернут к вам спиной? Чертовых глаз то у него нет! Или он
+        просто спит, замышляет что-то коварное или собирается атаковать? Единственный способ узнать правду – атаковать
+        первым!`,
+        `Вы заметили самку оленя. Пока она не успела вас заметить, вы решили тихонько подкрасться... но что-то
+        отвратительно чавкает под вашей ногой. Зеленая, липкая масса недовольно дрожит – это слайм! Вы стряхиваете его и
+        пинаете подальше, но пока отвлекались, олениха уже скрылась. Сраный слайм! Нужно наказать его за испорченный
+        ужин. Предлагаю разорвать его зубами, а потом... Ладно, не будем заходить так далеко. Хотя решать, конечно,
+        вам.`,
+        `Блуждая по полю, вы замечаете что-то блестящее вдали. Артефакт? Сокровище? Вы быстро подбегаете, наклоняетесь,
+        чтобы схватить его, и... оно вздрагивает, чавкает и пытается улизнуть! Вы машинально хватаете находку, и теперь
+        ваша рука по локоть в чем-то склизком и возмущенно пузырящемся. Это слайм. Поздравляю, у вас новый питомец. Или
+        паразит. А может, вы его питомец. Вопрос философский, но решать его некогда - пора атаковать!`,
+    ],
+    health: 10,
+    armor: 0,
+    speed: 10,
+    adrenaline: 0,
+    maxAdrenaline: 10,
+    aggressive: 0,
+    maxAggressive: 10,
+    buffs: [],
+    deBuffs: [],
+    attackTypes: [
+      {
+        title: 'slimeShield',
+        rusTitle: 'Слаймовый щит.',
+        type: 'armor',
+        damage: 0,
+        armor: 20,
+        text: `Зеленая кожа слайма преобрела нежно розовый оттенок, блеснув на Солнце. Сам слайм остался в неподвижном
+        положении изредка подрагивая. Что замышляет этот маленький проказник?`
+      },
+      {
+        title: 'simpleAttack.',
+        rusTitle: 'Обычная атака',
+        type: 'attack',
+        damage: 1,
+        text: `Поверхность слайма начала пузыриться, воздух прошил резкий треск, а в нос ударил едкий запах. К коже
+        слайма из самых его недр стало что-то вытягиваться прямо в вашем направлении. Надо что-то предпринять, пока оно
+        не закончило свои приготовления.`
+      },
+      {
+        title: 'slimePower',
+        rusTitle: 'Склизская сила.',
+        type: 'buff',
+        damage: '0',
+        buffs: [{damage: 6, armor: 14, speed: 3, steps: 4}],
+        text: `Из самого центра слайма в область его тела что-то впрыснулось, постепенно растворяясь по всей области
+        слайма`,
+      }
+    ],
+    loot: [
+      { name: "mucus", engName: "Слизь", count: 1, type: 'resource' },
+    ]
+  }
+}
 
 /**
  * Класс игрока */
@@ -182,90 +264,92 @@ class Player {
     this.water = 100
     this.maxWater = 100
     this.inventory = [
-      { "name": "Трава", "engName": "grass", "count": 320, "type": "resource" },
-      { "name": "Обычный цветок", "engName": "commonFlower", "count": 40, "type": "resource" },
-      { name: 'Ветка', engName: 'stick', count: 200, type: 'resource'},
-      { name: 'Камушек', engName: 'littleStone', count: 200, type: 'resource'},
-      {
-        "name": "Травяная панамка",
-        "engName": "herbalPanamaHat",
-        "description": "Будет выглядеть модно, если вы полугодовалый ребенок. Можно надеть сразу поверх вашего скафандра на смех всем полугодовалым детям в радиусе этого континента.",
-        "count": 2,
-        "cost": [
-          {
-            "name": "Трава",
-            "engName": "grass",
-            "count": 160,
-            "type": "resource"
-          }
-        ],
-        "type": "armor",
-        "bodyType": "head",
-        "durability": 10,
-        "info": [
-          {
-            "name": "Урон",
-            "engName": "damage",
-            "value": 0
-          },
-          {
-            "name": "Прочность",
-            "engName": "startedDurability",
-            "value": 10
-          },
-          {
-            "name": "Скорость",
-            "engName": "speed",
-            "value": 0
-          },
-          {
-            "name": "Броня",
-            "engName": "armor",
-            "value": 1
-          }
-        ],
-        "isEquipped": false
-      },
-      {
-        "name": "Травяная панамка",
-        "engName": "herbalPanamaHat",
-        "description": "Будет выглядеть модно, если вы полугодовалый ребенок. Можно надеть сразу поверх вашего скафандра на смех всем полугодовалым детям в радиусе этого континента.",
-        "count": 2,
-        "cost": [
-          {
-            "name": "Трава",
-            "engName": "grass",
-            "count": 160,
-            "type": "resource"
-          }
-        ],
-        "type": "armor",
-        "bodyType": "head",
-        "durability": 6,
-        "info": [
-          {
-            "name": "Урон",
-            "engName": "damage",
-            "value": 0
-          },
-          {
-            "name": "Прочность",
-            "engName": "startedDurability",
-            "value": 10
-          },
-          {
-            "name": "Скорость",
-            "engName": "speed",
-            "value": 0
-          },
-          {
-            "name": "Броня",
-            "engName": "armor",
-            "value": 1
-          }
-        ],
-        "isEquipped": false
-      },
+      {name: 'Бутылка с дистилированной водой', engName: 'distilledWater', count: '12', type: 'water', water: 40 },
+      {name: 'Сухпаек', engName: 'dryFood', count: '12', type: 'food', food: 60 }
+      // { "name": "Трава", "engName": "grass", "count": 320, "type": "resource" },
+      // { "name": "Обычный цветок", "engName": "commonFlower", "count": 40, "type": "resource" },
+      // { name: 'Ветка', engName: 'stick', count: 200, type: 'resource'},
+      // { name: 'Камушек', engName: 'littleStone', count: 200, type: 'resource'},
+      // {
+      //   "name": "Травяная панамка",
+      //   "engName": "herbalPanamaHat",
+      //   "description": "Будет выглядеть модно, если вы полугодовалый ребенок. Можно надеть сразу поверх вашего скафандра на смех всем полугодовалым детям в радиусе этого континента.",
+      //   "count": 2,
+      //   "cost": [
+      //     {
+      //       "name": "Трава",
+      //       "engName": "grass",
+      //       "count": 160,
+      //       "type": "resource"
+      //     }
+      //   ],
+      //   "type": "armor",
+      //   "bodyType": "head",
+      //   "durability": 10,
+      //   "info": [
+      //     {
+      //       "name": "Урон",
+      //       "engName": "damage",
+      //       "value": 0
+      //     },
+      //     {
+      //       "name": "Прочность",
+      //       "engName": "startedDurability",
+      //       "value": 10
+      //     },
+      //     {
+      //       "name": "Скорость",
+      //       "engName": "speed",
+      //       "value": 0
+      //     },
+      //     {
+      //       "name": "Броня",
+      //       "engName": "armor",
+      //       "value": 1
+      //     }
+      //   ],
+      //   "isEquipped": false
+      // },
+      // {
+      //   "name": "Травяная панамка",
+      //   "engName": "herbalPanamaHat",
+      //   "description": "Будет выглядеть модно, если вы полугодовалый ребенок. Можно надеть сразу поверх вашего скафандра на смех всем полугодовалым детям в радиусе этого континента.",
+      //   "count": 2,
+      //   "cost": [
+      //     {
+      //       "name": "Трава",
+      //       "engName": "grass",
+      //       "count": 160,
+      //       "type": "resource"
+      //     }
+      //   ],
+      //   "type": "armor",
+      //   "bodyType": "head",
+      //   "durability": 6,
+      //   "info": [
+      //     {
+      //       "name": "Урон",
+      //       "engName": "damage",
+      //       "value": 0
+      //     },
+      //     {
+      //       "name": "Прочность",
+      //       "engName": "startedDurability",
+      //       "value": 10
+      //     },
+      //     {
+      //       "name": "Скорость",
+      //       "engName": "speed",
+      //       "value": 0
+      //     },
+      //     {
+      //       "name": "Броня",
+      //       "engName": "armor",
+      //       "value": 1
+      //     }
+      //   ],
+      //   "isEquipped": false
+      // },
     ]
     this.body = {
       head: false,
@@ -285,34 +369,23 @@ class Player {
     this.minutes = 0
     this.hours = 23
     this.days = 0
+    this.map = {
+      landingZone: ['landingZone2'],
+      landingZone2: ['landingZone']
+    }
+    this.enemies = enemies
+    this.activeEnemy = undefined
+    this.damage = 2
 
     this.journal = []
-    this.activeQuests = {
-      findStartedResources: {
-        id: 'findStartedResources',
-        title: 'Обыскать капсулу',
-        text: 'Если меня отправили на эту планету с какой-то целью, то и припасами должны были снабдить. Верно же, да?',
-        text2: `Нет, нихрена не верно. Я нашел в капсуле лишь пустые банки из под консерв и кожаные бурдюки. Без воды,
-        между прочим. Похоже, пока я лежал в анабиозе, кто-то вскрыл капсулу и съел все. Но вот что странно, ничего не
-        было тронуто: ни я, ни что другое. Так же нет следов взлома. Похоже, мне придется разобраться в том, кто же этот
-        ловкий вор, что обворовал меня.`,
-        hint: 'Обыскать свою капсулу',
-        status: 'inProgress',
-        wasStarted: true,
-        isNew: true,
-        conditions: {
-          otherConditions: [
-            'podWasExplored'
-          ]
-        },
-        awards: false,
-        visibility: true
-      }
-    }
+    this.activeQuests = {}
     this.addHint(allHints.awakingThoughts1)
     this.addHint(allHints.awakingThoughts2)
     this.addHint(allHints.awakingThoughts3)
     this.addHint(allHints.awakingThoughts4)
+
+    this.quests.addQuest(this.activeQuests, this.quests.quests.farmResources)
+    this.quests.addQuest(this.activeQuests, this.quests.quests.findStartedResources)
   }
 
 
@@ -325,7 +398,9 @@ class Player {
    *
    * */
   changeLocation(newLocation) {
-    this.currentLocation = newLocation
+    if (this.map[this.currentLocation].find(location => location === newLocation)) {
+      this.currentLocation = newLocation
+    } 
   }
 
   /**
@@ -408,7 +483,7 @@ class Player {
       return
     }
 
-    console.clear()
+    // console.clear()
     const locationResources = getLocationResources()
     const randomValForResource = this.getRandomByRange([0, 100])
     // const randomValForResource = 100
@@ -416,6 +491,11 @@ class Player {
 
     if (!resource) {
       this.showResourceBubble(resource, 'resourceNotFarmed')
+      console.log('Рандомное число', randomValForResource)
+      console.log('Лутаем ресурс', resource)
+      console.log('В количестве', resourceCount)
+      console.log('Готовый ресурс', cockedResource)
+      console.log('Инвентарь', toRaw(this.inventory))
       return;
     }
 
@@ -801,8 +881,9 @@ class Player {
     console.clear()
     console.log('Используем', item)
     console.log(this.inventory)
+    console.log(this)
 
-    this.changeTime(0, 4)
+    this.changeTime(1, 0)
     const {positiveEffects, negativeEffects} = item
     const allItemEffects = [...positiveEffects, ...negativeEffects]
     console.log('Все эффекты предмета', allItemEffects)
@@ -1070,6 +1151,20 @@ class Player {
 
 const player = reactive(new Player())
 
+watch([() => player.food, () => player.water], ([newFood, oldFood], [newWater, oldWater]) => {
+  if (player.water <= 0) {
+    player.water = 0
+  } else if (player.water > player.maxWater) {
+    player.water = player.maxWater
+  }
+
+  if (player.food <= 0) {
+    player.food = 0
+  } else if (player.food > player.maxFood) {
+    player.food = player.maxFood
+  }
+})
+
 /**
  * Вотчер наблюдения за названием текущей локации */
 watch(() => player.currentLocation, (newLocationName, oldLocationName) => {
@@ -1078,18 +1173,7 @@ watch(() => player.currentLocation, (newLocationName, oldLocationName) => {
   player.changeTime(0, 1)
 })
 
-/**
- * Вотчер наблюдения за тиками */
-watch([() => player.hours, () => player.minutes], ([newHours, newMinutes], [oldHours, oldMinutes]) => {
-  // console.clear()
-
-  player.effects.forEach(effect => {
-    player.calcEffect(effect)
-  })
-
-  // console.log('Все эффекты игрока', player.effects)
-  player.effects.forEach(effect => console.log(effect))
-
+watch(() => player.hours, (newHours, oldHours) => {
   if (player.water <= 0) {
     player.water = 0
     player.changeHealth(-10)
@@ -1104,6 +1188,21 @@ watch([() => player.hours, () => player.minutes], ([newHours, newMinutes], [oldH
     player.food = player.maxFood
   }
 
+  player.effects.forEach(effect => {
+    player.calcEffect(effect)
+  })
+  console.log('newHours', newHours)
+
+  // console.log('Все эффекты игрока', player.effects)
+  player.effects.forEach(effect => console.log(effect))
+
+  player.changeFood(-19)
+  player.changeWater(-12)
+})
+
+/**
+ * Вотчер наблюдения за тиками */
+watch([() => player.hours, () => player.minutes], ([newHours, newMinutes], [oldHours, oldMinutes]) => {
   if (newMinutes >= 60) {
     player.minutes = newMinutes%60
     player.changeTime(0, 1)
@@ -1132,7 +1231,9 @@ watch(() => player.health, (newHealth, oldHealth) => {
     player.clearEffects()
     player.clearInventory()
     player.showResourceBubble(player, 'playerDead')
-  } else if (player.health > player.maxHealth) {
+    return
+  }
+  if (player.health > player.maxHealth) {
     console.log(player.health)
     player.health = player.maxHealth
     console.log('Персонаж полностью исцелен')
@@ -1179,10 +1280,10 @@ const locations = ref([
     width: 135,
     height: 140,
     resources: [
-      {chance: [0, 59], name: 'Трава', engName: 'grass', count: [10, 20], type: 'resource'},
-      {chance: [60, 79], name: 'Ветка', engName: 'stick', count: [6, 10], type: 'resource'},
-      {chance: [80, 98], name: 'Обычный цветок', engName: 'commonFlower', count: [3, 7], type: 'resource'},
-      {chance: [99, 99], name: 'Златограйник', engName: 'goldenFlower', count: [1, 1], type: 'resource'}
+      {chance: [1, 60], name: 'Трава', engName: 'grass', count: [10, 20], type: 'resource'},
+      {chance: [61, 80], name: 'Ветка', engName: 'stick', count: [6, 10], type: 'resource'},
+      {chance: [81, 99], name: 'Обычный цветок', engName: 'commonFlower', count: [3, 7], type: 'resource'},
+      {chance: [100, 100], name: 'Златограйник', engName: 'goldenFlower', count: [1, 1], type: 'resource'}
     ],
     submenu: [
       {title: 'i', id: 'info'},
@@ -1193,7 +1294,8 @@ const locations = ref([
       {title: 'ритуалы', id: 'rituals'}
     ],
     isCurrent: true,
-    npc: ['logbook']
+    npc: ['logbook'],
+    enemies: ['littleSlime', 'littleLivingStone', 'flowerBird', 'blackScorpion']
   },
   {
     id: 1,
@@ -1336,9 +1438,6 @@ const recipes = reactive({
 })
 
 
-// // теория
-// import Test from "@/components/Test.vue";
-
 provide('locations', locations.value)
 provide('player', player)
 provide('recipes', recipes)
@@ -1347,11 +1446,16 @@ provide('allHints', allHints)
 provide('activeWindow', activeWindow)
 provide('uiWindowsVisibility', uiWindowsVisibility)
 provide('dialogues', dialogues)
+provide('battleWindowVisibility', battleWindowVisibility)
+provide('eventsWindowVisibility', eventsWindowVisibility)
 </script>
 
 <template>
   <Map />
   <UI :resourcesBubbles />
+<!--  <Events />-->
+<!--  <HuntWindow />-->
+  <DeveloperPanel />
 </template>
 
 <style>

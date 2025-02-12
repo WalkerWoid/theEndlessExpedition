@@ -2,7 +2,7 @@
 /**
  * Компоненты окна квестов */
 
-import {computed, inject, onMounted, onUpdated, ref, watch} from "vue";
+import {computed, getCurrentInstance, inject, onMounted, onUpdated, ref, watch} from "vue";
 import List from "@/components/UIUnits/List.vue";
 import UIWindowHeader from "@/components/UIUnits/UIWindowHeader.vue";
 
@@ -30,7 +30,7 @@ watch(() => player.activeQuests, (newActiveQuests, oldActiveQuests) => {
 </script>
 
 <template>
-  <UIWindowHeader><template #header>Задания</template></UIWindowHeader>
+  <UIWindowHeader><template #header>Задания </template></UIWindowHeader>
 
   <div class="ui__subWindow">
     <p v-if="showEmptyQuestsText">Заданий нет...</p>

@@ -53,6 +53,26 @@ const quests = {
         },
         awards: false,
         visibility: true,
+    },
+    findStartedResources: {
+        id: 'findStartedResources',
+        title: 'Обыскать капсулу',
+        text: 'Если меня отправили на эту планету с какой-то целью, то и припасами должны были снабдить. Верно же, да?',
+        text2: `Нет, нихрена не верно. Я нашел в капсуле лишь пустые банки из под консерв и кожаные бурдюки. Без воды,
+        между прочим. Похоже, пока я лежал в анабиозе, кто-то вскрыл капсулу и съел все. Но вот что странно, ничего не
+        было тронуто: ни я, ни что другое. Так же нет следов взлома. Похоже, мне придется разобраться в том, кто же этот
+        ловкий вор, что обворовал меня.`,
+        hint: 'Обыскать свою капсулу',
+        status: 'inProgress',
+        wasStarted: false,
+        isNew: true,
+        conditions: {
+            otherConditions: [
+                'podWasExplored'
+            ]
+        },
+        awards: false,
+        visibility: true
     }
 }
 
@@ -77,7 +97,8 @@ class Quests {
 
         if (resourcesFarmed) {
             for (const resource in resourcesFarmed) {
-                if (resourcesFarmed[resource] > player.getInventoryResource({engName: resource}).count) {
+                if (!player.getInventoryResource({engName: resource}) ||
+                    resourcesFarmed[resource] > player.getInventoryResource({engName: resource}).count) {
                     isQuestCompleted = false
                     console.log(player.getInventoryResource({engName: resource}))
                 }
@@ -98,42 +119,7 @@ class Quests {
             quest.text = quest.text2
             quest.hint = 'Квест завершен. Что бы скрыть его, кликните по названию.'
         }
-
-        // if (quest.questType === 'resources') {
-        //     isQuestCompleted = this.secondCheck(isQuestCompleted, quest, player)
-        //     console.log('Заходим во второй квест чек')
-        // } else {
-        //     for (const condition in quest.conditions) {
-        //         console.log(quest.conditions[condition])
-        //         if (quest.conditions[condition] !== true) isQuestCompleted = false
-        //     }
-        // }
-        //
-        // if (!isQuestCompleted) quest.status = 'inProgress'
-        // else {
-        //     quest.status = 'completed'
-        //     quest.text = quest.text2
-        //     quest.hint = 'Квест завершен. Что бы скрыть его, кликните по названию.'
-        // }
     }
-    secondCheck(isQuestCompleted, quest, player) {
-        // const {spokeWith, placesVisited, itemsCreated, resourcesFarmed} = quest.conditions
-        //
-        // if (resourcesFarmed) {
-        //     for (const resource in resourcesFarmed) {
-        //         if (resourcesFarmed[resource] > player.getInventoryResource({engName: resource}).count) {
-        //             isQuestCompleted = false
-        //             console.log(player.getInventoryResource({engName: resource}))
-        //         }
-        //     }
-        //     console.log(player.inventory)
-        // }
-        //
-        // return isQuestCompleted
-    }
-    // changeQuestCondition(quest, conditionTitle) {
-    //     quest.conditions[conditionTitle] = true
-    // }
 }
 
 export default Quests
