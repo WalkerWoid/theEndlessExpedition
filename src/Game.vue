@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 /**
  * Главный компонент игры */
 
@@ -33,6 +33,8 @@ const HuntWindow = defineAsyncComponent(() => import("@/Game/Battle.vue"))
 const DeveloperPanel = defineAsyncComponent(() => import("@/Game/DeveloperPanel.vue"))
 const battleWindowVisibility = ref(false)
 const eventsWindowVisibility = ref(false)
+
+const val = ref<string>('daw')
 
 const positiveEffects = {
   heal: {
