@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Pangolin&display=swap');
 * {
     margin: 0;
@@ -6,6 +8,8 @@
     user-select: none;
 }
 html, body {
+    /*font-family: "Caveat", cursive;*/
+    /*font-family: "Amatic SC", sans-serif;*/
     font-family: "Pangolin", cursive;
     font-size: 20px;
     line-height: 100%;
@@ -14,7 +18,7 @@ html, body {
     scrollbar-gutter: stable;
 }
 :root {
-    --radius: 18px;
+    --radius: 20px;
     --main-color: rgb(232, 197, 76);
     --border-color: rgb(182, 148, 37);
     --transition: .4s;
@@ -24,8 +28,6 @@ html, body {
     --food-empty-color: rgb(68, 148, 74);
     --water-color: rgb(66, 170, 255);
     --water-empty-color: rgb(171, 205, 239);
-    --gap: 12px;
-    --gap-half: 6px;
 }
 ::-webkit-scrollbar {
     width: 12px;
@@ -54,11 +56,6 @@ a {
 picture {
     display: flex;
 }
-picture:not(.map__picture) img {
-    width: 100%;
-    max-width: 100%;
-    height: auto;
-}
 
 a, span, p, li {
     font-size: inherit;
@@ -78,18 +75,26 @@ h1, h2, h3, h4, h5, h6 {
     background-size: cover;
     border: 1px solid var(--border-color);
 }
-._hidden {
-    opacity: 0;
+h1 {
+    font-size: 40px;
+    text-transform: uppercase;
 }
-._red {
-    color: rgb(255, 69, 0);
+h2 {
+    font-size: 36px;
 }
-._orange {
-    color: rgb(255, 140, 0);
+h3 {
+    font-size: 32px;
 }
-._green {
-    color: rgb(34, 139, 34);
+h4 {
+    font-size: 28px;
 }
+h5 {
+    font-size: 26px;
+}
+h6 {
+    font-size: 24px;
+}
+
 ._big {
     font-size: 28px;
 }
@@ -99,64 +104,35 @@ h1, h2, h3, h4, h5, h6 {
 ._tiny {
     font-size: 10px;
 }
+._hidden {
+    opacity: 0;
+}
+._pointer {
+    cursor: pointer;
+}
 
-/*h1 {*/
-/*    font-size: 40px;*/
-/*    text-transform: uppercase;*/
-/*}*/
-/*h2 {*/
-/*    font-size: 36px;*/
-/*}*/
-/*h3 {*/
-/*    font-size: 32px;*/
-/*}*/
-/*h4 {*/
-/*    font-size: 28px;*/
-/*}*/
-/*h5 {*/
-/*    font-size: 26px;*/
-/*}*/
-/*h6 {*/
-/*    font-size: 24px;*/
-/*}*/
-
-
-/*._hidden {*/
-/*    opacity: 0;*/
-/*}*/
-/*._pointer {*/
-/*    cursor: pointer;*/
-/*}*/
-
-
+._red {
+    color: rgb(255, 69, 0);
+}
+._orange {
+    color: rgb(255, 140, 0);
+}
+._green {
+    color: rgb(34, 139, 34);
+}
 
 .main__btn {
     background: url("../images/textures/main-texture.png");
     border: 1px solid var(--border-color);
-    box-sizing: border-box;
 }
 .main__btn._lil {
-    padding: var(--gap-half) var(--gap);
+    padding: 5px 10px;
     border-radius: 0 0 calc(var(--radius) / 2) calc(var(--radius) / 2);
     border-top: none;
 }
-.window__close {
-    position: absolute;
-    top: var(--gap-half);
-    left: var(--gap-half);
-    cursor: pointer;
-}
-.container._flex {
+
+.flex-column {
     display: flex;
     flex-direction: column;
-    gap: var(--gap);
-    height: 100%;
-    overflow: auto;
+    gap: 10px;
 }
-
-
-/*.flex-column {*/
-/*    display: flex;*/
-/*    flex-direction: column;*/
-/*    gap: 10px;*/
-/*}*/
