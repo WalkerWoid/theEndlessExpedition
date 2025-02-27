@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {storeToRefs} from "pinia";
-import {computed, ref, toRaw, watch} from "vue";
+import {computed, ref, watch} from "vue";
 
 import {useGameStore} from "@/store/useGameStore.ts";
 import type {InventoryItemsTypes, InventoryResourceSimple} from "@/classes/player.ts";
@@ -15,8 +15,8 @@ const placeholderResource: InventoryResourceSimple = {
 const activeResource = ref<InventoryItemsTypes>(placeholderResource)
 const activeResourceDescription = ref<string>('')
 
-const setActiveResource = (newResource: InventoryResourceSimple) => {
-  activeResource.value = toRaw(newResource)
+const setActiveResource = (newResource: InventoryItemsTypes) => {
+  activeResource.value = newResource
 }
 const isActiveResourcePlaceholder = computed<boolean>(() => {
   return activeResource.value.type === 'placeholder'
@@ -33,6 +33,18 @@ watch(() => activeResource.value, (newActiveResource) => {
   }
 })
 </script>
+
+<!-- todo подумать над тем, что бы сделать мини игру, в которой впесто простого "создать" у рецептов, "создать" будет в
+      инвентаре и надо будет выбирать(клацать) на ресурсы и нажимать "создать". -->
+
+<!-- todo в журнале написать, что при нажатии на пкм на ресурсе, можно будет открыть дополнительное окно -->
+
+<!-- todo подумать еще над подокном для ресурса. Может просто сделать, что бы при нажатии, котрывалось окно там, где
+      находится курсор. -->
+
+<!--  todo для каждого ресурса нарисовать свою иконку вместо того, что бы выводить названия. Названия выводить при ховере через title  -->
+
+<!--  todo когда в описании златограйник, то при скрытии окна инвентаря оно уходит не полностью-->
 
 <template>
   <div class="subWindow__header">Инвентарь</div>

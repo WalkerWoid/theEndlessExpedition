@@ -15,6 +15,7 @@ html, body {
 }
 :root {
     --radius: 18px;
+    --radius-half: 9px;
     --main-color: rgb(232, 197, 76);
     --border-color: rgb(182, 148, 37);
     --transition: .4s;
@@ -137,7 +138,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 .main__btn._lil {
     padding: var(--gap-half) var(--gap);
-    border-radius: 0 0 calc(var(--radius) / 2) calc(var(--radius) / 2);
+    border-radius: 0 0 var(--radius-half) var(--radius-half);
     border-top: none;
 }
 .window__close {

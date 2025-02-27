@@ -1,4 +1,5 @@
-<script setup>/**
+<script setup>
+/**
  * Компонент отдельного рецепта */
 import {inject, onMounted, ref, useTemplateRef} from "vue";
 

@@ -1,5 +1,10 @@
 import type {Location} from "@/classes/allLocations.ts";
 import type {LocationResource} from "@/classes/allLocations.ts";
+import type {BattleRecipe} from "@/classes/allRecipes.ts";
+import type {MedicalRecipe} from "@/classes/allRecipes.ts";
+
+import {useIsArmorOrWeapon} from "@/composables/useIsArmorOrWeapon.ts";
+
 import {useGetRandomByRange} from "@/composables/useGetRandomByRange.ts";
 
 type ResourceType = 'resource' | 'food' | 'placeholder'
@@ -12,15 +17,16 @@ export interface InventoryResource {
 export interface InventoryResourceSimple extends InventoryResource {
     count: number
 }
-interface InventoryResourceFood extends InventoryResource {
+export interface InventoryResourceFood extends InventoryResource {
     count: number
     water?: number
     food?: number
 }
-export type InventoryItemsTypes = InventoryResourceSimple | InventoryResourceFood
+export type InventoryItemsTypes = InventoryResourceSimple | InventoryResourceFood | BattleRecipe | MedicalRecipe
 
 
-interface PlayerBody {
+export interface PlayerBody {
+    [key: string]: boolean
     head: boolean
     body: boolean
     leftArm: boolean
@@ -48,9 +54,25 @@ export interface Inventory {
     farmResource(currentLocation: Location): InventoryResourceSimple | boolean
     addCockedResourceToInventory(cockedResource: InventoryResourceSimple): void
     getInventoryResource(resource: InventoryItemsTypes): InventoryItemsTypes | undefined
+    decreaseResource(resource: InventoryItemsTypes): void
+    deleteFromInventory(inventoryResource: InventoryItemsTypes): void
+    addItemToInventory(item: InventoryItemsTypes): void
 }
 const inventory = {
-    playerInventory: [] as InventoryItemsTypes[],
+    playerInventory: [
+        {
+            "name": "Трава",
+            "engName": "grass",
+            "count": 40,
+            "type": "resource"
+        },
+        {
+            "name": "Обычный цветок",
+            "engName": "commonFlower",
+            "count": 3,
+            "type": "resource"
+        }
+    ] as InventoryItemsTypes[],
     farmResource(currentLocation: Location) {
         const getResourceByRandomVal =
             (locationResources: LocationResource[],
@@ -101,7 +123,58 @@ const inventory = {
         inventoryResource.count += Math.floor(cockedResource.count)
     },
     getInventoryResource(resource: InventoryItemsTypes): InventoryItemsTypes | undefined {
-        return this.playerInventory.find(inventoryResource => inventoryResource.engName === resource.engName)
+        if (useIsArmorOrWeapon(resource)) {
+            return this.playerInventory.find(inventoryResource => {
+                if (useIsArmorOrWeapon(inventoryResource)) {
+                    return inventoryResource.engName === resource.engName
+                        && inventoryResource.durability === resource.durability
+                        && inventoryResource.isEquipped === resource.isEquipped
+                }
+            })
+        } else {
+            return this.playerInventory.find(inventoryResource => inventoryResource.engName === resource.engName)
+        }
+    },
+    decreaseResource(resource: InventoryItemsTypes) {
+        const foundedInventoryResource = this.getInventoryResource(resource)
+
+        if (!foundedInventoryResource) return
+
+        foundedInventoryResource.count -= resource.count
+
+        if (foundedInventoryResource.count <= 0) {
+            console.log('Удаляем ресурс')
+            this.deleteFromInventory(foundedInventoryResource)
+        }
+    },
+    deleteFromInventory(inventoryResource: InventoryItemsTypes) {
+        const itemToDelete = this.getInventoryResource(inventoryResource)
+        let deletedItemIndex
+
+        if (!itemToDelete) return
+
+        if (useIsArmorOrWeapon(itemToDelete)) {
+            deletedItemIndex =
+                this.playerInventory.findIndex(item=> {
+                    if (useIsArmorOrWeapon(item)) {
+                        return item.engName === itemToDelete.engName
+                            && item.durability === itemToDelete.durability
+                            && item.isEquipped === itemToDelete.isEquipped
+                    }
+                })
+        } else {
+            deletedItemIndex =
+                this.playerInventory.findIndex(item => item.engName === itemToDelete.engName)
+        }
+
+        this.playerInventory.splice(deletedItemIndex, 1)
+    },
+    addItemToInventory(item: InventoryItemsTypes) {
+        const foundInventoryItem = this.getInventoryResource(item)
+
+        if (foundInventoryItem)
+            foundInventoryItem.count += 1
+        else inventory.playerInventory.push(item)
     }
 }
 

@@ -7,11 +7,13 @@ import type {Notifications} from "@/classes/notifications.ts";
 import type {Player} from "@/classes/player.ts";
 import type {Location} from "@/classes/allLocations.ts";
 import type {WindowsVisibility} from "@/classes/windowsVisibility.ts";
+import type {AllRecipes} from "@/classes/allRecipes.ts";
 
 import {playerObj} from "@/classes/player.ts";
 import {allLocations} from "@/classes/allLocations.ts";
 import {notificationsObj} from "@/classes/notifications.ts";
 import {windowsVisibilityObj} from "@/classes/windowsVisibility.ts";
+import {allRecipes} from "@/classes/allRecipes.ts";
 
 interface GameStore {
     player: Player
@@ -19,6 +21,7 @@ interface GameStore {
     notifications: Notifications
     windowsVisibility: WindowsVisibility
     currentLocationObj: ComputedRef<Location | undefined>
+    recipes: AllRecipes
     getCurrentLocationObj(title: string): Location
 }
 
@@ -27,6 +30,8 @@ export const useGameStore = defineStore('gameStore', () => {
     const locations = ref(allLocations)
     const notifications = reactive(notificationsObj)
     const windowsVisibility = reactive(windowsVisibilityObj)
+    const recipes = reactive(allRecipes)
+
     const currentLocationObj = computed<Location | undefined>(() => {
         return getCurrentLocationObj(player.currentLocationTitle)
     })
@@ -51,6 +56,7 @@ export const useGameStore = defineStore('gameStore', () => {
         notifications,
         windowsVisibility,
         currentLocationObj,
+        recipes,
         getCurrentLocationObj
     } as GameStore
 })

@@ -127,7 +127,7 @@ h6 {
 }
 .main__btn._lil {
     padding: 5px 10px;
-    border-radius: 0 0 calc(var(--radius) / 2) calc(var(--radius) / 2);
+    border-radius: 0 0 var(--radius-half) var(--radius-half);
     border-top: none;
 }
 
