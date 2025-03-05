@@ -57,7 +57,7 @@ const negativeEffects: Effects = {
 
 
 type RecipeType = 'weapon' | 'armor' | 'medical'
-type RecipeBodyType = 'head' | 'body' | 'leftArm' | 'rightArm' | 'leftWrist' | 'rightWrist' | 'leftLeg' | 'rightLeg'
+export type RecipeBodyType = 'head' | 'body' | 'leftArm' | 'rightArm' | 'leftWrist' | 'rightWrist' | 'leftLeg' | 'rightLeg'
     | 'weapon' | 'shield'
 interface RecipeInfo {
     name: string,
@@ -88,7 +88,7 @@ export type Recipes = BattleRecipe | MedicalRecipe
 
 export interface AllRecipes {
     recipes: Recipes[]
-    createRecipe(recipeToCreate: Recipes, inventory: Inventory): any
+    createRecipe(recipeToCreate: Recipes, inventory: Inventory): boolean
     isResourcesToCreateEnough(recipeToCreate: Recipes, inventory: Inventory): boolean
 }
 
@@ -159,21 +159,18 @@ export const allRecipes: AllRecipes = {
         },
     ],
     createRecipe(recipeToCreate, inventory): any {
-        console.log('Рецепт для создания:', recipeToCreate)
         const itemToCreate = useGetClone(recipeToCreate) as Recipes
 
         if (!this.isResourcesToCreateEnough(itemToCreate, inventory)) {
-            console.log('Недостаточно ресов')
             return
         }
 
-        console.log('Достаточно ресов')
         itemToCreate.cost.forEach(resource => {
             inventory.decreaseResource(resource)
         })
         inventory.addItemToInventory(itemToCreate)
-
         console.log('Инвентарь', inventory.playerInventory)
+        return true
     },
     isResourcesToCreateEnough(itemToCreate,inventory: Inventory): boolean {
         let isResourceEnough: boolean = true

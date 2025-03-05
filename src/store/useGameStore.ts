@@ -15,7 +15,7 @@ import {notificationsObj} from "@/classes/notifications.ts";
 import {windowsVisibilityObj} from "@/classes/windowsVisibility.ts";
 import {allRecipes} from "@/classes/allRecipes.ts";
 
-interface GameStore {
+export interface GameStore {
     player: Player
     locations: Ref<Location[]>
     notifications: Notifications

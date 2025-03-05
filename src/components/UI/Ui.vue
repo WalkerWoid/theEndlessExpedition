@@ -7,6 +7,7 @@ import type {Component} from "vue";
 import TopMenu from "@/components/UI/TopMenu.vue";
 import Inventory from "@/components/Subwindows/Inventory.vue";
 import Recipes from "@/components/Subwindows/Recipes.vue";
+import Status from "@/components/Subwindows/Status.vue";
 
 const {windowsVisibility} = storeToRefs(useGameStore())
 
@@ -14,6 +15,8 @@ const activeWindowComponent = computed<Component>(() => {
   let activeComponent: Component = Inventory
 
   if (windowsVisibility.value.activeMainWindow === 'Inventory') activeComponent = Inventory
+  else if (windowsVisibility.value.activeMainWindow === 'Recipes') activeComponent = Recipes
+  else if (windowsVisibility.value.activeMainWindow === 'Status') activeComponent = Status
   else activeComponent = Recipes
 
   return activeComponent

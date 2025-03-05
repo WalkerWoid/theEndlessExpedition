@@ -11,7 +11,7 @@ const definedProps = defineProps<{
   recipe: Recipes
 }>()
 
-const {recipes, player} = storeToRefs(useGameStore())
+const {recipes, player, notifications} = storeToRefs(useGameStore())
 const recipeInfo = useTemplateRef<HTMLElement | null>('recipeInfoRef')
 const recipeInfoHeight = ref<number>(0)
 const recipeInfoVisibility = ref<boolean>(false)
@@ -31,7 +31,12 @@ const toggleRecipeInfo = () => {
   }
 }
 const createRecipe = (recipeToCreate: Recipes) => {
-  recipes.value.createRecipe(recipeToCreate, player.value.inventory)
+  if (recipes.value.createRecipe(recipeToCreate, player.value.inventory)) {
+    notifications.value.showNotification(recipeToCreate, 'createItem')
+    recipeToCreate.cost.forEach(resource => notifications.value.showNotification(resource, 'decreaseResource'))
+  } else {
+    notifications.value.showNotification(recipeToCreate, 'cantCreate')
+  }
 }
 
 

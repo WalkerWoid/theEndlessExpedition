@@ -32,10 +32,38 @@ export const notificationsObj: Notifications = {
                 newNote.secondText = ``
                 newNote.className = '_red'
                 break
+            case 'decreaseResource':
+                newNote.text = '-'
+                newNote.secondText = `${entryObj.name}: ${entryObj.count}`
+                newNote.className = '_red'
+                break
+            case 'createItem':
+                newNote.text = 'Создано'
+                newNote.secondText = `${entryObj.name}`
+                break
+            case 'cantCreate':
+                newNote.text = 'Нехватает ресурсов'
+                newNote.secondText = ``
+                newNote.className = '_red'
+                break
+            case 'equalItemEquipped':
+                newNote.text = 'Этот предмет уже надет!'
+                newNote.secondText = ``
+                newNote.className = '_red'
+                break
+            case 'putOnItem':
+                newNote.text = 'Надеваем: '
+                newNote.secondText = `${entryObj.name}`
+                break
+            case 'takeOffItem':
+                newNote.text = 'Снимаем: '
+                newNote.secondText = `${entryObj.name}`
+                newNote.className = '_red'
+                break
         }
 
         this.notifications.unshift(newNote)
-        const timeOut = setTimeout(() => {
+        setTimeout(() => {
             this.notifications.pop()
         }, 2400)
     }

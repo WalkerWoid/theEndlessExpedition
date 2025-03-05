@@ -6,9 +6,10 @@ import {useGameStore} from "@/store/useGameStore.ts";
 import type {InventoryItemsTypes, InventoryResourceSimple} from "@/classes/player.ts";
 
 import {resourcesDescription} from "@/classes/resourcesDescription.ts";
+import {useIsArmorOrWeapon} from "@/composables/useIsArmorOrWeapon.ts";
+import {useGetClone} from "@/composables/useGetClone.ts";
 
-const gameStore = useGameStore()
-const {player, windowsVisibility} = storeToRefs(gameStore)
+const {player, windowsVisibility, notifications} = storeToRefs(useGameStore())
 const placeholderResource: InventoryResourceSimple = {
   name: 'placeholder', engName: 'placeholder', count: 0, type: 'placeholder'
 }
@@ -26,11 +27,16 @@ const isActiveResourceSimple = computed<boolean>(() => {
 })
 
 watch(() => activeResource.value, (newActiveResource) => {
+  console.log(activeResource.value)
   if (newActiveResource && resourcesDescription[newActiveResource.engName]) {
     activeResourceDescription.value = resourcesDescription[newActiveResource.engName]
   } else {
     activeResourceDescription.value = 'Описания еще нет'
   }
+})
+watch(() => activeResource.value.count, (newCount) => {
+  if (newCount === 0)
+    activeResource.value = placeholderResource
 })
 </script>
 
@@ -44,7 +50,8 @@ watch(() => activeResource.value, (newActiveResource) => {
 
 <!--  todo для каждого ресурса нарисовать свою иконку вместо того, что бы выводить названия. Названия выводить при ховере через title  -->
 
-<!--  todo когда в описании златограйник, то при скрытии окна инвентаря оно уходит не полностью-->
+<!-- todo сделать так, что бы предметы в инвентаре подсвечивались как-то, если они сейчас выбраны. Сделать у предметов
+        isActive, который будет за это отвечать -->
 
 <template>
   <div class="subWindow__header">Инвентарь</div>
@@ -58,6 +65,34 @@ watch(() => activeResource.value, (newActiveResource) => {
 
     <template v-else-if="isActiveResourceSimple">
       <p class="_little">{{activeResourceDescription}}</p>
+    </template>
+
+    <!-- todo не видно сраные ебаные блять типы заебали они меня  -->
+
+    <template v-else-if="useIsArmorOrWeapon(activeResource)">
+      <div class="items__action">
+        <p class="_little">{{ activeResource.name }}: {{activeResource.durability}} прочности;</p>
+
+        <button type="button" class="_little item__button"
+                @click="player.putOnItemHandler(activeResource, notifications)">
+          <span class="_top">Надеть</span>
+          <span class="_center">Надеть</span>
+          <span class="_bottom">Надеть</span>
+        </button>
+
+        <button type="button" class="_little item__button"
+                @click="player.takeOffItem(useGetClone(activeResource), notifications)">
+          <span class="_top">Снять</span>
+          <span class="_center">Снять</span>
+          <span class="_bottom">Снять</span>
+        </button>
+
+        <button type="button" class="_little item__button">
+          <span class="_top">Разобрать</span>
+          <span class="_center">Разобрать</span>
+          <span class="_bottom">Разобрать</span>
+        </button>
+      </div>
     </template>
   </div>
 
@@ -83,6 +118,7 @@ watch(() => activeResource.value, (newActiveResource) => {
   flex-direction: row;
   display: flex;
   gap: var(--gap);
+  flex-wrap: wrap;
 }
 .resource__subWindow {
   margin-top: auto;
@@ -98,5 +134,40 @@ watch(() => activeResource.value, (newActiveResource) => {
 }
 .resource__subWindow._show {
   transform: translateX(0);
+}
+.items__action {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--gap);
+}
+.item__button {
+  cursor: pointer;
+  position: relative;
+  min-height: 20px;
+  overflow: hidden;
+  display: block;
+  border-bottom: 1px solid var(--border-color);
+}
+.item__button ._top,
+.item__button ._bottom {
+  transition-duration: .3s;
+  position: absolute;
+}
+.item__button ._top {
+  transform: translateY(-100%);
+}
+.item__button ._center {
+  color: transparent;
+}
+.item__button ._bottom {
+  top: 0;
+  left: 0;
+}
+.item__button:hover ._top{
+  transform: translateY(0);
+}
+.item__button:hover ._bottom{
+  transform: translateY(100%);
 }
 </style>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {storeToRefs} from "pinia";
 import {useGameStore} from "@/store/useGameStore.ts";
-import RecipeTest from "@/components/Subwindows/RecipeTest.vue";
+import Recipe from "@/components/Subwindows/Recipe.vue";
 
 const gameStore = useGameStore()
 const {recipes} = storeToRefs(gameStore)
@@ -12,7 +12,7 @@ const {recipes} = storeToRefs(gameStore)
 
   <div class="container _flex">
     <ul class="recipes">
-      <RecipeTest v-for="recipe of recipes.recipes" :key="recipe.engName" :recipe="recipe" />
+      <Recipe v-for="recipe of recipes.recipes" :key="recipe.engName" :recipe="recipe" />
     </ul>
   </div>
 </template>

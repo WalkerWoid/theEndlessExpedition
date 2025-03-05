@@ -3,7 +3,10 @@
  * Сделал todo Карта
  * Сделал todo Переход по локациям
  * Сделал todo Бабл уведомлений
- * todo Фарм ресурсов
+ * Сделал todo Фарм ресурсов
+ * Сделал todo Создание предметов
+ * Сделал todo Окно статуса
+ * Сделал todo Экипировка предметов
  * */
 import {storeToRefs} from "pinia";
 import {useGameStore} from "@/store/useGameStore.ts";

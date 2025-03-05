@@ -2,10 +2,13 @@ import type {Location} from "@/classes/allLocations.ts";
 import type {LocationResource} from "@/classes/allLocations.ts";
 import type {BattleRecipe} from "@/classes/allRecipes.ts";
 import type {MedicalRecipe} from "@/classes/allRecipes.ts";
+import type {RecipeBodyType} from "@/classes/allRecipes.ts";
+import type {Notifications} from "@/classes/notifications.ts";
 
 import {useIsArmorOrWeapon} from "@/composables/useIsArmorOrWeapon.ts";
-
+import {useIsItemEquipped} from "@/composables/useIsItemEquipped.ts";
 import {useGetRandomByRange} from "@/composables/useGetRandomByRange.ts";
+import {useGetClone} from "@/composables/useGetClone.ts";
 
 type ResourceType = 'resource' | 'food' | 'placeholder'
 export interface InventoryResource {
@@ -24,19 +27,33 @@ export interface InventoryResourceFood extends InventoryResource {
 }
 export type InventoryItemsTypes = InventoryResourceSimple | InventoryResourceFood | BattleRecipe | MedicalRecipe
 
-
+interface BodyDescription {
+    [key: string]: string
+}
+export const bodyDescription: BodyDescription = {
+    head: 'Голова',
+    body: 'Тело',
+    leftArm: 'Левая рука',
+    rightArm: 'Правая рука',
+    leftWrist: 'Левое запястье',
+    rightWrist: 'Правое запястье',
+    leftLeg: 'Левая нога',
+    rightLeg: 'Правая нога',
+    weapon: 'Оружие',
+    shield: 'Щит'
+}
 export interface PlayerBody {
-    [key: string]: boolean
-    head: boolean
-    body: boolean
-    leftArm: boolean
-    rightArm: boolean
-    leftWrist: boolean
-    rightWrist: boolean
-    leftLeg: boolean
-    rightLeg: boolean
-    weapon: boolean
-    shield: boolean
+    [key: string]: BattleRecipe | boolean
+    head: BattleRecipe | boolean
+    body: BattleRecipe | boolean
+    leftArm: BattleRecipe | boolean
+    rightArm: BattleRecipe | boolean
+    leftWrist: BattleRecipe | boolean
+    rightWrist: BattleRecipe | boolean
+    leftLeg: BattleRecipe | boolean
+    rightLeg: BattleRecipe | boolean
+    weapon: BattleRecipe | boolean
+    shield: BattleRecipe | boolean
 }
 export interface Effect {
     name: string
@@ -63,14 +80,96 @@ const inventory = {
         {
             "name": "Трава",
             "engName": "grass",
-            "count": 40,
+            "count": 80,
             "type": "resource"
         },
         {
             "name": "Обычный цветок",
             "engName": "commonFlower",
-            "count": 3,
+            "count": 6,
             "type": "resource"
+        },
+        {
+            "name": "Травяная панамка",
+            "engName": "herbalPanamaHat",
+            "description": "Будет выглядеть модно, если вы полугодовалый ребенок. Можно надеть сразу поверх вашего скафандра на смех всем полугодовалым детям в радиусе этого континента.",
+            "count": 1,
+            "cost": [
+                {
+                    "name": "Трава",
+                    "engName": "grass",
+                    "count": 160,
+                    "type": "resource"
+                }
+            ],
+            "type": "armor",
+            "ruType": "Броня",
+            "bodyType": "head",
+            "durability": 10,
+            "info": [
+                {
+                    "name": "Урон",
+                    "engName": "damage",
+                    "value": 0
+                },
+                {
+                    "name": "Прочность",
+                    "engName": "startedDurability",
+                    "value": 10
+                },
+                {
+                    "name": "Скорость",
+                    "engName": "speed",
+                    "value": 0
+                },
+                {
+                    "name": "Броня",
+                    "engName": "armor",
+                    "value": 1
+                }
+            ],
+            "isEquipped": false
+        },
+        {
+            "name": "Деревянный шлем",
+            "engName": "herbalPanamaHat",
+            "description": "Будет выглядеть модно, если вы полугодовалый ребенок. Можно надеть сразу поверх вашего скафандра на смех всем полугодовалым детям в радиусе этого континента.",
+            "count": 2,
+            "cost": [
+                {
+                    "name": "Трава",
+                    "engName": "grass",
+                    "count": 160,
+                    "type": "resource"
+                }
+            ],
+            "type": "armor",
+            "ruType": "Броня",
+            "bodyType": "head",
+            "durability": 20,
+            "info": [
+                {
+                    "name": "Урон",
+                    "engName": "damage",
+                    "value": 0
+                },
+                {
+                    "name": "Прочность",
+                    "engName": "startedDurability",
+                    "value": 20
+                },
+                {
+                    "name": "Скорость",
+                    "engName": "speed",
+                    "value": 0
+                },
+                {
+                    "name": "Броня",
+                    "engName": "armor",
+                    "value": 1
+                }
+            ],
+            "isEquipped": false
         }
     ] as InventoryItemsTypes[],
     farmResource(currentLocation: Location) {
@@ -128,7 +227,6 @@ const inventory = {
                 if (useIsArmorOrWeapon(inventoryResource)) {
                     return inventoryResource.engName === resource.engName
                         && inventoryResource.durability === resource.durability
-                        && inventoryResource.isEquipped === resource.isEquipped
                 }
             })
         } else {
@@ -143,7 +241,6 @@ const inventory = {
         foundedInventoryResource.count -= resource.count
 
         if (foundedInventoryResource.count <= 0) {
-            console.log('Удаляем ресурс')
             this.deleteFromInventory(foundedInventoryResource)
         }
     },
@@ -159,7 +256,6 @@ const inventory = {
                     if (useIsArmorOrWeapon(item)) {
                         return item.engName === itemToDelete.engName
                             && item.durability === itemToDelete.durability
-                            && item.isEquipped === itemToDelete.isEquipped
                     }
                 })
         } else {
@@ -182,7 +278,7 @@ const inventory = {
 export interface Player {
     name: string
     secondName: string
-    number: number
+    playerNumber: number
     currentLocationTitle: string
     status: string
     health: number
@@ -196,11 +292,15 @@ export interface Player {
     effects: Effect[]
     damage: number
     changeCurrentLocation(locationName: string): void
+    putOnItemHandler(item: BattleRecipe, notifications: Notifications): void
+    putOnItem(item: BattleRecipe, notifications: Notifications): void
+    takeOffItem(itemToTakeOff: BattleRecipe, notifications: Notifications): void
+    clearItemOnBody(bodyType: RecipeBodyType): void
 }
 export const playerObj: Player = {
     name: 'Фираксис Рейнхард',
     secondName: 'Охотник',
-    number: 117,
+    playerNumber: 117,
     currentLocationTitle: 'landingZone',
     status: `Осужденный по законам 19 - *Данные повреждены*; 20 - *Данные повреждены*; 21 - *Данные повреждены*;
     22 - *Данные повреждены*; 698 - Убийство особо ценного объекта, а именно: *Данные повреждены*.`,
@@ -225,7 +325,64 @@ export const playerObj: Player = {
     },
     effects: [] as Effect[],
     damage: 0,
-    changeCurrentLocation(locationName: string) {
+    changeCurrentLocation(locationName) {
         this.currentLocationTitle = locationName
+        return 2
+    },
+    putOnItemHandler(item, notifications) {
+        const itemToEquip = useGetClone(item) as BattleRecipe
+        const equippedItem = this.body[itemToEquip.bodyType]
+
+        const isEqualItemEquipped = (itemToEqual: BattleRecipe, itemToEqualWith: BattleRecipe) => {
+            return itemToEqual.engName === itemToEqualWith.engName
+                && itemToEqual.durability === itemToEqualWith.durability
+        }
+
+        /** todo если такой же предмет надет, ретерн "уже экипировано"
+         *  todo если такой же предмет не надет:
+         *      1. Надеваем копию предмета!
+         *      2. Если -= 1 текущего предмета !== 0, отнимает число
+         *      3. Если -= 1 текущего предмета === 0, удаляем его
+         *
+         *  todo если надет другой предмет:
+         *      1. Снимаем его
+         *      2. Надеваем наш
+        */
+        if (!useIsItemEquipped(equippedItem)) {
+            console.log('Никакой предмет не надет. Надеваем', itemToEquip)
+            this.putOnItem(itemToEquip, notifications)
+            console.log('Тело после экипировки', this.body)
+            return
+        }
+
+        if (isEqualItemEquipped(itemToEquip, equippedItem)) {
+            notifications.showNotification({}, 'equalItemEquipped')
+            console.log('Такой предмет уже надет! Показываем бабл что предмет уже надет')
+            return
+        } else {
+            console.log('Снимаем предмет и надеваем новый')
+            this.takeOffItem(equippedItem, notifications)
+            this.putOnItem(itemToEquip, notifications)
+        }
+    },
+    putOnItem(item, notifications) {
+        item.count = 1
+        this.body[item.bodyType] = item
+        this.inventory.decreaseResource(item)
+        notifications.showNotification(item, 'putOnItem')
+    },
+    takeOffItem(itemToTakeOff, notifications) {
+        const itemOnBody = this.body[itemToTakeOff.bodyType]
+
+        if (!useIsItemEquipped(itemOnBody)) return
+        if (itemToTakeOff.name !== itemOnBody.name && itemToTakeOff.durability !== itemOnBody.durability) return
+
+        this.inventory.addItemToInventory(itemToTakeOff)
+        this.clearItemOnBody(itemToTakeOff.bodyType)
+        notifications.showNotification(itemToTakeOff, 'takeOffItem')
+        console.log('Тело после снятия предмета', this.body)
+    },
+    clearItemOnBody(bodyType) {
+        this.body[bodyType] = false
     }
 }

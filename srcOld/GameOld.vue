@@ -400,7 +400,7 @@ class Player {
   changeLocation(newLocation) {
     if (this.map[this.currentLocation].find(location => location === newLocation)) {
       this.currentLocation = newLocation
-    } 
+    }
   }
 
   /**
@@ -1149,7 +1149,7 @@ class Player {
   }
 }
 
-const player = reactive(new Player())
+// const player = reactive(new Player())
 
 watch([() => player.food, () => player.water], ([newFood, oldFood], [newWater, oldWater]) => {
   if (player.water <= 0) {
