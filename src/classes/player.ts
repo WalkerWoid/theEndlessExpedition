@@ -4,11 +4,13 @@ import type {BattleRecipe} from "@/classes/allRecipes.ts";
 import type {MedicalRecipe} from "@/classes/allRecipes.ts";
 import type {RecipeBodyType} from "@/classes/allRecipes.ts";
 import type {Notifications} from "@/classes/notifications.ts";
+import type {RecipeInfo} from "@/classes/allRecipes.ts";
 
 import {useIsArmorOrWeapon} from "@/composables/useIsArmorOrWeapon.ts";
 import {useIsItemEquipped} from "@/composables/useIsItemEquipped.ts";
 import {useGetRandomByRange} from "@/composables/useGetRandomByRange.ts";
 import {useGetClone} from "@/composables/useGetClone.ts";
+import {useIsItemInfoUnit} from "@/composables/useIsItemInfoUnit.ts";
 
 type ResourceType = 'resource' | 'food' | 'placeholder'
 export interface InventoryResource {
@@ -68,12 +70,13 @@ export interface Effect {
 
 export interface Inventory {
     playerInventory: InventoryItemsTypes[]
-    farmResource(currentLocation: Location): InventoryResourceSimple | boolean
-    addCockedResourceToInventory(cockedResource: InventoryResourceSimple): void
+    farmResource(currentLocation: Location, notifications: Notifications): void
+    addCockedResourceToInventory(cockedResource: InventoryResourceSimple, notifications: Notifications): void
     getInventoryResource(resource: InventoryItemsTypes): InventoryItemsTypes | undefined
     decreaseResource(resource: InventoryItemsTypes): void
     deleteFromInventory(inventoryResource: InventoryItemsTypes): void
     addItemToInventory(item: InventoryItemsTypes): void
+    getItemInfoLine(item: BattleRecipe, infoType: string): RecipeInfo | undefined
 }
 const inventory = {
     playerInventory: [
@@ -132,7 +135,7 @@ const inventory = {
         },
         {
             "name": "Деревянный шлем",
-            "engName": "herbalPanamaHat",
+            "engName": "woodenHelmet",
             "description": "Будет выглядеть модно, если вы полугодовалый ребенок. Можно надеть сразу поверх вашего скафандра на смех всем полугодовалым детям в радиусе этого континента.",
             "count": 2,
             "cost": [
@@ -170,9 +173,91 @@ const inventory = {
                 }
             ],
             "isEquipped": false
+        },
+        {
+            "name": "Деревянный шлем",
+            "engName": "woodenHelmet",
+            "description": "Будет выглядеть модно, если вы полугодовалый ребенок. Можно надеть сразу поверх вашего скафандра на смех всем полугодовалым детям в радиусе этого континента.",
+            "count": 2,
+            "cost": [
+                {
+                    "name": "Трава",
+                    "engName": "grass",
+                    "count": 160,
+                    "type": "resource"
+                }
+            ],
+            "type": "armor",
+            "ruType": "Броня",
+            "bodyType": "head",
+            "durability": 10,
+            "info": [
+                {
+                    "name": "Урон",
+                    "engName": "damage",
+                    "value": 0
+                },
+                {
+                    "name": "Прочность",
+                    "engName": "startedDurability",
+                    "value": 20
+                },
+                {
+                    "name": "Скорость",
+                    "engName": "speed",
+                    "value": 0
+                },
+                {
+                    "name": "Броня",
+                    "engName": "armor",
+                    "value": 1
+                }
+            ],
+            "isEquipped": false
+        },
+        {
+            "name": "Деревянный шлем",
+            "engName": "woodenHelmet",
+            "description": "Будет выглядеть модно, если вы полугодовалый ребенок. Можно надеть сразу поверх вашего скафандра на смех всем полугодовалым детям в радиусе этого континента.",
+            "count": 2,
+            "cost": [
+                {
+                    "name": "Трава",
+                    "engName": "grass",
+                    "count": 160,
+                    "type": "resource"
+                }
+            ],
+            "type": "armor",
+            "ruType": "Броня",
+            "bodyType": "head",
+            "durability": 5,
+            "info": [
+                {
+                    "name": "Урон",
+                    "engName": "damage",
+                    "value": 0
+                },
+                {
+                    "name": "Прочность",
+                    "engName": "startedDurability",
+                    "value": 20
+                },
+                {
+                    "name": "Скорость",
+                    "engName": "speed",
+                    "value": 0
+                },
+                {
+                    "name": "Броня",
+                    "engName": "armor",
+                    "value": 1
+                }
+            ],
+            "isEquipped": false
         }
     ] as InventoryItemsTypes[],
-    farmResource(currentLocation: Location) {
+    farmResource(currentLocation: Location, notifications: Notifications) {
         const getResourceByRandomVal =
             (locationResources: LocationResource[],
              randomValForResource: number): LocationResource | undefined => {
@@ -197,23 +282,23 @@ const inventory = {
             /*console.log('Ресурс не получен')
             console.log('Рандомное число', randomValForResource)
             console.log('Лутаем ресурс', resource)*/
+            notifications.showNotification({}, 'notFarmResource')
             return false
         }
 
         const resourceCount = useGetRandomByRange(resource.count)
         const cockedResource = getCockedResource(resource, resourceCount)
-        this.addCockedResourceToInventory(cockedResource)
-
+        this.addCockedResourceToInventory(cockedResource, notifications)
         /*console.log('Рандомное число', randomValForResource)
         console.log('Лутаем ресурс', cockedResource.name)
         console.log('В количестве', resourceCount)
         console.log('Готовый ресурс', cockedResource)
         console.log('Инвертарь после фарма', this.playerInventory)*/
-
-        return cockedResource
     },
-    addCockedResourceToInventory(cockedResource: InventoryResourceSimple) {
+    addCockedResourceToInventory(cockedResource: InventoryResourceSimple, notifications: Notifications) {
         let inventoryResource = this.getInventoryResource(cockedResource)
+        notifications.showNotification(cockedResource, 'farmResource')
+
         if (!inventoryResource) {
             this.playerInventory.push(cockedResource)
             return
@@ -271,6 +356,9 @@ const inventory = {
         if (foundInventoryItem)
             foundInventoryItem.count += 1
         else inventory.playerInventory.push(item)
+    },
+    getItemInfoLine(item: BattleRecipe, infoType: string): RecipeInfo | undefined {
+        return item.info.find(infoUnit => infoUnit.engName === infoType)
     }
 }
 
@@ -296,6 +384,7 @@ export interface Player {
     putOnItem(item: BattleRecipe, notifications: Notifications): void
     takeOffItem(itemToTakeOff: BattleRecipe, notifications: Notifications): void
     clearItemOnBody(bodyType: RecipeBodyType): void
+    dismantleItem(itemToDismantle: BattleRecipe, notifications: Notifications): void
 }
 export const playerObj: Player = {
     name: 'Фираксис Рейнхард',
@@ -330,6 +419,7 @@ export const playerObj: Player = {
         return 2
     },
     putOnItemHandler(item, notifications) {
+        item.isEquipped = true
         const itemToEquip = useGetClone(item) as BattleRecipe
         const equippedItem = this.body[itemToEquip.bodyType]
 
@@ -338,29 +428,15 @@ export const playerObj: Player = {
                 && itemToEqual.durability === itemToEqualWith.durability
         }
 
-        /** todo если такой же предмет надет, ретерн "уже экипировано"
-         *  todo если такой же предмет не надет:
-         *      1. Надеваем копию предмета!
-         *      2. Если -= 1 текущего предмета !== 0, отнимает число
-         *      3. Если -= 1 текущего предмета === 0, удаляем его
-         *
-         *  todo если надет другой предмет:
-         *      1. Снимаем его
-         *      2. Надеваем наш
-        */
         if (!useIsItemEquipped(equippedItem)) {
-            console.log('Никакой предмет не надет. Надеваем', itemToEquip)
             this.putOnItem(itemToEquip, notifications)
-            console.log('Тело после экипировки', this.body)
             return
         }
 
         if (isEqualItemEquipped(itemToEquip, equippedItem)) {
             notifications.showNotification({}, 'equalItemEquipped')
-            console.log('Такой предмет уже надет! Показываем бабл что предмет уже надет')
             return
         } else {
-            console.log('Снимаем предмет и надеваем новый')
             this.takeOffItem(equippedItem, notifications)
             this.putOnItem(itemToEquip, notifications)
         }
@@ -370,19 +446,63 @@ export const playerObj: Player = {
         this.body[item.bodyType] = item
         this.inventory.decreaseResource(item)
         notifications.showNotification(item, 'putOnItem')
+        console.log('Инвентарь', this.inventory.playerInventory)
+        console.log('Тело', this.body)
     },
     takeOffItem(itemToTakeOff, notifications) {
         const itemOnBody = this.body[itemToTakeOff.bodyType]
 
-        if (!useIsItemEquipped(itemOnBody)) return
-        if (itemToTakeOff.name !== itemOnBody.name && itemToTakeOff.durability !== itemOnBody.durability) return
+        if (!useIsItemEquipped(itemOnBody)) {
+            notifications.showNotification({}, 'itemNotEquipped')
+            return
+        }
+        console.log('Предмет для снятия', itemToTakeOff)
+        console.log('Предмет на теле', itemOnBody)
+        if ((itemToTakeOff.name !== itemOnBody.name && itemToTakeOff.durability !== itemOnBody.durability)
+            || (itemToTakeOff.name !== itemOnBody.name || itemToTakeOff.durability !== itemOnBody.durability)) {
+            notifications.showNotification({}, 'notEqualEquippedItem')
+            return
+        }
 
+        const inventoryItem = this.inventory.getInventoryResource(itemToTakeOff)
+        if (inventoryItem) {
+            if (useIsArmorOrWeapon(inventoryItem)) inventoryItem.isEquipped = false
+        }
+        itemToTakeOff.isEquipped = false
         this.inventory.addItemToInventory(itemToTakeOff)
         this.clearItemOnBody(itemToTakeOff.bodyType)
         notifications.showNotification(itemToTakeOff, 'takeOffItem')
-        console.log('Тело после снятия предмета', this.body)
+
+        console.log('Инвентарь', this.inventory.playerInventory)
+        console.log('Тело', this.body)
     },
     clearItemOnBody(bodyType) {
         this.body[bodyType] = false
+    },
+    dismantleItem(itemToDismantle, notifications) {
+        const startedDurability = this.inventory.getItemInfoLine(itemToDismantle, 'startedDurability')
+        itemToDismantle.count = 1
+
+        if (!useIsItemInfoUnit(startedDurability)) return
+
+        if (itemToDismantle.durability === startedDurability.value) {
+            itemToDismantle.cost.forEach(res => {
+                this.inventory.addCockedResourceToInventory(res, notifications)
+            })
+        } else if (itemToDismantle.durability < startedDurability.value
+            && itemToDismantle.durability >= Math.floor(startedDurability.value / 2)) {
+
+            itemToDismantle.cost.forEach(res => {
+                res.count = Math.floor(res.count / 2)
+                this.inventory.addCockedResourceToInventory(res, notifications)
+            })
+        } else {
+            itemToDismantle.cost.forEach(res => {
+                res.count = Math.floor(res.count / 4)
+                this.inventory.addCockedResourceToInventory(res, notifications)
+            })
+        }
+
+        this.inventory.decreaseResource(itemToDismantle)
     }
 }

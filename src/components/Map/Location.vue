@@ -6,7 +6,7 @@ import type { Location } from "@/classes/allLocations.ts";
 import type {InventoryResourceSimple} from "@/classes/player.ts";
 
 const gameStore = useGameStore()
-const {player, notifications} = storeToRefs(gameStore)
+const {player, notifications, currentLocationObj} = storeToRefs(gameStore)
 
 const definedProps = defineProps<{
   location: Location
@@ -25,13 +25,9 @@ const hoverEffectSrc = computed(() => {
 })
 
 const farmResource = () => {
-  if (!gameStore.currentLocationObj) return
+  if (!currentLocationObj.value) return
 
-  const currentLocationObj = gameStore.currentLocationObj
-  const cockedResource: InventoryResourceSimple | boolean = player.value.inventory.farmResource(currentLocationObj)
-
-  if (cockedResource) notifications.value.showNotification(cockedResource, 'farmResource')
-  if (!cockedResource) notifications.value.showNotification(cockedResource, 'notFarmResource')
+  player.value.inventory.farmResource(currentLocationObj.value, notifications.value)
 }
 </script>
 

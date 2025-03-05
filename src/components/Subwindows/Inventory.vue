@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import {storeToRefs} from "pinia";
-import {computed, ref, watch} from "vue";
+import {storeToRefs} from "pinia"
+import {computed, ref, watch} from "vue"
 
 import {useGameStore} from "@/store/useGameStore.ts";
-import type {InventoryItemsTypes, InventoryResourceSimple} from "@/classes/player.ts";
+import type {InventoryItemsTypes, InventoryResourceSimple} from "@/classes/player.ts"
+import type {RecipeInfo} from "@/classes/allRecipes.ts"
 
-import {resourcesDescription} from "@/classes/resourcesDescription.ts";
-import {useIsArmorOrWeapon} from "@/composables/useIsArmorOrWeapon.ts";
-import {useGetClone} from "@/composables/useGetClone.ts";
+import {resourcesDescription} from "@/classes/resourcesDescription.ts"
+import {useIsArmorOrWeapon} from "@/composables/useIsArmorOrWeapon.ts"
+import {useGetClone} from "@/composables/useGetClone.ts"
 
 const {player, windowsVisibility, notifications} = storeToRefs(useGameStore())
 const placeholderResource: InventoryResourceSimple = {
@@ -27,7 +28,6 @@ const isActiveResourceSimple = computed<boolean>(() => {
 })
 
 watch(() => activeResource.value, (newActiveResource) => {
-  console.log(activeResource.value)
   if (newActiveResource && resourcesDescription[newActiveResource.engName]) {
     activeResourceDescription.value = resourcesDescription[newActiveResource.engName]
   } else {
@@ -38,6 +38,29 @@ watch(() => activeResource.value.count, (newCount) => {
   if (newCount === 0)
     activeResource.value = placeholderResource
 })
+
+const isEquippedColor = (resource: InventoryItemsTypes): boolean => {
+  if (useIsArmorOrWeapon(resource)) {
+    return resource.isEquipped
+  }
+  return false
+}
+const isSemiDamagedColor = (resource: InventoryItemsTypes): boolean => {
+  if (!useIsArmorOrWeapon(resource)) return false
+
+  const startedDurability = player.value.inventory.getItemInfoLine(resource, 'startedDurability') as RecipeInfo
+
+  return resource.durability < startedDurability.value && resource.durability >= Math.floor(startedDurability.value / 2)
+}
+
+const getDamagesColor = (resource: InventoryItemsTypes): 'orange' | 'red' | undefined => {
+  if (!useIsArmorOrWeapon(resource)) return
+
+  const startedDurability = player.value.inventory.getItemInfoLine(resource, 'startedDurability') as RecipeInfo
+  if (resource.durability < startedDurability.value
+      && resource.durability >= Math.floor(startedDurability.value / 2)) return 'orange'
+  if (resource.durability < Math.floor(startedDurability.value / 2)) return 'red'
+}
 </script>
 
 <!-- todo подумать над тем, что бы сделать мини игру, в которой впесто простого "создать" у рецептов, "создать" будет в
@@ -87,7 +110,8 @@ watch(() => activeResource.value.count, (newCount) => {
           <span class="_bottom">Снять</span>
         </button>
 
-        <button type="button" class="_little item__button">
+        <button type="button" class="_little item__button"
+                @click="player.dismantleItem(useGetClone(activeResource), notifications)">
           <span class="_top">Разобрать</span>
           <span class="_center">Разобрать</span>
           <span class="_bottom">Разобрать</span>
@@ -100,11 +124,16 @@ watch(() => activeResource.value.count, (newCount) => {
 
   <div v-else class="container _flex">
     <ul class="inventory">
-      <li class="resource"
-          v-for="resourceUnit of player.inventory.playerInventory"
-          @click="setActiveResource(resourceUnit)" :key="resourceUnit.engName">
-        {{resourceUnit.name}}: {{resourceUnit.count}}
-      </li>
+      <template v-for="resourceUnit of player.inventory.playerInventory"
+                :key="resourceUnit.engName">
+        <li class="resource"
+            @click="setActiveResource(resourceUnit)"
+            :class="{_green: isEquippedColor(resourceUnit),
+                     _orange: getDamagesColor(resourceUnit) === 'orange',
+                     _red: getDamagesColor(resourceUnit) === 'red'}">
+          {{resourceUnit.name}}: {{resourceUnit.count}}
+        </li>
+      </template>
     </ul>
   </div>
 

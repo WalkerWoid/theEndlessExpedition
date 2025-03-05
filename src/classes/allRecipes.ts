@@ -59,7 +59,7 @@ const negativeEffects: Effects = {
 type RecipeType = 'weapon' | 'armor' | 'medical'
 export type RecipeBodyType = 'head' | 'body' | 'leftArm' | 'rightArm' | 'leftWrist' | 'rightWrist' | 'leftLeg' | 'rightLeg'
     | 'weapon' | 'shield'
-interface RecipeInfo {
+export interface RecipeInfo {
     name: string,
     engName: string,
     value: number

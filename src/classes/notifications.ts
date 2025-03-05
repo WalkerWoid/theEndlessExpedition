@@ -60,6 +60,16 @@ export const notificationsObj: Notifications = {
                 newNote.secondText = `${entryObj.name}`
                 newNote.className = '_red'
                 break
+            case 'notEqualEquippedItem':
+                newNote.text = 'Выберите надетый предмет'
+                newNote.secondText = ``
+                newNote.className = '_red'
+                break
+            case 'itemNotEquipped':
+                newNote.text = 'Ничего не надето'
+                newNote.secondText = ``
+                newNote.className = '_red'
+                break
         }
 
         this.notifications.unshift(newNote)
