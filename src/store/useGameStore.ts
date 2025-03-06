@@ -8,12 +8,16 @@ import type {Player} from "@/classes/player.ts";
 import type {Location} from "@/classes/allLocations.ts";
 import type {WindowsVisibility} from "@/classes/windowsVisibility.ts";
 import type {AllRecipes} from "@/classes/allRecipes.ts";
+import type {AllHints} from "@/classes/hints.ts";
+import type {Hint} from "@/classes/hints.ts";
 
 import {playerObj} from "@/classes/player.ts";
 import {allLocations} from "@/classes/allLocations.ts";
 import {notificationsObj} from "@/classes/notifications.ts";
 import {windowsVisibilityObj} from "@/classes/windowsVisibility.ts";
 import {allRecipes} from "@/classes/allRecipes.ts";
+import {allHints} from "@/classes/hints.ts";
+import {playerJournal} from "@/classes/hints.ts";
 
 export interface GameStore {
     player: Player
@@ -22,6 +26,8 @@ export interface GameStore {
     windowsVisibility: WindowsVisibility
     currentLocationObj: ComputedRef<Location | undefined>
     recipes: AllRecipes
+    hints: AllHints
+    journal: Ref<Hint[]>
     getCurrentLocationObj(title: string): Location
 }
 
@@ -31,10 +37,13 @@ export const useGameStore = defineStore('gameStore', () => {
     const notifications = reactive(notificationsObj)
     const windowsVisibility = reactive(windowsVisibilityObj)
     const recipes = reactive(allRecipes)
+    const hints = reactive(allHints)
+    const journal = ref(playerJournal)
 
     const currentLocationObj = computed<Location | undefined>(() => {
         return getCurrentLocationObj(player.currentLocationTitle)
     })
+    hints.initHintsCount(journal.value)
 
     const getCurrentLocationObj = (title: string): Location | undefined => {
         return locations.value.find(loc=> loc.engName === title)
@@ -57,6 +66,8 @@ export const useGameStore = defineStore('gameStore', () => {
         windowsVisibility,
         currentLocationObj,
         recipes,
+        hints,
+        journal,
         getCurrentLocationObj
     } as GameStore
 })

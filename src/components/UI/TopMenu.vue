@@ -1,6 +1,7 @@
 <script setup lang="ts">
 const mainWindowVisibility = defineModel<boolean>('main-window-visibility')
 const activeMainWindow = defineModel<string>('active-main-window')
+const newHints = defineModel<number>('new-hints')
 
 const openMainWindow = (newActiveWindow: string): void => {
   mainWindowVisibility.value = true
@@ -25,7 +26,10 @@ const openMainWindow = (newActiveWindow: string): void => {
 <!--    <li class="main__btn _lil" @click="openSubWindow('Recipes')"><slot name="recipes" /></li>-->
 <!--    <li class="main__btn _lil" @click="openSubWindow('Inventory')"><slot name="inventory" /></li>-->
 <!--    <li class="main__btn _lil" @click="openSubWindow('Status')"><slot name="status" /></li>-->
-    <li class="main__btn _lil" @click="openMainWindow('Journal')"><slot name="journal" /></li>
+    <li class="main__btn _lil" @click="openMainWindow('Journal')">
+      <slot name="journal" />
+      <span class="_unseen _little" v-if="newHints">+ {{newHints}}</span>
+    </li>
     <li class="main__btn _lil" @click="openMainWindow('Quests')"><slot name="quests" /></li>
     <li class="main__btn _lil" @click="openMainWindow('Recipes')"><slot name="recipes" /></li>
     <li class="main__btn _lil" @click="openMainWindow('Inventory')"><slot name="inventory" /></li>

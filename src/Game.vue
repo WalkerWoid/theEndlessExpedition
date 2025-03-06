@@ -7,8 +7,12 @@
  * Сделал todo Создание предметов
  * Сделал todo Окно статуса
  * Сделал todo Экипировка предметов
- * todo Разбор предметов
- * todo Журнал с заметками
+ * Сделал todo Разбор предметов
+ * Сделал todo Журнал с заметками
+ * todo Действие эффектов
+ * todo Диалоги
+ * todo Задания
+ * todo Перемотка времени
  * */
 import {storeToRefs} from "pinia";
 import {useGameStore} from "@/store/useGameStore.ts";

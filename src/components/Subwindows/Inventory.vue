@@ -10,7 +10,7 @@ import {resourcesDescription} from "@/classes/resourcesDescription.ts"
 import {useIsArmorOrWeapon} from "@/composables/useIsArmorOrWeapon.ts"
 import {useGetClone} from "@/composables/useGetClone.ts"
 
-const {player, windowsVisibility, notifications} = storeToRefs(useGameStore())
+const {player, windowsVisibility, notifications, journal, hints} = storeToRefs(useGameStore())
 const placeholderResource: InventoryResourceSimple = {
   name: 'placeholder', engName: 'placeholder', count: 0, type: 'placeholder'
 }
@@ -78,6 +78,9 @@ const getDamagesColor = (resource: InventoryItemsTypes): 'orange' | 'red' | unde
 
 <template>
   <div class="subWindow__header">Инвентарь</div>
+  <p @click="hints.addHint(journal, 'awakingThoughts1', windowsVisibility)">Добавить подсказку</p>
+  <p @click="hints.addHint(journal, 'awakingThoughts2', windowsVisibility)">Добавить подсказку2</p>
+  <p @click="hints.addHint(journal, 'awakingThoughts3', windowsVisibility)">Добавить подсказку3</p>
 
   <div class="resource__subWindow main__texture"
        :class="{_show: windowsVisibility.mainWindow && player.inventory.playerInventory.length !== 0}">

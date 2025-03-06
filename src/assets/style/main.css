@@ -103,6 +103,19 @@ h1, h2, h3, h4, h5, h6 {
 ._pointer {
     cursor: pointer;
 }
+._unseen {
+    position: absolute;
+    top: 80%;
+    right: 0;
+    background-color: rgb(34, 139, 34);
+    color: rgb(255,255,255);
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2px 8px;
+    line-height: 100%;
+}
 
 /*h1 {*/
 /*    font-size: 40px;*/
