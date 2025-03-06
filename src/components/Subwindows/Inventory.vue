@@ -1,16 +1,18 @@
 <script setup lang="ts">
-import {storeToRefs} from "pinia"
 import {computed, ref, watch} from "vue"
 
-import {useGameStore} from "@/store/useGameStore.ts";
 import type {InventoryItemsTypes, InventoryResourceSimple} from "@/classes/player.ts"
 import type {RecipeInfo} from "@/classes/allRecipes.ts"
 
+import {useGameStore} from "@/store/useGameStore.ts";
+import {storeToRefs} from "pinia"
 import {resourcesDescription} from "@/classes/resourcesDescription.ts"
+
 import {useIsArmorOrWeapon} from "@/composables/useIsArmorOrWeapon.ts"
 import {useGetClone} from "@/composables/useGetClone.ts"
+import {useIsMedical} from "@/composables/useIsMedical.ts";
 
-const {player, windowsVisibility, notifications, journal, hints} = storeToRefs(useGameStore())
+const {player, windowsVisibility, notifications} = storeToRefs(useGameStore())
 const placeholderResource: InventoryResourceSimple = {
   name: 'placeholder', engName: 'placeholder', count: 0, type: 'placeholder'
 }
@@ -78,9 +80,7 @@ const getDamagesColor = (resource: InventoryItemsTypes): 'orange' | 'red' | unde
 
 <template>
   <div class="subWindow__header">Инвентарь</div>
-  <p @click="hints.addHint(journal, 'awakingThoughts1', windowsVisibility)">Добавить подсказку</p>
-  <p @click="hints.addHint(journal, 'awakingThoughts2', windowsVisibility)">Добавить подсказку2</p>
-  <p @click="hints.addHint(journal, 'awakingThoughts3', windowsVisibility)">Добавить подсказку3</p>
+  <p @click="player.calcEffects">Иммитация времени</p>
 
   <div class="resource__subWindow main__texture"
        :class="{_show: windowsVisibility.mainWindow && player.inventory.playerInventory.length !== 0}">
@@ -118,6 +118,16 @@ const getDamagesColor = (resource: InventoryItemsTypes): 'orange' | 'red' | unde
           <span class="_top">Разобрать</span>
           <span class="_center">Разобрать</span>
           <span class="_bottom">Разобрать</span>
+        </button>
+      </div>
+    </template>
+
+    <template v-else-if="useIsMedical(activeResource)">
+      <div class="items__action" @click="player.useMedical(useGetClone(activeResource), notifications)">
+        <button type="button" class="_little item__button">
+          <span class="_top">Использовать</span>
+          <span class="_center">Использовать</span>
+          <span class="_bottom">Использовать</span>
         </button>
       </div>
     </template>

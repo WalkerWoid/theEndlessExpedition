@@ -43,7 +43,12 @@ export const useGameStore = defineStore('gameStore', () => {
     const currentLocationObj = computed<Location | undefined>(() => {
         return getCurrentLocationObj(player.currentLocationTitle)
     })
+
     hints.initHintsCount(journal.value)
+    hints.addHint(journal.value, 'awakingThoughts1')
+    hints.addHint(journal.value, 'awakingThoughts2')
+    hints.addHint(journal.value, 'awakingThoughts3')
+    hints.addHint(journal.value, 'awakingThoughts4')
 
     const getCurrentLocationObj = (title: string): Location | undefined => {
         return locations.value.find(loc=> loc.engName === title)

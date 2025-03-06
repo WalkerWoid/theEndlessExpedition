@@ -14,7 +14,8 @@ export interface AllHints {
     newHints: number
     initHintsCount(playerJournal: Hint[]): void
     clearHint(hint: Hint): void
-    addHint(playerJournal: Hint[], hintTitle: string, windowsVisibility: WindowsVisibility): void
+    addHint(playerJournal: Hint[], hintTitle: string): void
+    deleteHint(hint: Hint, playerJournal: Hint[]): void
 }
 export const allHints: AllHints = {
     hints: {
@@ -55,11 +56,44 @@ export const allHints: AllHints = {
             wasNotified: true,
             wasAdded: false
         },
+        firstTimeOpenStatus: {
+            title: 'firstTimeOpenStatus',
+            text: `Окно статуса. Показывает основную информацию обо мне... Фираксис, значит. Необычное имя. Место, псевдоним,
+    порядковый номер, бла-бла-бла. Ой вой, осужденный по законам? Убийство ценного объекта? Так нет, нет, нет, нет, нет.
+    Это какая-то ошибка...`,
+            wasNotified: true,
+            wasAdded: false
+        },
+        firstTimeOpenInventory: {
+            title: 'firstTimeOpenInventory',
+            text: `Инвентарь. Тут будут отображаться мои ресурсы и предметы? А куда они будут складываться физически? Интересно.
+    Бортовой журнал, я хочу кое-что узнать!`,
+            wasNotified: true,
+            wasAdded: false
+        },
+        firstTimeOpenRecipes: {
+            title: 'firstTimeOpenRecipes',
+            text: `Окно рецептов. Пока не знаю, что про него сказать. Может быть тут будут рецепты, а может и нет... Если я и
+    правда отправлен на эту планету для ее изучения, то вкладка рецептов будет очень полезна, так же как и вкладка
+    инвентаря.`,
+            wasNotified: true,
+            wasAdded: false
+        },
+        firstTimeOpenQuests: {
+            title: 'firstTimeOpenQuests',
+            text: `Журнал активных заданий, ничего сложного.`,
+            wasNotified: true,
+            wasAdded: false
+        },
+        deleteHint: {
+            title: 'deleteHints',
+            text: `Понятно, по нажатию на какую-либо запись, она удалится из журнала. Checked.`,
+            wasNotified: true,
+            wasAdded: false
+        },
     },
     newHints: 0,
     initHintsCount(playerJournal) {
-        console.log('initHintsCount')
-
         watch(() => playerJournal, (newLength) => {
             this.newHints = playerJournal.filter(hint => hint.wasNotified).length
         }, {deep: true})
@@ -67,18 +101,21 @@ export const allHints: AllHints = {
     clearHint(hint) {
         hint.wasNotified = false
     },
-    addHint(playerJournal, hintTitle, windowsVisibility) {
+    addHint(playerJournal, hintTitle) {
         const neededHint = this.hints[hintTitle]
-        console.log(windowsVisibility)
 
         if (!neededHint) return
         if (neededHint.wasAdded) return;
 
-        // if (windowsVisibility.activeMainWindow !== 'Journal')
-        //     this.newHints += 1
-
         neededHint.wasAdded = true
         playerJournal.push(neededHint)
+    },
+    deleteHint(hint, playerJournal) {
+        const journalHint = playerJournal.find(jHint => jHint.title === hint.title)
+        if (!journalHint) return
+
+        const hintId = playerJournal.indexOf(journalHint)
+        playerJournal.splice(hintId, 1)
     }
 }
 

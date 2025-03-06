@@ -41,8 +41,12 @@ const isItemOnBody = (bodyPart: BattleRecipe | boolean): bodyPart is BattleRecip
 
       <li class="status__li _pointer">Статус: {{player.status}}</li>
 
-      <li class="status__li">Полученные эффекты и травмы:
+      <li class="status__li _effects">Полученные эффекты и травмы:
         <span v-if="player.effects.length === 0">Вы здоровы! В ближайшее время не умрете.</span>
+
+        <template v-else>
+          <span v-for="effect in player.effects" :title="`Осталось тиков: ${effect.ticks}`">{{effect.name}};</span>
+        </template>
       </li>
     </ul>
   </div>
@@ -53,5 +57,10 @@ const isItemOnBody = (bodyPart: BattleRecipe | boolean): bodyPart is BattleRecip
   display: flex;
   gap: var(--gap);
   flex-direction: column;
+}
+._effects {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap-half)
 }
 </style>

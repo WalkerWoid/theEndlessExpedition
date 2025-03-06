@@ -11,6 +11,7 @@ import {useIsItemEquipped} from "@/composables/useIsItemEquipped.ts";
 import {useGetRandomByRange} from "@/composables/useGetRandomByRange.ts";
 import {useGetClone} from "@/composables/useGetClone.ts";
 import {useIsItemInfoUnit} from "@/composables/useIsItemInfoUnit.ts";
+import {useIsMedical} from "@/composables/useIsMedical.ts";
 
 type ResourceType = 'resource' | 'food' | 'placeholder'
 export interface InventoryResource {
@@ -59,7 +60,7 @@ export interface PlayerBody {
 }
 export interface Effect {
     name: string
-    change: number
+    chance: number
     health: number
     ticks: number
     food: number
@@ -255,6 +256,69 @@ const inventory = {
                 }
             ],
             "isEquipped": false
+        },
+        {
+            "name": "Простой травяной бинт",
+            "engName": "simpleHerbalBandage",
+            "description": "Трава, связанная травой и украшенная тремя разноцветными цветами. Никакой пропаганды. Лечит так же, как и выглядит - на троечку. Хороший шанс получить какое-нибудь заражение. Проще будет помочиться на рану.",
+            "count": 3,
+            "cost": [
+                {
+                    "name": "Трава",
+                    "engName": "grass",
+                    "count": 40,
+                    "type": "resource"
+                },
+                {
+                    "name": "Обычный цветок",
+                    "engName": "commonFlower",
+                    "count": 3,
+                    "type": "resource"
+                }
+            ],
+            "type": "medical",
+            "ruType": "Медицина",
+            "info": [
+                {
+                    "name": "Количество использований",
+                    "engName": "numberUses",
+                    "value": 1
+                }
+            ],
+            "positiveEffects": [
+                {
+                    "name": "Слабое Лечение",
+                    "chance": 100,
+                    "health": 20,
+                    "food": 0,
+                    "water": 0,
+                    "sanity": 0,
+                    "ticks": 2,
+                    "type": "positive"
+                }
+            ],
+            "negativeEffects": [
+                {
+                    "name": "Заражение крови",
+                    "chance": 8,
+                    "health": 0,
+                    "food": -4,
+                    "water": -6,
+                    "sanity": 0,
+                    "ticks": 40,
+                    "type": "negative"
+                },
+                {
+                    "name": "Заражение червями",
+                    "chance": 50,
+                    "health": -1,
+                    "food": -12,
+                    "water": -20,
+                    "sanity": -20,
+                    "ticks": 70,
+                    "type": "negative"
+                }
+            ]
         }
     ] as InventoryItemsTypes[],
     farmResource(currentLocation: Location, notifications: Notifications) {
@@ -323,7 +387,11 @@ const inventory = {
 
         if (!foundedInventoryResource) return
 
-        foundedInventoryResource.count -= resource.count
+        if (useIsArmorOrWeapon(resource) || useIsMedical(resource)) {
+            foundedInventoryResource.count -= 1
+        } else {
+            foundedInventoryResource.count -= resource.count
+        }
 
         if (foundedInventoryResource.count <= 0) {
             this.deleteFromInventory(foundedInventoryResource)
@@ -385,6 +453,9 @@ export interface Player {
     takeOffItem(itemToTakeOff: BattleRecipe, notifications: Notifications): void
     clearItemOnBody(bodyType: RecipeBodyType): void
     dismantleItem(itemToDismantle: BattleRecipe, notifications: Notifications): void
+    useMedical(item: MedicalRecipe, notifications: Notifications): void
+    calcEffects(): void
+    changeMainCharacteristic(type: 'health' | 'water' | 'food', value: number): void
 }
 export const playerObj: Player = {
     name: 'Фираксис Рейнхард',
@@ -394,11 +465,11 @@ export const playerObj: Player = {
     status: `Осужденный по законам 19 - *Данные повреждены*; 20 - *Данные повреждены*; 21 - *Данные повреждены*;
     22 - *Данные повреждены*; 698 - Убийство особо ценного объекта, а именно: *Данные повреждены*.`,
     health: 200,
-    maxHealth: 0,
-    food: 0,
-    maxFood: 0,
-    water: 0,
-    maxWater: 0,
+    maxHealth: 200,
+    food: 300,
+    maxFood: 300,
+    water: 100,
+    maxWater: 100,
     inventory: inventory,
     body: {
         head: false,
@@ -446,8 +517,6 @@ export const playerObj: Player = {
         this.body[item.bodyType] = item
         this.inventory.decreaseResource(item)
         notifications.showNotification(item, 'putOnItem')
-        console.log('Инвентарь', this.inventory.playerInventory)
-        console.log('Тело', this.body)
     },
     takeOffItem(itemToTakeOff, notifications) {
         const itemOnBody = this.body[itemToTakeOff.bodyType]
@@ -481,7 +550,6 @@ export const playerObj: Player = {
     },
     dismantleItem(itemToDismantle, notifications) {
         const startedDurability = this.inventory.getItemInfoLine(itemToDismantle, 'startedDurability')
-        itemToDismantle.count = 1
 
         if (!useIsItemInfoUnit(startedDurability)) return
 
@@ -504,5 +572,34 @@ export const playerObj: Player = {
         }
 
         this.inventory.decreaseResource(itemToDismantle)
+    },
+    useMedical(item, notifications) {
+        const allMedicalItemEffects = item.negativeEffects.concat(item.positiveEffects)
+
+        allMedicalItemEffects.forEach(effect => {
+            const randomValForEffect = useGetRandomByRange([1, 100])
+            if (randomValForEffect <= effect.chance) {
+                this.effects.push(effect)
+                effect.type === 'positive' && notifications.showNotification(effect, 'addPositiveEffect')
+                effect.type === 'negative' && notifications.showNotification(effect, 'addNegativeEffect')
+            }
+        })
+
+        this.inventory.decreaseResource(item)
+    },
+    calcEffects() {
+        this.effects.forEach(effect => {
+            effect.food && this.changeMainCharacteristic('food', effect.food)
+            effect.water && this.changeMainCharacteristic('water', effect.water)
+            effect.health && this.changeMainCharacteristic('health', effect.health)
+        })
+        console.log('Еда', this.food)
+        console.log('Вода', this.water)
+        console.log('Здоровье', this.health)
+    },
+    changeMainCharacteristic(type, value) {
+        if (!this[type]) return
+
+        this[type] += value
     }
 }

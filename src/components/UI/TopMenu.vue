@@ -1,4 +1,10 @@
 <script setup lang="ts">
+import {useGameStore} from "@/store/useGameStore.ts";
+import {storeToRefs} from "pinia";
+
+const gameStore = useGameStore()
+const {hints, journal} = storeToRefs(gameStore)
+
 const mainWindowVisibility = defineModel<boolean>('main-window-visibility')
 const activeMainWindow = defineModel<string>('active-main-window')
 const newHints = defineModel<number>('new-hints')
@@ -7,33 +13,34 @@ const openMainWindow = (newActiveWindow: string): void => {
   mainWindowVisibility.value = true
   activeMainWindow.value = newActiveWindow
 }
+const openMainWindowHandler = (newActiveWindow: string, addedHintTitle: string) => {
+  openMainWindow(newActiveWindow)
+  hints.value.addHint(journal.value, addedHintTitle)
+}
 </script>
 
 <template>
   <ul class="ui__buttons">
-<!--    <li class="main__btn _lil" @click="openSubWindow('Journal')" :class="{_green: menuCounters.journal.greenBorder}">-->
-<!--      <slot name="journal" />-->
-<!--      <span v-if="menuCounters.journal.journalNewMessages >= 1" class="_green _little messagesCounter">-->
-<!--        +{{menuCounters.journal.journalNewMessages}}-->
-<!--      </span>-->
-<!--    </li>-->
-<!--    <li class="main__btn _lil" @click="openSubWindow('Questions')" :class="{_green: menuCounters.quests.greenBorder}">-->
-<!--      <slot name="quests" />-->
-<!--      <span v-if="menuCounters.quests.new >= 1" class="_green _little messagesCounter">-->
-<!--        +{{menuCounters.quests.new}}-->
-<!--      </span>-->
-<!--    </li>-->
-<!--    <li class="main__btn _lil" @click="openSubWindow('Recipes')"><slot name="recipes" /></li>-->
-<!--    <li class="main__btn _lil" @click="openSubWindow('Inventory')"><slot name="inventory" /></li>-->
-<!--    <li class="main__btn _lil" @click="openSubWindow('Status')"><slot name="status" /></li>-->
-    <li class="main__btn _lil" @click="openMainWindow('Journal')">
+    <li class="main__btn _lil" @click="openMainWindowHandler('Journal', '')">
       <slot name="journal" />
       <span class="_unseen _little" v-if="newHints">+ {{newHints}}</span>
     </li>
-    <li class="main__btn _lil" @click="openMainWindow('Quests')"><slot name="quests" /></li>
-    <li class="main__btn _lil" @click="openMainWindow('Recipes')"><slot name="recipes" /></li>
-    <li class="main__btn _lil" @click="openMainWindow('Inventory')"><slot name="inventory" /></li>
-    <li class="main__btn _lil" @click="openMainWindow('Status')"><slot name="status" /></li>
+    <li class="main__btn _lil"
+        @click="openMainWindowHandler('Quests', 'firstTimeOpenQuests')">
+      <slot name="quests" />
+    </li>
+    <li class="main__btn _lil"
+        @click="openMainWindowHandler('Recipes', 'firstTimeOpenRecipes')">
+      <slot name="recipes" />
+    </li>
+    <li class="main__btn _lil"
+        @click="openMainWindowHandler('Inventory', 'firstTimeOpenInventory')">
+      <slot name="inventory" />
+    </li>
+    <li class="main__btn _lil"
+        @click="openMainWindowHandler('Status', 'firstTimeOpenStatus')">
+      <slot name="status" />
+    </li>
   </ul>
 </template>
 

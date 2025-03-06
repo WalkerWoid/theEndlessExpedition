@@ -10,6 +10,7 @@ interface Effect {
     water: number
     sanity: number
     ticks: number
+    type: 'positive' | 'negative'
 }
 interface EffectType {
     [key: string]: Effect
@@ -26,7 +27,8 @@ const positiveEffects: Effects = {
             food: 0,
             water: 0,
             sanity: 0,
-            ticks: 2
+            ticks: 2,
+            type: 'positive'
         }
     }
 }
@@ -39,7 +41,8 @@ const negativeEffects: Effects = {
             food: -4,
             water: -6,
             sanity: 0,
-            ticks: 40
+            ticks: 40,
+            type: 'negative'
         }
     },
     wormsUnderTheSkin: {
@@ -50,7 +53,8 @@ const negativeEffects: Effects = {
             food: -12,
             water: -20,
             sanity: -20,
-            ticks: 70
+            ticks: 70,
+            type: 'negative'
         }
     }
 }
@@ -169,7 +173,8 @@ export const allRecipes: AllRecipes = {
             inventory.decreaseResource(resource)
         })
         inventory.addItemToInventory(itemToCreate)
-        console.log('Инвентарь', inventory.playerInventory)
+
+        console.log(inventory.playerInventory)
         return true
     },
     isResourcesToCreateEnough(itemToCreate,inventory: Inventory): boolean {

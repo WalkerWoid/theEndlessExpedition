@@ -70,6 +70,15 @@ export const notificationsObj: Notifications = {
                 newNote.secondText = ``
                 newNote.className = '_red'
                 break
+            case 'addPositiveEffect':
+                newNote.text = 'Получено: '
+                newNote.secondText = `${entryObj.name}`
+                break
+            case 'addNegativeEffect':
+                newNote.text = 'Получено: '
+                newNote.secondText = `${entryObj.name}`
+                newNote.className = '_red'
+                break
         }
 
         this.notifications.unshift(newNote)
