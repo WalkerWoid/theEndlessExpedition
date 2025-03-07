@@ -9,6 +9,7 @@ import Inventory from "@/components/Subwindows/Inventory.vue";
 import Recipes from "@/components/Subwindows/Recipes.vue";
 import Status from "@/components/Subwindows/Status.vue";
 import Journal from "@/components/Subwindows/Journal.vue";
+import LocationInfo from "@/components/Map/LocationInfo.vue";
 
 const {windowsVisibility, hints} = storeToRefs(useGameStore())
 
@@ -19,7 +20,8 @@ const activeWindowComponent = computed<Component>(() => {
   else if (windowsVisibility.value.activeMainWindow === 'Recipes') activeComponent = Recipes
   else if (windowsVisibility.value.activeMainWindow === 'Status') activeComponent = Status
   else if (windowsVisibility.value.activeMainWindow === 'Journal') activeComponent = Journal
-  else activeComponent = Journal
+  else if (windowsVisibility.value.activeMainWindow === 'info') activeComponent = LocationInfo
+  else activeComponent = LocationInfo
 
   return activeComponent
 })
@@ -27,7 +29,7 @@ const activeWindowComponent = computed<Component>(() => {
 
 <template>
   <div class="ui">
-    <TopMenu v-model:main-window-visibility="windowsVisibility.mainWindow"
+    <TopMenu v-model:main-window-visibility="windowsVisibility.mainWindowVisibility"
              v-model:active-main-window="windowsVisibility.activeMainWindow"
              v-model:new-hints="hints.newHints"
     >
@@ -38,9 +40,9 @@ const activeWindowComponent = computed<Component>(() => {
       <template #status>Статус</template>
     </TopMenu>
 
-    <div class="ui__window main__texture" :class="{_closed: !windowsVisibility.mainWindow}">
+    <div class="ui__window main__texture" :class="{_closed: !windowsVisibility.mainWindowVisibility}">
       <span class="window__close"
-            @click="windowsVisibility.mainWindow = false">X</span>
+            @click="windowsVisibility.mainWindowVisibility = false">X</span>
       <Component :is="activeWindowComponent" />
     </div>
 <!--    <div class="ui__top main__texture" :class="{'_hidden': !uiWindowsVisibility.statusMenu}">-->

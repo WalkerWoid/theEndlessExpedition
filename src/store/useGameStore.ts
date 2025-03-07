@@ -10,6 +10,7 @@ import type {WindowsVisibility} from "@/classes/windowsVisibility.ts";
 import type {AllRecipes} from "@/classes/allRecipes.ts";
 import type {AllHints} from "@/classes/hints.ts";
 import type {Hint} from "@/classes/hints.ts";
+import type {Characters} from "@/classes/characters.ts";
 
 import {playerObj} from "@/classes/player.ts";
 import {allLocations} from "@/classes/allLocations.ts";
@@ -18,16 +19,19 @@ import {windowsVisibilityObj} from "@/classes/windowsVisibility.ts";
 import {allRecipes} from "@/classes/allRecipes.ts";
 import {allHints} from "@/classes/hints.ts";
 import {playerJournal} from "@/classes/hints.ts";
+import {allCharacters} from "@/classes/characters.ts";
+import {locationPlaceholder} from "@/classes/allLocations.ts";
 
 export interface GameStore {
     player: Player
     locations: Ref<Location[]>
     notifications: Notifications
     windowsVisibility: WindowsVisibility
-    currentLocationObj: ComputedRef<Location | undefined>
+    currentLocationObj: ComputedRef<Location>
     recipes: AllRecipes
     hints: AllHints
     journal: Ref<Hint[]>
+    characters: Characters
     getCurrentLocationObj(title: string): Location
 }
 
@@ -39,8 +43,9 @@ export const useGameStore = defineStore('gameStore', () => {
     const recipes = reactive(allRecipes)
     const hints = reactive(allHints)
     const journal = ref(playerJournal)
+    const characters = reactive(allCharacters)
 
-    const currentLocationObj = computed<Location | undefined>(() => {
+    const currentLocationObj = computed<Location>(() => {
         return getCurrentLocationObj(player.currentLocationTitle)
     })
 
@@ -50,8 +55,8 @@ export const useGameStore = defineStore('gameStore', () => {
     hints.addHint(journal.value, 'awakingThoughts3')
     hints.addHint(journal.value, 'awakingThoughts4')
 
-    const getCurrentLocationObj = (title: string): Location | undefined => {
-        return locations.value.find(loc=> loc.engName === title)
+    const getCurrentLocationObj = (title: string): Location => {
+        return locations.value.find(loc => loc.engName === title) || locationPlaceholder
     }
     watch(() => player.currentLocationTitle, (newTitle: string, oldTitle: string): void => {
         const newLoc = getCurrentLocationObj(newTitle)
@@ -73,6 +78,7 @@ export const useGameStore = defineStore('gameStore', () => {
         recipes,
         hints,
         journal,
+        characters,
         getCurrentLocationObj
     } as GameStore
 })

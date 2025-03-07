@@ -22,7 +22,7 @@ const isItemOnBody = (bodyPart: BattleRecipe | boolean): bodyPart is BattleRecip
   <div class="container _flex">
     <ul class="status__container">
       <li class="status__li">Имя: {{player.name}}</li>
-      <li class="status__li">Место: {{currentLocationObj ? currentLocationObj.name : 'Локация не определена'}}</li>
+      <li class="status__li">Место: {{currentLocationObj.name}}</li>
       <li class="status__li">Псевдоним: {{player.secondName}}</li>
       <li class="status__li">Порядковый номер: {{player.playerNumber}}</li>
 

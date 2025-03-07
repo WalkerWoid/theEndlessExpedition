@@ -1,9 +1,9 @@
 export interface WindowsVisibility {
-    mainWindow: boolean
+    mainWindowVisibility: boolean
     activeMainWindow: string
 }
 
 export const windowsVisibilityObj: WindowsVisibility = {
-    mainWindow: true,
+    mainWindowVisibility: true,
     activeMainWindow: 'Inventory'
 }

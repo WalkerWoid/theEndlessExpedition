@@ -58,7 +58,7 @@ export const allLocations: Location[] = [
             {title: 'ритуалы', id: 'rituals'}
         ],
         isCurrent: true,
-        npc: ['logbook'],
+        npc: ['satyr'],
         enemies: ['littleSlime', 'littleLivingStone', 'flowerBird', 'blackScorpion']
     },
     {
@@ -77,7 +77,21 @@ export const allLocations: Location[] = [
             {title: 'ресурсы', id: 'resources'}
         ],
         isCurrent: false,
-        npc: ['satyr'],
+        npc: ['logbook'],
         enemies: ['woodenElf']
     }
 ]
+export const locationPlaceholder: Location = {
+    id: -1,
+    name: 'Локация заглушка',
+    accusativeSingular: 'Локацию заглушку',
+    engName: 'locationPlaceholder',
+    coords: [200, 200],
+    width: 135,
+    height: 140,
+    resources: [],
+    subMenu: [],
+    isCurrent: false,
+    npc: [],
+    enemies: []
+}

@@ -83,7 +83,7 @@ const getDamagesColor = (resource: InventoryItemsTypes): 'orange' | 'red' | unde
   <p @click="player.calcEffects">Иммитация времени</p>
 
   <div class="resource__subWindow main__texture"
-       :class="{_show: windowsVisibility.mainWindow && player.inventory.playerInventory.length !== 0}">
+       :class="{_show: windowsVisibility.mainWindowVisibility && player.inventory.playerInventory.length !== 0}">
 
     <template v-if="isActiveResourcePlaceholder">
       <p class="_little">Нажмите на ресурс, что бы увидеть способы взаимодействия с ним!</p>

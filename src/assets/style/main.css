@@ -117,36 +117,6 @@ h1, h2, h3, h4, h5, h6 {
     line-height: 100%;
 }
 
-/*h1 {*/
-/*    font-size: 40px;*/
-/*    text-transform: uppercase;*/
-/*}*/
-/*h2 {*/
-/*    font-size: 36px;*/
-/*}*/
-/*h3 {*/
-/*    font-size: 32px;*/
-/*}*/
-/*h4 {*/
-/*    font-size: 28px;*/
-/*}*/
-/*h5 {*/
-/*    font-size: 26px;*/
-/*}*/
-/*h6 {*/
-/*    font-size: 24px;*/
-/*}*/
-
-
-/*._hidden {*/
-/*    opacity: 0;*/
-/*}*/
-/*._pointer {*/
-/*    cursor: pointer;*/
-/*}*/
-
-
-
 .main__btn {
     background: url("../images/textures/main-texture.png");
     border: 1px solid var(--border-color);
@@ -170,10 +140,3 @@ h1, h2, h3, h4, h5, h6 {
     height: 100%;
     overflow: auto;
 }
-
-
-/*.flex-column {*/
-/*    display: flex;*/
-/*    flex-direction: column;*/
-/*    gap: 10px;*/
-/*}*/

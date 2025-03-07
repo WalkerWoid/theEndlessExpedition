@@ -2,11 +2,11 @@
 import {useGameStore} from "@/store/useGameStore.ts";
 import {storeToRefs} from "pinia";
 import {computed} from "vue";
-import type { Location } from "@/classes/allLocations.ts";
-import type {InventoryResourceSimple} from "@/classes/player.ts";
+
+import type {Location} from "@/classes/allLocations.ts";
 
 const gameStore = useGameStore()
-const {player, notifications, currentLocationObj} = storeToRefs(gameStore)
+const {player, notifications, currentLocationObj, windowsVisibility} = storeToRefs(gameStore)
 
 const definedProps = defineProps<{
   location: Location
@@ -29,6 +29,11 @@ const farmResource = () => {
 
   player.value.inventory.farmResource(currentLocationObj.value, notifications.value)
 }
+
+const openMainWindow = (newActiveWindow: string): void => {
+  windowsVisibility.value.mainWindowVisibility = true
+  windowsVisibility.value.activeMainWindow = newActiveWindow
+}
 </script>
 
 <template>
@@ -49,7 +54,7 @@ const farmResource = () => {
       <ul class="location__submenu">
         <template v-for="{id, title} of location.subMenu" :key="id">
           <li v-if="id !== 'resources'"
-              class="locationMenu__unit main__texture">
+              class="locationMenu__unit main__texture" @click="openMainWindow(id)">
             {{title}}
           </li>
           <li v-else class="locationMenu__unit main__texture" @click="farmResource">
