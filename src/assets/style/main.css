@@ -27,6 +27,7 @@ html, body {
     --water-empty-color: rgb(171, 205, 239);
     --gap: 12px;
     --gap-half: 6px;
+    --shadow: rgba(0,0,0,.4)
 }
 ::-webkit-scrollbar {
     width: 12px;
@@ -139,4 +140,38 @@ h1, h2, h3, h4, h5, h6 {
     gap: var(--gap);
     height: 100%;
     overflow: auto;
+}
+
+._shadow {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background-color: var(--shadow);
+}
+
+.jumping__button {
+    position: relative;
+    overflow: hidden;
+    display: block;
+}
+.jumping__button ._top,
+.jumping__button ._bottom {
+    transition-duration: .3s;
+    position: absolute;
+}
+.jumping__button ._top {
+    transform: translateY(-100%);
+}
+.jumping__button ._center {
+    color: transparent;
+}
+.jumping__button ._bottom {
+    top: 0;
+    left: 0;
+}
+.jumping__button:hover ._top{
+    transform: translateY(0);
+}
+.jumping__button:hover ._bottom{
+    transform: translateY(100%);
 }

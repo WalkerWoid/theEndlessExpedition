@@ -99,21 +99,21 @@ const getDamagesColor = (resource: InventoryItemsTypes): 'orange' | 'red' | unde
       <div class="items__action">
         <p class="_little">{{ activeResource.name }}: {{activeResource.durability}} прочности;</p>
 
-        <button type="button" class="_little item__button"
+        <button type="button" class="_little jumping__button item__button"
                 @click="player.putOnItemHandler(activeResource, notifications)">
           <span class="_top">Надеть</span>
           <span class="_center">Надеть</span>
           <span class="_bottom">Надеть</span>
         </button>
 
-        <button type="button" class="_little item__button"
+        <button type="button" class="_little jumping__button item__button"
                 @click="player.takeOffItem(useGetClone(activeResource), notifications)">
           <span class="_top">Снять</span>
           <span class="_center">Снять</span>
           <span class="_bottom">Снять</span>
         </button>
 
-        <button type="button" class="_little item__button"
+        <button type="button" class="_little jumping__button item__button"
                 @click="player.dismantleItem(useGetClone(activeResource), notifications)">
           <span class="_top">Разобрать</span>
           <span class="_center">Разобрать</span>
@@ -185,31 +185,6 @@ const getDamagesColor = (resource: InventoryItemsTypes): 'orange' | 'red' | unde
 }
 .item__button {
   cursor: pointer;
-  position: relative;
-  min-height: 20px;
-  overflow: hidden;
-  display: block;
   border-bottom: 1px solid var(--border-color);
-}
-.item__button ._top,
-.item__button ._bottom {
-  transition-duration: .3s;
-  position: absolute;
-}
-.item__button ._top {
-  transform: translateY(-100%);
-}
-.item__button ._center {
-  color: transparent;
-}
-.item__button ._bottom {
-  top: 0;
-  left: 0;
-}
-.item__button:hover ._top{
-  transform: translateY(0);
-}
-.item__button:hover ._bottom{
-  transform: translateY(100%);
 }
 </style>

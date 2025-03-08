@@ -10,7 +10,7 @@ import type {WindowsVisibility} from "@/classes/windowsVisibility.ts";
 import type {AllRecipes} from "@/classes/allRecipes.ts";
 import type {AllHints} from "@/classes/hints.ts";
 import type {Hint} from "@/classes/hints.ts";
-import type {Characters} from "@/classes/characters.ts";
+import type {Dialogue} from "@/classes/dialogue.ts";
 
 import {playerObj} from "@/classes/player.ts";
 import {allLocations} from "@/classes/allLocations.ts";
@@ -19,7 +19,7 @@ import {windowsVisibilityObj} from "@/classes/windowsVisibility.ts";
 import {allRecipes} from "@/classes/allRecipes.ts";
 import {allHints} from "@/classes/hints.ts";
 import {playerJournal} from "@/classes/hints.ts";
-import {allCharacters} from "@/classes/characters.ts";
+import {dialogues} from "@/classes/dialogue.ts";
 import {locationPlaceholder} from "@/classes/allLocations.ts";
 
 export interface GameStore {
@@ -31,7 +31,7 @@ export interface GameStore {
     recipes: AllRecipes
     hints: AllHints
     journal: Ref<Hint[]>
-    characters: Characters
+    dialogue: Dialogue
     getCurrentLocationObj(title: string): Location
 }
 
@@ -43,7 +43,7 @@ export const useGameStore = defineStore('gameStore', () => {
     const recipes = reactive(allRecipes)
     const hints = reactive(allHints)
     const journal = ref(playerJournal)
-    const characters = reactive(allCharacters)
+    const dialogue = reactive(dialogues)
 
     const currentLocationObj = computed<Location>(() => {
         return getCurrentLocationObj(player.currentLocationTitle)
@@ -78,7 +78,7 @@ export const useGameStore = defineStore('gameStore', () => {
         recipes,
         hints,
         journal,
-        characters,
+        dialogue,
         getCurrentLocationObj
     } as GameStore
 })

@@ -18,7 +18,7 @@ interface SecondaryButton {
         [key: string]: AdditionalButton
     }
 }
-interface DialogueButton {
+export interface DialogueButton {
     id: string
     title: string
     once: boolean
@@ -99,6 +99,18 @@ export const allCharacters: Characters = {
                     askResources: {
                         text: ['Вы попросили ресурсы']
                     }
+                }
+            },
+            askSome: {
+                id: 'askSome',
+                title: 'Спросить о чем-нибудь',
+                once: false,
+                visibility: true,
+                messages: {
+                    text: [
+                        `Вы вот вот хотели спросить сатира о чем-нибудь, но он лишь покачал головой, не желая продолжать 
+                        с вами диалог.`
+                    ]
                 }
             }
         }

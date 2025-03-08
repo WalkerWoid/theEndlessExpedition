@@ -3,7 +3,18 @@ import {useGameStore} from "@/store/useGameStore.ts";
 import {storeToRefs} from "pinia";
 
 const gameStore = useGameStore()
-const {currentLocationObj, characters} = storeToRefs(gameStore)
+const {currentLocationObj, dialogue, windowsVisibility} = storeToRefs(gameStore)
+
+const openDialogueWindow = (newActiveCharacterName: string) => {
+  dialogue.value.setActiveCharacter(dialogue.value.characters[newActiveCharacterName])
+  windowsVisibility.value.dialogueWindowVisibility = true
+}
+const getCharacter = (characterEngName: string): { characterName: string, firstLetterName: string } => {
+  const character = dialogue.value.characters[characterEngName]
+
+  if (character) return {characterName: character.name, firstLetterName: character.name[0]}
+  else return {characterName: 'Персонажа не существует',firstLetterName: '-'}
+}
 </script>
 
 <template>
@@ -20,7 +31,8 @@ const {currentLocationObj, characters} = storeToRefs(gameStore)
   <ul class="location__characters">
     <li v-for="char of currentLocationObj.npc"
         class="main__btn"
-        :title="characters[char].name">{{characters[char].name[0]}}</li>
+        :title="getCharacter(char).characterName"
+        @click="openDialogueWindow(char)">{{getCharacter(char).firstLetterName}}</li>
   </ul>
 
   <div class="container _flex">

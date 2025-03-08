@@ -14,6 +14,7 @@
  * todo Диалоги
  * todo Задания
  * todo Перемотка времени
+ * todo Окно основных характеристик. Здоровье, вода, время и так далее.
  * */
 import {storeToRefs} from "pinia";
 import {useGameStore} from "@/store/useGameStore.ts";
@@ -21,6 +22,7 @@ import {useGameStore} from "@/store/useGameStore.ts";
 import Map from "../src/components/Map/Map.vue";
 import Bubbles from "@/components/Notification/Bubbles.vue";
 import Ui from "@/components/UI/Ui.vue";
+import Dialogue from "@/components/Dialogue/Dialogue.vue";
 
 const gameStore = useGameStore()
 const {player} = storeToRefs(gameStore)
@@ -30,6 +32,7 @@ const {player} = storeToRefs(gameStore)
   <Map />
   <Bubbles />
   <Ui />
+  <Dialogue />
 </template>
 
 <style></style>
