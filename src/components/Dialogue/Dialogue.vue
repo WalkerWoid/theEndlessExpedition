@@ -3,27 +3,69 @@ import {useGameStore} from "@/store/useGameStore.ts";
 import {storeToRefs} from "pinia";
 import {computed} from "vue";
 
-import type {Character} from "@/classes/characters.ts";
+import type {ButtonConsequence, Character, ChoiceButton} from "@/classes/characters.ts";
 import type {DialogueButton} from "@/classes/characters.ts";
 
-const gameStore = useGameStore()
-const {dialogue, windowsVisibility} = storeToRefs(gameStore)
+import {useIsResourceSimple} from "@/composables/useIsResourceSimple.ts";
+import {useGetClone} from "@/composables/useGetClone.ts";
 
+const gameStore = useGameStore()
+const {dialogue, windowsVisibility, player, notifications} = storeToRefs(gameStore)
 
 const closeDialogueWindow = () => {
   windowsVisibility.value.dialogueWindowVisibility = false
 }
+const backFromDialogue = () => {
+  closeDialogueWindow()
+  dialogue.value.setActiveCharacterPlaceholder()
+  dialogue.value.setActiveButtonPlaceholder()
+}
 
 
-const getActiveCharacterInfo = computed<{name: string, description: string}>(() => {
-  const activeCharacter: Character | undefined = dialogue.value.activeCharacter
-
-  if (activeCharacter) return {name: activeCharacter.name, description: activeCharacter.description}
-  else return {name: 'Имени персонажа нет', description: 'Описания персонажа нет'}
+const getActiveCharacter = computed<Character>(() => {
+  return dialogue.value.activeCharacter
 })
-const getActiveDialogueButton = computed<DialogueButton | undefined>(() => {
+const getActiveDialogueButton = computed<DialogueButton>(() => {
   return dialogue.value.activeButton
 })
+const isActiveDialogueButtonPlaceholder = computed<boolean>(() => {
+  return getActiveDialogueButton.value.id === 'buttonPlaceholder'
+})
+
+
+const getCharacterDialogue = computed<DialogueButton[]>(() => {
+  const activeDialogue = [] as DialogueButton[]
+
+  getActiveCharacter.value.startedButtons.forEach(btn => {
+    activeDialogue.push(dialogue.value.activeCharacter.allButtons[btn])
+  })
+
+  return activeDialogue
+})
+
+const nextButtonHandler = (choiceButton: ChoiceButton) => {
+  dialogue.value.setActiveButton(getActiveCharacter.value.allButtons[choiceButton.next])
+
+  if (choiceButton.once) choiceButton.visibility = false
+  if (choiceButton.consequences.length === 0) return
+
+  choiceButton.consequences.forEach(consequence => consequenceHandler(consequence))
+}
+const consequenceHandler = (consequence: ButtonConsequence): void => {
+  switch (consequence.type) {
+    case "farmResources":
+      consequence.resources.forEach(res => {
+        if (useIsResourceSimple(res))
+          player.value.inventory.addCockedResourceToInventory(useGetClone(res), notifications.value)
+      })
+      break
+  }
+}
+
+/** todo once у dialogueButton убирает его из startedIDialogue
+ *  todo visibility у choiceButton делает его нивидимым
+ *  */
+console.log(dialogue.value)
 </script>
 
 <template>
@@ -31,43 +73,49 @@ const getActiveDialogueButton = computed<DialogueButton | undefined>(() => {
     <div class="_shadow"></div>
 
     <div class="dialogue main__texture" :class="{_hidden: !windowsVisibility.dialogueWindowVisibility}">
-      <span class="window__close" @click="closeDialogueWindow">X</span>
+      <span class="window__close" @click="backFromDialogue">X</span>
 
-      <p>{{getActiveCharacterInfo.name}}</p>
-      <p v-if="!getActiveDialogueButton">{{getActiveCharacterInfo.description}}</p>
+      <p>{{getActiveCharacter.name}}</p>
+      <p v-if="isActiveDialogueButtonPlaceholder">{{getActiveCharacter.description}}</p>
 
       <div class="messages__block">
-        <ul v-if="getActiveDialogueButton">
-
-          <li class="_pointer" @click="dialogue.activeButton = undefined">Назад</li>
-        </ul>
-      </div>
-      
-      <div class="buttons__block" v-if="dialogue.activeCharacter">
-        <ul class="buttons__block dialogue__buttons" v-if="!getActiveDialogueButton">
-          <li v-for="button in dialogue.activeCharacter.dialogue"
-              class="main__texture"
-              @click="dialogue.setActiveButton(button)">
-            <p class="jumping__button">
-              <span class="_top">{{ button.title }}</span>
-              <span class="_center">{{ button.title }}</span>
-              <span class="_bottom">{{ button.title }}</span>
-            </p>
+        <ul class="container _flex" v-if="!isActiveDialogueButtonPlaceholder">
+          <li v-for="message of getActiveDialogueButton.messages">
+            {{ message }}
           </li>
         </ul>
+      </div>
 
-        <ul v-else class="buttons__block dialogue__secondButtons">
-          <template v-if="getActiveDialogueButton">
-            <li v-for="button in getActiveDialogueButton.messages.additionalButtons"
-                class="main__texture">
-              <p class="jumping__button">
-                <span class="_top">{{ button.text }}</span>
-                <span class="_center">{{ button.text }}</span>
-                <span class="_bottom">{{ button.text }}</span>
+      <div class="buttons__block">
+        <ul class="buttons__block dialogue__buttons" v-show="isActiveDialogueButtonPlaceholder">
+          <li v-for="mainButton in getCharacterDialogue" :key="mainButton.id"
+              class="main__texture"
+              @click="dialogue.setActiveButton(mainButton)">
+            <p class="jumping__button">
+              <span class="_top">{{ mainButton.title }}</span>
+              <span class="_center">{{ mainButton.title }}</span>
+              <span class="_bottom">{{ mainButton.title }}</span>
+            </p>
+          </li>
+
+          <li @click="backFromDialogue" class="_back">Уйти</li>
+        </ul>
+
+        <ul v-show="!isActiveDialogueButtonPlaceholder" class="buttons__block dialogue__secondButtons">
+          <template v-for="choiceButton in dialogue.activeButton.choiceButtons">
+            <li v-show="choiceButton.visibility"
+                class="main__texture"
+                @click="nextButtonHandler(choiceButton)">
+              <p class="jumping__button" >
+                <span class="_top">{{ choiceButton.text }}</span>
+                <span class="_center">{{ choiceButton.text }}</span>
+                <span class="_bottom">{{ choiceButton.text }}</span>
               </p>
             </li>
-            <li>Уйти</li>
           </template>
+
+          <li class="_pointer _back"
+              @click="dialogue.setActiveButtonPlaceholder">Назад</li>
         </ul>
       </div>
     </div>
@@ -130,5 +178,8 @@ const getActiveDialogueButton = computed<DialogueButton | undefined>(() => {
   padding: var(--gap-half);
   border-radius: var(--radius-half);
   cursor: pointer;
+}
+._back {
+  margin-left: auto;
 }
 </style>

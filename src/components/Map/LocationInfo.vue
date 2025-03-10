@@ -2,18 +2,21 @@
 import {useGameStore} from "@/store/useGameStore.ts";
 import {storeToRefs} from "pinia";
 
+import type {Character} from "@/classes/characters.ts";
+
+
 const gameStore = useGameStore()
 const {currentLocationObj, dialogue, windowsVisibility} = storeToRefs(gameStore)
 
 const openDialogueWindow = (newActiveCharacterName: string) => {
-  dialogue.value.setActiveCharacter(dialogue.value.characters[newActiveCharacterName])
+  dialogue.value.setActiveCharacter(newActiveCharacterName)
   windowsVisibility.value.dialogueWindowVisibility = true
 }
-const getCharacter = (characterEngName: string): { characterName: string, firstLetterName: string } => {
-  const character = dialogue.value.characters[characterEngName]
+const getCharacter = (characterEngName: string): Character => {
+  const character: Character = dialogue.value.characters[characterEngName]
 
-  if (character) return {characterName: character.name, firstLetterName: character.name[0]}
-  else return {characterName: 'Персонажа не существует',firstLetterName: '-'}
+  if (character) return character
+  else return dialogue.value.getPlaceholderCharacter()
 }
 </script>
 
@@ -22,7 +25,7 @@ const getCharacter = (characterEngName: string): { characterName: string, firstL
 
   <ul class="location__resources">
     <li class="_little"
-        v-for="{name, chance} of currentLocationObj.resources"
+        v-for="{name, engName, chance} of currentLocationObj.resources" :key="engName"
         :title="name">
       {{name}}: {{chance[1] - chance[0] + 1}}%
     </li>
@@ -31,13 +34,9 @@ const getCharacter = (characterEngName: string): { characterName: string, firstL
   <ul class="location__characters">
     <li v-for="char of currentLocationObj.npc"
         class="main__btn"
-        :title="getCharacter(char).characterName"
-        @click="openDialogueWindow(char)">{{getCharacter(char).firstLetterName}}</li>
+        :title="getCharacter(char).name" :key="getCharacter(char).id"
+        @click="openDialogueWindow(char)">{{getCharacter(char).name[0]}}</li>
   </ul>
-
-  <div class="container _flex">
-
-  </div>
 </template>
 
 <style>

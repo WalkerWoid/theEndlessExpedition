@@ -1,26 +1,58 @@
-import type {Character} from "@/classes/characters.ts";
-import type {Characters} from "@/classes/characters.ts";
-import type {DialogueButton} from "@/classes/characters.ts";
+import type {AllCharacters, Character, DialogueButton} from "@/classes/characters.ts";
 
 import {allCharacters} from "@/classes/characters.ts";
 
-
 export interface Dialogue {
-    activeCharacter: Character | undefined
-    activeButton: DialogueButton | undefined
-    characters: Characters
-    setActiveCharacter(newActiveCharacter: Character | undefined): void
-    setActiveButton(newActiveButton: DialogueButton | undefined): void
-}
+    characters: AllCharacters
+    activeCharacter: Character
+    activeButton: DialogueButton
+    setActiveCharacter(newCharacterName: string): void
+    setActiveCharacterPlaceholder(): void
+    getPlaceholderCharacter(): Character
 
+    getCharacterDialogue(): DialogueButton[]
+
+    setActiveButton(newButton: DialogueButton): void
+    setActiveButtonPlaceholder(): void
+    getPlaceholderButton(): DialogueButton
+}
 export const dialogues: Dialogue = {
-    activeCharacter: undefined,
-    activeButton: undefined,
     characters: allCharacters,
-    setActiveCharacter(newActiveCharacter) {
-        this.activeCharacter = newActiveCharacter
+    activeCharacter: allCharacters.placeholder,
+    activeButton: allCharacters.placeholder.allButtons.buttonPlaceholder,
+    setActiveCharacter(newCharacterName) {
+        const newActiveCharacter = allCharacters[newCharacterName]
+
+        if (newActiveCharacter) this.activeCharacter = newActiveCharacter
+        else this.setActiveCharacterPlaceholder()
     },
-    setActiveButton(newActiveButton) {
-        this.activeButton = newActiveButton
+    setActiveCharacterPlaceholder() {
+        this.activeCharacter = this.getPlaceholderCharacter()
+    },
+    getPlaceholderCharacter() {
+        return this.characters.placeholder
+    },
+
+
+    getCharacterDialogue() {
+        const dialogue = [] as DialogueButton[]
+
+        this.activeCharacter.startedButtons.forEach(btn => {
+            dialogue.push(this.activeCharacter.allButtons[btn])
+        })
+
+        return dialogue
+    },
+
+
+    setActiveButton(newButton: DialogueButton) {
+        this.activeButton = newButton
+        console.log(this.activeButton)
+    },
+    setActiveButtonPlaceholder() {
+        this.activeButton = this.getPlaceholderButton()
+    },
+    getPlaceholderButton(): DialogueButton {
+        return this.getPlaceholderCharacter().allButtons.buttonPlaceholder
     }
 }
