@@ -52,20 +52,33 @@ const nextButtonHandler = (choiceButton: ChoiceButton) => {
   choiceButton.consequences.forEach(consequence => consequenceHandler(consequence))
 }
 const consequenceHandler = (consequence: ButtonConsequence): void => {
+  let characterName: string = ''
+
   switch (consequence.type) {
     case "farmResources":
       consequence.resources.forEach(res => {
         if (useIsResourceSimple(res))
           player.value.inventory.addCockedResourceToInventory(useGetClone(res), notifications.value)
       })
-      break
+      break;
+    case 'addDialogueButton':
+      characterName = consequence.characterName
+
+      dialogue.value.characters[characterName].startedButtons.push(consequence.dialogueButtonTitle)
+      characterName = ''
+      break;
+    case 'addChoiceButton':
+      characterName = consequence.characterName
+      const characterDialogueButton: DialogueButton =
+          dialogue.value.characters[characterName].allButtons[consequence.dialogueButtonTitle]
+      const choiceButton = characterDialogueButton.choiceButtons.find(btn => btn.next === consequence.choiceButtonTitle)
+
+      if (!choiceButton) return console.log('Данной choiceButton не существует')
+      choiceButton.visibility = true
+
+      break;
   }
 }
-
-/** todo once у dialogueButton убирает его из startedIDialogue
- *  todo visibility у choiceButton делает его нивидимым
- *  */
-console.log(dialogue.value)
 </script>
 
 <template>

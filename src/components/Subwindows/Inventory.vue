@@ -124,7 +124,7 @@ const getDamagesColor = (resource: InventoryItemsTypes): 'orange' | 'red' | unde
 
     <template v-else-if="useIsMedical(activeResource)">
       <div class="items__action" @click="player.useMedical(useGetClone(activeResource), notifications)">
-        <button type="button" class="_little item__button">
+        <button type="button" class="_little item__button jumping__button">
           <span class="_top">Использовать</span>
           <span class="_center">Использовать</span>
           <span class="_bottom">Использовать</span>
@@ -149,7 +149,6 @@ const getDamagesColor = (resource: InventoryItemsTypes): 'orange' | 'red' | unde
       </template>
     </ul>
   </div>
-
 </template>
 
 <style>

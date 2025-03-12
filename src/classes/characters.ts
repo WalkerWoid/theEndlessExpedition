@@ -4,7 +4,18 @@ interface FarmResourceConsequence {
     type: 'farmResources',
     resources: InventoryItemsTypes[]
 }
-export type ButtonConsequence = FarmResourceConsequence
+interface AddDialogueButton {
+    type: 'addDialogueButton'
+    characterName: string
+    dialogueButtonTitle: string
+}
+interface AddChoiceButtonToDialogueButton {
+    type: 'addChoiceButton'
+    characterName: string
+    dialogueButtonTitle: string
+    choiceButtonTitle: string
+}
+export type ButtonConsequence = FarmResourceConsequence | AddDialogueButton | AddChoiceButtonToDialogueButton
 
 export interface ChoiceButton {
     text: string
@@ -76,7 +87,7 @@ export const allCharacters: AllCharacters = {
             helloBtn: {
                 id: 'helloBtn',
                 title: 'Поприветствовать',
-                once: false,
+                once: true,
                 messages: [
                     `Вы окликнули сатира, стоящего к вам спиной. Тот лишь легонько повел ухом, а через секунду,
                         словно ошарашенный, прыжком повернулся к вам:`,
@@ -94,7 +105,7 @@ export const allCharacters: AllCharacters = {
                     {
                         text: 'Попросить ресурсы',
                         next: 'askResources',
-                        once: false,
+                        once: true,
                         visibility: true,
                         consequences: [
                             {
@@ -107,6 +118,17 @@ export const allCharacters: AllCharacters = {
                                         type: "resource"
                                     },
                                 ]
+                            },
+                            {
+                                type: 'addDialogueButton',
+                                characterName: 'satyr',
+                                dialogueButtonTitle: 'aboutResources'
+                            },
+                            {
+                                type: 'addChoiceButton',
+                                characterName: 'satyr',
+                                dialogueButtonTitle: 'aboutResources',
+                                choiceButtonTitle: 'threatenToKillHim'
                             }
                         ]
                     }
@@ -149,6 +171,40 @@ export const allCharacters: AllCharacters = {
                 title: 'Попросить прощения',
                 once: false,
                 messages: ['Вы попросили прощения, но сатир не простил вас. Почему же?'],
+                choiceButtons: []
+            },
+            aboutResources: {
+                id: 'aboutResources',
+                title: 'Поставки новых ресурсов',
+                once: false,
+                messages: ['Вы хотите больше ресурсов, но у наглого козла их нет'],
+                choiceButtons: [
+                    {
+                        text: 'Угрожать',
+                        next: 'threatenToKillHim',
+                        once: false,
+                        visibility: false,
+                        consequences: [
+                            {
+                                type: 'farmResources',
+                                resources: [
+                                    {
+                                        name: "Трава",
+                                        engName: "grass",
+                                        count: 80,
+                                        type: "resource"
+                                    },
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            },
+            threatenToKillHim: {
+                id: 'threatenToKillHim',
+                title: 'Угрожать его жизни',
+                once: false,
+                messages: ['Вы пригрозили ему и он готов отдать вам свои ресурсы'],
                 choiceButtons: []
             }
         }

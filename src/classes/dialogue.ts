@@ -15,6 +15,8 @@ export interface Dialogue {
     setActiveButton(newButton: DialogueButton): void
     setActiveButtonPlaceholder(): void
     getPlaceholderButton(): DialogueButton
+    handleOnceDialogueButton(dialogueButton: DialogueButton): void
+    handleMetCharacter(): void
 }
 export const dialogues: Dialogue = {
     characters: allCharacters,
@@ -25,6 +27,8 @@ export const dialogues: Dialogue = {
 
         if (newActiveCharacter) this.activeCharacter = newActiveCharacter
         else this.setActiveCharacterPlaceholder()
+
+        this.handleMetCharacter()
     },
     setActiveCharacterPlaceholder() {
         this.activeCharacter = this.getPlaceholderCharacter()
@@ -38,7 +42,8 @@ export const dialogues: Dialogue = {
         const dialogue = [] as DialogueButton[]
 
         this.activeCharacter.startedButtons.forEach(btn => {
-            dialogue.push(this.activeCharacter.allButtons[btn])
+            const dialogueButton = this.activeCharacter.allButtons[btn]
+            dialogue.push(dialogueButton)
         })
 
         return dialogue
@@ -47,12 +52,22 @@ export const dialogues: Dialogue = {
 
     setActiveButton(newButton: DialogueButton) {
         this.activeButton = newButton
-        console.log(this.activeButton)
+        this.handleOnceDialogueButton(this.activeButton)
+        console.log(this)
     },
     setActiveButtonPlaceholder() {
         this.activeButton = this.getPlaceholderButton()
     },
     getPlaceholderButton(): DialogueButton {
         return this.getPlaceholderCharacter().allButtons.buttonPlaceholder
+    },
+    handleOnceDialogueButton(dialogueButton: DialogueButton) {
+        if (!dialogueButton.once) return
+
+        const dialogueButtonIndex: number = this.activeCharacter.startedButtons.indexOf(dialogueButton.id)
+        this.activeCharacter.startedButtons.splice(dialogueButtonIndex, 1)
+    },
+    handleMetCharacter() {
+        this.activeCharacter.met = true
     }
 }
