@@ -53,7 +53,6 @@ export const dialogues: Dialogue = {
     setActiveButton(newButton: DialogueButton) {
         this.activeButton = newButton
         this.handleOnceDialogueButton(this.activeButton)
-        console.log(this)
     },
     setActiveButtonPlaceholder() {
         this.activeButton = this.getPlaceholderButton()

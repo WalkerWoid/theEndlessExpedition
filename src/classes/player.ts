@@ -84,13 +84,25 @@ const inventory = {
         {
             "name": "Трава",
             "engName": "grass",
-            "count": 80,
+            "count": 200,
+            "type": "resource"
+        },
+        {
+            "name": "Ветка",
+            "engName": "stick",
+            "count": 120,
             "type": "resource"
         },
         {
             "name": "Обычный цветок",
             "engName": "commonFlower",
-            "count": 6,
+            "count": 12,
+            "type": "resource"
+        },
+        {
+            "name": "Камушек",
+            "engName": "littleStone",
+            "count": 5,
             "type": "resource"
         },
         {

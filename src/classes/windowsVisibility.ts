@@ -6,6 +6,6 @@ export interface WindowsVisibility {
 
 export const windowsVisibilityObj: WindowsVisibility = {
     mainWindowVisibility: true,
-    activeMainWindow: 'info',
+    activeMainWindow: 'Quests',
     dialogueWindowVisibility: false
 }

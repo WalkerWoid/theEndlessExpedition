@@ -8,7 +8,7 @@ const {recipes} = storeToRefs(gameStore)
 </script>
 
 <template>
-  <div class="subWindow__header">Рецепты</div>
+  <h2 class="subWindow__header">Рецепты</h2>
 
   <div class="container _flex">
     <ul class="recipes">

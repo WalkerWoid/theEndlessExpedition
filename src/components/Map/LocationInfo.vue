@@ -21,7 +21,7 @@ const getCharacter = (characterEngName: string): Character => {
 </script>
 
 <template>
-  <div class="subWindow__header">{{currentLocationObj.name}}</div>
+  <h2 class="subWindow__header">{{currentLocationObj.name}}</h2>
 
   <ul class="location__resources">
     <li class="_little"

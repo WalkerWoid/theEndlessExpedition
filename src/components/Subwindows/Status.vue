@@ -17,7 +17,7 @@ const isItemOnBody = (bodyPart: BattleRecipe | boolean): bodyPart is BattleRecip
 
 <!-- todo не видно типы -->
 <template>
-  <div class="subWindow__header">Статус</div>
+  <h2 class="subWindow__header">Статус</h2>
 
   <div class="container _flex">
     <ul class="status__container">

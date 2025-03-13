@@ -10,18 +10,20 @@ import Recipes from "@/components/Subwindows/Recipes.vue";
 import Status from "@/components/Subwindows/Status.vue";
 import Journal from "@/components/Subwindows/Journal.vue";
 import LocationInfo from "@/components/Map/LocationInfo.vue";
+import Quests from "@/components/Subwindows/Quests.vue";
 
-const {windowsVisibility, hints} = storeToRefs(useGameStore())
+const {windowsVisibility, hints, quests} = storeToRefs(useGameStore())
 
 const activeWindowComponent = computed<Component>(() => {
-  let activeComponent: Component = Inventory
+  let activeComponent: Component = Journal
 
   if (windowsVisibility.value.activeMainWindow === 'Inventory') activeComponent = Inventory
   else if (windowsVisibility.value.activeMainWindow === 'Recipes') activeComponent = Recipes
   else if (windowsVisibility.value.activeMainWindow === 'Status') activeComponent = Status
   else if (windowsVisibility.value.activeMainWindow === 'Journal') activeComponent = Journal
   else if (windowsVisibility.value.activeMainWindow === 'info') activeComponent = LocationInfo
-  else activeComponent = LocationInfo
+  else if (windowsVisibility.value.activeMainWindow === 'Quests') activeComponent = Quests
+  else activeComponent = Journal
 
   return activeComponent
 })
@@ -32,6 +34,7 @@ const activeWindowComponent = computed<Component>(() => {
     <TopMenu v-model:main-window-visibility="windowsVisibility.mainWindowVisibility"
              v-model:active-main-window="windowsVisibility.activeMainWindow"
              v-model:new-hints="hints.newHints"
+             v-model:new-quests="quests.newQuests"
     >
       <template #journal>Журнал</template>
       <template #quests>Задания</template>

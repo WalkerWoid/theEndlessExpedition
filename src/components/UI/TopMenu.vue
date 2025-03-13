@@ -8,6 +8,7 @@ const {hints, journal} = storeToRefs(gameStore)
 const mainWindowVisibility = defineModel<boolean>('main-window-visibility')
 const activeMainWindow = defineModel<string>('active-main-window')
 const newHints = defineModel<number>('new-hints')
+const newQuests = defineModel<number>('new-quests')
 
 const openMainWindow = (newActiveWindow: string): void => {
   mainWindowVisibility.value = true
@@ -21,13 +22,15 @@ const openMainWindowHandler = (newActiveWindow: string, addedHintTitle: string) 
 
 <template>
   <ul class="ui__buttons">
-    <li class="main__btn _lil" @click="openMainWindowHandler('Journal', '')">
+    <li class="main__btn _lil"
+        @click="openMainWindowHandler('Journal', '')">
       <slot name="journal" />
       <span class="_unseen _little" v-if="newHints">+ {{newHints}}</span>
     </li>
     <li class="main__btn _lil"
         @click="openMainWindowHandler('Quests', 'firstTimeOpenQuests')">
       <slot name="quests" />
+      <span class="_unseen _little" v-if="newQuests">+ {{newQuests}}</span>
     </li>
     <li class="main__btn _lil"
         @click="openMainWindowHandler('Recipes', 'firstTimeOpenRecipes')">

@@ -10,7 +10,7 @@ import {useIsResourceSimple} from "@/composables/useIsResourceSimple.ts";
 import {useGetClone} from "@/composables/useGetClone.ts";
 
 const gameStore = useGameStore()
-const {dialogue, windowsVisibility, player, notifications} = storeToRefs(gameStore)
+const {dialogue, windowsVisibility, player, notifications, quests} = storeToRefs(gameStore)
 
 const closeDialogueWindow = () => {
   windowsVisibility.value.dialogueWindowVisibility = false
@@ -55,18 +55,18 @@ const consequenceHandler = (consequence: ButtonConsequence): void => {
   let characterName: string = ''
 
   switch (consequence.type) {
-    case "farmResources":
+    case 'farmResources':
       consequence.resources.forEach(res => {
         if (useIsResourceSimple(res))
           player.value.inventory.addCockedResourceToInventory(useGetClone(res), notifications.value)
       })
-      break;
+      break
     case 'addDialogueButton':
       characterName = consequence.characterName
 
       dialogue.value.characters[characterName].startedButtons.push(consequence.dialogueButtonTitle)
       characterName = ''
-      break;
+      break
     case 'addChoiceButton':
       characterName = consequence.characterName
       const characterDialogueButton: DialogueButton =
@@ -76,7 +76,10 @@ const consequenceHandler = (consequence: ButtonConsequence): void => {
       if (!choiceButton) return console.log('Данной choiceButton не существует')
       choiceButton.visibility = true
 
-      break;
+      break
+    case 'addSimpleCondition':
+      quests.value.conditions.push(consequence.conditionTitle)
+      break
   }
 }
 </script>

@@ -14,7 +14,7 @@ const deleteHint = (hint: Hint) => {
 </script>
 
 <template>
-  <div class="subWindow__header">Журнал</div>
+  <h2 class="subWindow__header">Журнал</h2>
 
   <p v-if="journal.length === 0">Журнал пуст, как желудок Гримма...</p>
 

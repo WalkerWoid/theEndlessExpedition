@@ -15,7 +15,12 @@ interface AddChoiceButtonToDialogueButton {
     dialogueButtonTitle: string
     choiceButtonTitle: string
 }
-export type ButtonConsequence = FarmResourceConsequence | AddDialogueButton | AddChoiceButtonToDialogueButton
+interface AddSimpleCondition {
+    type: 'addSimpleCondition'
+    conditionTitle: string
+}
+export type ButtonConsequence =
+    FarmResourceConsequence | AddDialogueButton | AddChoiceButtonToDialogueButton | AddSimpleCondition
 
 export interface ChoiceButton {
     text: string
@@ -142,6 +147,26 @@ export const allCharacters: AllCharacters = {
                     `Вы вот вот хотели спросить сатира о чем-нибудь, но он лишь покачал головой, не желая продолжать
                     с вами диалог.`
                 ],
+                choiceButtons: [
+                    {
+                        text: 'Спросить о своем статусе',
+                        next: 'askAboutStatus',
+                        once: false,
+                        visibility: true,
+                        consequences: [
+                            {
+                                type: 'addSimpleCondition',
+                                conditionTitle: 'spokeWithLogbook'
+                            }
+                        ]
+                    }
+                ],
+            },
+            askAboutStatus: {
+                id: 'askAboutStatus',
+                title: 'Спросить о статусе',
+                once: false,
+                messages: ['Вы спросили о статусе и не узнали ничего интересного'],
                 choiceButtons: [],
             },
             beatSatyr: {
