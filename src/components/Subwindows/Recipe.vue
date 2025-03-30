@@ -31,7 +31,7 @@ const toggleRecipeInfo = () => {
   }
 }
 
-/** todo мб в зависимлсти от типа предмета так же сделать разное количество прошедшего времени */
+/** todo мб в зависимости от типа предмета так же сделать разное количество прошедшего времени */
 const createRecipe = (recipeToCreate: Recipes) => {
   if (recipes.value.createRecipe(recipeToCreate, player.value.inventory)) {
     notifications.value.showNotification(recipeToCreate, 'createItem')

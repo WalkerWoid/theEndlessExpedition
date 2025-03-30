@@ -31,6 +31,7 @@ const farmResource = () => {
   game.value.changeTime(30, 0, 0)
 }
 /** todo сделать так, что бы при смене локации время менялось по-разному */
+
 const changeLocation = (newLocationTitle: string) => {
   player.value.changeCurrentLocation(newLocationTitle)
 }
@@ -40,6 +41,8 @@ const openMainWindow = (newActiveWindow: string): void => {
   windowsVisibility.value.activeMainWindow = newActiveWindow
 }
 </script>
+
+<!-- Думаю сделать так, что бы всплывала иконка ресурса и количество -->
 
 <template>
   <div class="location__container"
