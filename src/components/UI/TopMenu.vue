@@ -1,109 +1,70 @@
-<script setup>
-/**
- * Компонент верхнего меню */
+<script setup lang="ts">
+import {useGameStore} from "@/store/useGameStore.ts";
+import {storeToRefs} from "pinia";
 
-import {computed, inject, onUpdated, reactive, ref, watch} from "vue";
-const player = inject('player')
+const gameStore = useGameStore()
+const {hints, journal} = storeToRefs(gameStore)
 
-const activeWindow = defineModel('activeWindow')
-const definedProps = defineProps({
-  uiWindowsVisibility: Object
-})
-const openSubWindow = (newActiveWindow) => {
-  activeWindow.value = `${newActiveWindow}`
-  definedProps.uiWindowsVisibility.topMenu = true
+const mainWindowVisibility = defineModel<boolean>('main-window-visibility')
+const activeMainWindow = defineModel<string>('active-main-window')
+const newHints = defineModel<number>('new-hints')
+const newQuests = defineModel<number>('new-quests')
+
+const openMainWindow = (newActiveWindow: string): void => {
+  mainWindowVisibility.value = true
+  activeMainWindow.value = newActiveWindow
 }
-
-/**
- * Наблюдение за записями в журнал и квестами */
-const journal = player.journal
-
-const menuCounters = reactive({
-  journal: {
-    journalNewMessages: 4,
-    greenBorder: true
-  },
-  quests: {
-    new: 2,
-    greenBorder: true
-  }
-})
-
-const clearJournalNotifications = () => {
-  menuCounters.journal.journalNewMessages = 0
-  menuCounters.journal.greenBorder = false
+const openMainWindowHandler = (newActiveWindow: string, addedHintTitle: string) => {
+  openMainWindow(newActiveWindow)
+  hints.value.addHint(journal.value, addedHintTitle)
 }
-const addNotifications = (notificationType) => {
-  if (activeWindow.value !== notificationType) {
-    menuCounters[notificationType].new += 1
-    menuCounters[notificationType].greenBorder = true
-  }
-}
-const clearNotifications = (notificationType) => {
-  menuCounters[notificationType].new = 0
-  menuCounters[notificationType].greenBorder = false
-}
-
-watch(() => journal.length, (newLength, oldLength) => {
-  if (activeWindow.value !== 'Journal') {
-    menuCounters.journal.journalNewMessages += 1
-    menuCounters.journal.greenBorder = true
-  }
-})
-watch(() => Object.keys(player.activeQuests).length, (newQuests, oldQuests) => {
-  if (activeWindow.value !== 'Questions') {
-    addNotifications('quests')
-  }
-}, {deep: true})
-watch(() => activeWindow.value, (newActiveWindow, oldActiveWindow) => {
-  if (newActiveWindow === 'Journal') {
-    clearJournalNotifications()
-  }
-  if (newActiveWindow === 'Questions') {
-    clearNotifications('quests')
-  }
-})
 </script>
 
 <template>
   <ul class="ui__buttons">
-    <li class="main__btn _lil" @click="openSubWindow('Journal')" :class="{_green: menuCounters.journal.greenBorder}">
+    <li class="main__btn _lil"
+        @click="openMainWindowHandler('Journal', '')">
       <slot name="journal" />
-      <span v-if="menuCounters.journal.journalNewMessages >= 1" class="_green _little messagesCounter">
-        +{{menuCounters.journal.journalNewMessages}}
-      </span>
+      <span class="_unseen _little" v-if="newHints">+ {{newHints}}</span>
     </li>
-    <li class="main__btn _lil" @click="openSubWindow('Questions')" :class="{_green: menuCounters.quests.greenBorder}">
+    <li class="main__btn _lil"
+        @click="openMainWindowHandler('Quests', 'firstTimeOpenQuests')">
       <slot name="quests" />
-      <span v-if="menuCounters.quests.new >= 1" class="_green _little messagesCounter">
-        +{{menuCounters.quests.new}}
-      </span>
+      <span class="_unseen _little" v-if="newQuests">+ {{newQuests}}</span>
     </li>
-    <li class="main__btn _lil" @click="openSubWindow('Recipes')"><slot name="recipes" /></li>
-    <li class="main__btn _lil" @click="openSubWindow('Inventory')"><slot name="inventory" /></li>
-    <li class="main__btn _lil" @click="openSubWindow('Status')"><slot name="status" /></li>
+    <li class="main__btn _lil"
+        @click="openMainWindowHandler('Recipes', 'firstTimeOpenRecipes')">
+      <slot name="recipes" />
+    </li>
+    <li class="main__btn _lil"
+        @click="openMainWindowHandler('Inventory', 'firstTimeOpenInventory')">
+      <slot name="inventory" />
+    </li>
+    <li class="main__btn _lil"
+        @click="openMainWindowHandler('Status', 'firstTimeOpenStatus')">
+      <slot name="status" />
+    </li>
   </ul>
 </template>
 
 <style>
 .ui__buttons {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 1;
+  gap: var(--gap-half);
   display: flex;
-  z-index: 3;
-  position: relative;
-  gap: 6px;
-  justify-content: flex-end;
+  align-items: center;
+  margin-left: auto;
 }
 .ui__buttons li {
   cursor: pointer;
   transition-duration: var(--transition);
-  transform: translateY(-50%);
+  transform: translateY(-16px);
   position: relative;
 }
 .ui__buttons li:hover {
   transform: translateY(0);
-}
-
-.messagesCounter {
-  padding-left: 10px;
 }
 </style>

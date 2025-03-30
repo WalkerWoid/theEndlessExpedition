@@ -1,33 +1,24 @@
-<script setup>
-/**
- * Компонент карты */
+<script setup lang="ts">
+import {storeToRefs} from "pinia";
+import {useGameStore} from "@/store/useGameStore.ts";
+import Location from "@/components/Map/Location.vue";
 
-import {defineAsyncComponent, inject} from "vue";
-const Location = defineAsyncComponent(() => import("@/components/Map/Location.vue"))
-
-const locations = inject('locations', [])
-const uiWindowsVisibility = inject('uiWindowsVisibility')
-
-const activeWindow = inject('activeWindow')
-const openSubWindow = (newActiveWindow) => {
-  activeWindow.value = `${newActiveWindow}`
-  uiWindowsVisibility.topMenu = true
-}
-
+const {locations} = storeToRefs(useGameStore())
 </script>
 
 <template>
   <div class="map">
-    <picture class="map__container"><img src="@/assets/map/map.png" alt="map-img"></picture>
+    <picture class="map__picture">
+      <img src="@/assets/map/map.png" alt="map-img">
+    </picture>
 
-    <Location v-for="location of locations" @openSubWindow="openSubWindow"
-              :location="location" :key="location.id" :uiWindowsVisibility />
+    <Location v-for="location of locations" :key="location.id" :location="location" />
   </div>
 </template>
 
 <style>
 .map {
   position: relative;
+  z-index: 1;
 }
-
 </style>

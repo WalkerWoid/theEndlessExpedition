@@ -1,14 +1,17 @@
-<script setup>
-/**
- * Компонент отдельной локации */
+<script setup lang="ts">
+import {useGameStore} from "@/store/useGameStore.ts";
+import {storeToRefs} from "pinia";
+import {computed} from "vue";
 
-import {computed, inject} from "vue";
+import type {Location} from "@/classes/allLocations.ts";
 
-const player = inject('player')
-const definedProps = defineProps({
-  location: Object
-})
-const definedEmits = defineEmits(['openSubWindow'])
+const gameStore = useGameStore()
+const {player, notifications, currentLocationObj, windowsVisibility, game} = storeToRefs(gameStore)
+
+const definedProps = defineProps<{
+  location: Location
+}>()
+
 const locationStyle = computed(() => {
   return {
     top: `${definedProps.location.coords[0]}px`,
@@ -21,27 +24,49 @@ const hoverEffectSrc = computed(() => {
   return `/src/assets/images/hoverLocations/${definedProps.location.engName}HoverEffect.png`
 })
 
+const farmResource = () => {
+  if (!currentLocationObj.value) return
+
+  player.value.inventory.farmResource(currentLocationObj.value, notifications.value)
+  game.value.changeTime(30, 0, 0)
+}
+/** todo сделать так, что бы при смене локации время менялось по-разному */
+
+const changeLocation = (newLocationTitle: string) => {
+  player.value.changeCurrentLocation(newLocationTitle)
+}
+
+const openMainWindow = (newActiveWindow: string): void => {
+  windowsVisibility.value.mainWindowVisibility = true
+  windowsVisibility.value.activeMainWindow = newActiveWindow
+}
 </script>
 
-<!-- todo пока не делал анимацию фарма ресурсов. Думаю сделать так, что бы всплывала иконка ресурса и количество -->
-<!-- todo сделать для submenu локации свой компонент и выводить его через сложный список -->
+<!-- Думаю сделать так, что бы всплывала иконка ресурса и количество -->
 
 <template>
   <div class="location__container"
-       :style="locationStyle" :class="{_active: location.isCurrent}" @click="player.changeLocation(location.engName)">
-    <picture v-show="!location.isCurrent" class="location__hover"><img :src="hoverEffectSrc" alt="hoverLocation"></picture>
+       :class="{_active: location.isCurrent}"
+       :style="locationStyle"
+       @click="changeLocation(location.engName)"
+  >
+    <picture class="location__hover"
+             v-show="!location.isCurrent">
+      <img :src="hoverEffectSrc" alt="location-hover">
+    </picture>
 
-    <div class="location" :class="{_hidden: !location.isCurrent}">
+    <div class="location"
+         :class="{_hidden: !location.isCurrent}">
       <p class="location__here main__texture">Вы <br> тут</p>
 
       <ul class="location__submenu">
-        <template v-for="menuUnit of location.submenu" :key="menuUnit.id">
-          <li class="locationMenu__unit main__texture"
-              v-if="menuUnit.id !== 'resources'" @click="$emit('openSubWindow', menuUnit.id)">
-            {{menuUnit.title}}
+        <template v-for="{id, title} of location.subMenu" :key="id">
+          <li v-if="id !== 'resources'"
+              class="locationMenu__unit main__texture" @click="openMainWindow(id)">
+            {{title}}
           </li>
-          <li class="locationMenu__unit main__texture" v-else @click="player.farmResource">
-            {{menuUnit.title}}
+          <li v-else class="locationMenu__unit main__texture" @click="farmResource">
+            {{title}}
           </li>
         </template>
       </ul>
@@ -73,10 +98,6 @@ const hoverEffectSrc = computed(() => {
   opacity: 0;
   transition-duration: var(--transition);
   display: flex;
-}
-.location__hover img {
-  width: 100%;
-  height: 100%;
 }
 .location__container:hover .location__hover {
   opacity: 1;
