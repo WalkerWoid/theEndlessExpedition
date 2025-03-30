@@ -89,7 +89,7 @@ const consequenceHandler = (consequence: ButtonConsequence): void => {
     <div class="_shadow"></div>
 
     <div class="dialogue main__texture" :class="{_hidden: !windowsVisibility.dialogueWindowVisibility}">
-      <span class="window__close" @click="backFromDialogue">X</span>
+<!--      <span class="window__close" @click="backFromDialogue">X</span>-->
 
       <p>{{getActiveCharacter.name}}</p>
       <p v-if="isActiveDialogueButtonPlaceholder">{{getActiveCharacter.description}}</p>

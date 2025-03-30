@@ -12,6 +12,7 @@ import type {AllHints} from "@/classes/hints.ts";
 import type {Hint} from "@/classes/hints.ts";
 import type {Dialogue} from "@/classes/dialogue.ts";
 import type {Quests} from "@/classes/quests.ts";
+import type {GameInterface} from "@/classes/Game.ts";
 
 import {playerObj} from "@/classes/player.ts";
 import {allLocations} from "@/classes/allLocations.ts";
@@ -23,6 +24,7 @@ import {playerJournal} from "@/classes/hints.ts";
 import {dialogues} from "@/classes/dialogue.ts";
 import {locationPlaceholder} from "@/classes/allLocations.ts";
 import {allQuests} from "@/classes/quests.ts";
+import {theGame} from "@/classes/Game.ts";
 
 export interface GameStore {
     player: Player
@@ -35,7 +37,19 @@ export interface GameStore {
     journal: Ref<Hint[]>
     dialogue: Dialogue
     quests: Quests
+    changeTime(minutes: number, hours: number, days: number): void
+    map: Map
+    game: GameInterface
     getCurrentLocationObj(title: string): Location
+}
+
+interface Time {
+    day: number
+    hours: number
+    minutes: number
+}
+interface Map {
+    [key: string]: string[]
 }
 
 export const useGameStore = defineStore('gameStore', () => {
@@ -48,6 +62,9 @@ export const useGameStore = defineStore('gameStore', () => {
     const journal = ref(playerJournal)
     const dialogue = reactive(dialogues)
     const quests = reactive(allQuests)
+    const game = reactive<GameInterface>(theGame)
+
+    game.gameInit(player)
 
     const currentLocationObj = computed<Location>(() => {
         return getCurrentLocationObj(player.currentLocationTitle)
@@ -66,6 +83,8 @@ export const useGameStore = defineStore('gameStore', () => {
         return locations.value.find(loc => loc.engName === title) || locationPlaceholder
     }
     watch(() => player.currentLocationTitle, (newTitle: string, oldTitle: string): void => {
+        if (!isCurrentMapPath(newTitle, oldTitle)) return console.log('Путь неверен')
+
         const newLoc = getCurrentLocationObj(newTitle)
         const oldLoc = getCurrentLocationObj(oldTitle)
 
@@ -74,7 +93,34 @@ export const useGameStore = defineStore('gameStore', () => {
             notifications.showNotification(newLoc, 'moveLocation')
         }
         if (oldLoc) oldLoc.isCurrent = false
+        game.changeTime(40, 0, 0)
     })
+
+
+    const time = reactive<Time>({
+        day: 0,
+        hours: 0,
+        minutes: 0
+    })
+    watch(time as Time, (newTime: Time) => {
+        player.calcEffects()
+    })
+    function changeTime(minutes: number, hours: number, days: number) {
+        time.day += days
+        time.hours += hours
+        time.minutes += minutes
+    }
+
+
+    const map = reactive<Map>({
+        landingZone: ['testZone1'],
+        testZone1: ['landingZone'],
+    })
+    function isCurrentMapPath(newLocationTitle: string, oldLocationTitle: string): boolean {
+        if (!map[oldLocationTitle]) return false
+
+        return map[oldLocationTitle].filter(loc => loc === newLocationTitle).length !== 0
+    }
 
     return {
         player,
@@ -87,6 +133,9 @@ export const useGameStore = defineStore('gameStore', () => {
         journal,
         dialogue,
         quests,
+        changeTime,
+        map,
+        game,
         getCurrentLocationObj
     } as GameStore
 })

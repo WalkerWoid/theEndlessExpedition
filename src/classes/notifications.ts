@@ -81,7 +81,6 @@ export const notificationsObj: Notifications = {
                 break
         }
 
-
         this.notifications.push(newNote)
         setTimeout(() => {
             this.notifications.shift()

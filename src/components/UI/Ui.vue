@@ -5,6 +5,7 @@ import {computed} from "vue";
 import type {Component} from "vue";
 
 import TopMenu from "@/components/UI/TopMenu.vue";
+import StatusBar from "@/components/StatusBar/StatusBar.vue";
 import Inventory from "@/components/Subwindows/Inventory.vue";
 import Recipes from "@/components/Subwindows/Recipes.vue";
 import Status from "@/components/Subwindows/Status.vue";
@@ -31,6 +32,8 @@ const activeWindowComponent = computed<Component>(() => {
 
 <template>
   <div class="ui">
+    <StatusBar />
+
     <TopMenu v-model:main-window-visibility="windowsVisibility.mainWindowVisibility"
              v-model:active-main-window="windowsVisibility.activeMainWindow"
              v-model:new-hints="hints.newHints"

@@ -65,7 +65,7 @@ export const allLocations: Location[] = [
         id: 1,
         name: 'Тестовая зона1',
         accusativeSingular: 'Тестовую зону1',
-        engName: 'landingZone2',
+        engName: 'testZone1',
         coords: [200, 200],
         width: 135,
         height: 140,

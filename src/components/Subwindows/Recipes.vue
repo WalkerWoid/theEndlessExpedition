@@ -12,7 +12,9 @@ const {recipes} = storeToRefs(gameStore)
 
   <div class="container _flex">
     <ul class="recipes">
-      <Recipe v-for="recipe of recipes.recipes" :key="recipe.engName" :recipe="recipe" />
+      <Recipe v-for="recipe of recipes.recipes"
+              :key="recipe.engName"
+              :recipe="recipe" />
     </ul>
   </div>
 </template>

@@ -8,7 +8,7 @@ const {notifications} = storeToRefs(useGameStore())
 
 <template>
   <ul class="resourceBubbles__container">
-    <TransitionGroup name="notification" :duration="1000">
+    <TransitionGroup name="notification">
       <li v-for="notification of notifications.notifications as Notification[]" :key="notification.text">
         <p class="main__texture _little">
           <span :class="notification.className">{{notification.text}} </span>
@@ -42,10 +42,8 @@ const {notifications} = storeToRefs(useGameStore())
 }
 
 /* Появление */
+.notification-enter-active,
 .notification-move {
-  transition: all var(--transition) ease-out;
-}
-.notification-enter-active {
   transition: all var(--transition) ease-out;
 }
 .notification-enter-from {

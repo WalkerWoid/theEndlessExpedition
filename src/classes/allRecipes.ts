@@ -162,11 +162,11 @@ export const allRecipes: AllRecipes = {
             ]
         },
     ],
-    createRecipe(recipeToCreate, inventory): any {
+    createRecipe(recipeToCreate, inventory): boolean {
         const itemToCreate = useGetClone(recipeToCreate) as Recipes
 
         if (!this.isResourcesToCreateEnough(itemToCreate, inventory)) {
-            return
+            return false
         }
 
         itemToCreate.cost.forEach(resource => {

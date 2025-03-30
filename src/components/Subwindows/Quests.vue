@@ -11,7 +11,6 @@ const isQuestsHidden = ref<boolean>(true)
 
 
 watch(() => quests.value.quests, (newLength) => {
-  console.log('Работает')
   isQuestsHidden.value = Object.keys(quests.value.activeQuests).length === 0 ||
       Object.values(quests.value.activeQuests).filter(quest => quest.visibility).length === 0
 }, {deep: true, immediate: true})
@@ -34,36 +33,38 @@ const isQuestsVisible = computed<boolean>(() => {
 
   <p @click="quests.addQuest('farmResources')">Добавить задание</p>
 
-  <p v-if="isQuestsHidden">Ноу квестс из хиа...</p>
+  <Transition mode="out-in" name="quest">
+    <p v-if="isQuestsHidden">Ноу квестс из хиа...</p>
 
-  <div class="container _flex" v-else>
-    <ul class="quests__container">
-      <TransitionGroup name="quest">
-        <template v-for="quest of quests.activeQuests as Quest[]">
-          <li v-if="quest.visibility" class="quest"
-              :title="quest.hint"
-              @click="quests.checkQuest(quest, player.inventory)"
-              @mouseover="quests.clearQuest(quest)" :key="quest.id">
-            <h5 @click="quest.status === 'completed' && quests.hideQuest(quest)">
-              {{quest.title}}
-              <Transition name="questProgression" mode="out-in">
-                <span v-if="quest.status === 'inProgress'" class="_orange _little">В процессе</span>
-                <span v-else class="_green _little">Завершен</span>
+    <div class="container _flex" v-else>
+      <ul class="quests__container">
+        <TransitionGroup name="quest">
+          <template v-for="quest of quests.activeQuests as Quest[]">
+            <li v-if="quest.visibility" class="quest"
+                :title="quest.hint"
+                @click="quests.checkQuest(quest, player.inventory)"
+                @mouseover="quests.clearQuest(quest)" :key="quest.id">
+              <h5 @click="quest.status === 'completed' && quests.hideQuest(quest)">
+                {{quest.title}}
+                <Transition name="questProgression" mode="out-in">
+                  <span v-if="quest.status === 'inProgress'" class="_orange _little">В процессе</span>
+                  <span v-else class="_green _little">Завершен</span>
+                </Transition>
+
+                <Transition name="quest" mode="out-in">
+                  <span v-if="quest.isNew" class="_green _little">новый!</span>
+                </Transition>
+              </h5>
+
+              <Transition name="questText" mode="out-in">
+                <p :key="quest.status">{{quest.text}}</p>
               </Transition>
-
-              <Transition name="quest" mode="out-in">
-                <span v-if="quest.isNew" class="_green _little">новый!</span>
-              </Transition>
-            </h5>
-
-            <Transition name="questText" mode="out-in">
-              <p :key="quest.status">{{quest.text}}</p>
-            </Transition>
-          </li>
-        </template>
-      </TransitionGroup>
-    </ul>
-  </div>
+            </li>
+          </template>
+        </TransitionGroup>
+      </ul>
+    </div>
+  </Transition>
 </template>
 
 <style>

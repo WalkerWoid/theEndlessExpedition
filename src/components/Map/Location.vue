@@ -6,7 +6,7 @@ import {computed} from "vue";
 import type {Location} from "@/classes/allLocations.ts";
 
 const gameStore = useGameStore()
-const {player, notifications, currentLocationObj, windowsVisibility} = storeToRefs(gameStore)
+const {player, notifications, currentLocationObj, windowsVisibility, game} = storeToRefs(gameStore)
 
 const definedProps = defineProps<{
   location: Location
@@ -28,6 +28,11 @@ const farmResource = () => {
   if (!currentLocationObj.value) return
 
   player.value.inventory.farmResource(currentLocationObj.value, notifications.value)
+  game.value.changeTime(30, 0, 0)
+}
+/** todo сделать так, что бы при смене локации время менялось по-разному */
+const changeLocation = (newLocationTitle: string) => {
+  player.value.changeCurrentLocation(newLocationTitle)
 }
 
 const openMainWindow = (newActiveWindow: string): void => {
@@ -40,7 +45,7 @@ const openMainWindow = (newActiveWindow: string): void => {
   <div class="location__container"
        :class="{_active: location.isCurrent}"
        :style="locationStyle"
-       @click="player.changeCurrentLocation(location.engName)"
+       @click="changeLocation(location.engName)"
   >
     <picture class="location__hover"
              v-show="!location.isCurrent">

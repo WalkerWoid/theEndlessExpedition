@@ -459,15 +459,25 @@ export interface Player {
     body: PlayerBody
     effects: Effect[]
     damage: number
+    getCurrentHealth(): number
+    getMaxHealth(): number
+    getHealthPercentage(): number
+    getCurrentFood(): number
+    getFoodPercentage(): number
+    getMaxFood(): number
+    getCurrentWater(): number
+    getMaxWater(): number
+    getWaterPercentage(): number
+    changeMainCharacteristic(type: 'health' | 'water' | 'food', value: number): void
+
     changeCurrentLocation(locationName: string): void
-    putOnItemHandler(item: BattleRecipe, notifications: Notifications): void
+    putOnItemHandler(item: BattleRecipe, notifications: Notifications): boolean
     putOnItem(item: BattleRecipe, notifications: Notifications): void
-    takeOffItem(itemToTakeOff: BattleRecipe, notifications: Notifications): void
+    takeOffItem(itemToTakeOff: BattleRecipe, notifications: Notifications): boolean
     clearItemOnBody(bodyType: RecipeBodyType): void
-    dismantleItem(itemToDismantle: BattleRecipe, notifications: Notifications): void
+    dismantleItem(itemToDismantle: BattleRecipe, notifications: Notifications): boolean
     useMedical(item: MedicalRecipe, notifications: Notifications): void
     calcEffects(): void
-    changeMainCharacteristic(type: 'health' | 'water' | 'food', value: number): void
 }
 export const playerObj: Player = {
     name: 'Фираксис Рейнхард',
@@ -497,6 +507,44 @@ export const playerObj: Player = {
     },
     effects: [] as Effect[],
     damage: 0,
+    getCurrentHealth(): number {
+        return this.health
+    },
+    getMaxHealth(): number {
+        return this.maxHealth
+    },
+    getHealthPercentage(): number {
+        return this.health/this.maxHealth*100
+    },
+    getCurrentFood(): number {
+        return this.food
+    },
+    getMaxFood(): number {
+        return this.maxFood
+    },
+    getFoodPercentage(): number {
+        return this.food/this.maxFood*100
+    },
+    getCurrentWater(): number {
+        return this.water
+    },
+    getMaxWater(): number {
+        return this.maxWater
+    },
+    getWaterPercentage(): number {
+        return this.water/this.maxWater*100
+    },
+    changeMainCharacteristic(type, value) {
+        const maxValue = `max${type.charAt(0).toUpperCase() + type.slice(1)}` as 'maxHealth' | 'maxFood' | 'maxWater'
+
+        if (this[type] === undefined || this[type] === null) return console.log('Не существует', type)
+        if (this[maxValue] === undefined || this[maxValue] === null) return console.log('Не существует', maxValue)
+
+        if (this[type] + value < 0) this[type] = 0
+        else if (this[type] + value > this[maxValue]) this[type] = this[maxValue]
+        else this[type] += value
+    },
+
     changeCurrentLocation(locationName) {
         this.currentLocationTitle = locationName
         return 2
@@ -513,15 +561,16 @@ export const playerObj: Player = {
 
         if (!useIsItemEquipped(equippedItem)) {
             this.putOnItem(itemToEquip, notifications)
-            return
+            return true
         }
 
         if (isEqualItemEquipped(itemToEquip, equippedItem)) {
             notifications.showNotification({}, 'equalItemEquipped')
-            return
+            return false
         } else {
             this.takeOffItem(equippedItem, notifications)
             this.putOnItem(itemToEquip, notifications)
+            return true
         }
     },
     putOnItem(item, notifications) {
@@ -535,14 +584,14 @@ export const playerObj: Player = {
 
         if (!useIsItemEquipped(itemOnBody)) {
             notifications.showNotification({}, 'itemNotEquipped')
-            return
+            return false
         }
         console.log('Предмет для снятия', itemToTakeOff)
         console.log('Предмет на теле', itemOnBody)
         if ((itemToTakeOff.name !== itemOnBody.name && itemToTakeOff.durability !== itemOnBody.durability)
             || (itemToTakeOff.name !== itemOnBody.name || itemToTakeOff.durability !== itemOnBody.durability)) {
             notifications.showNotification({}, 'notEqualEquippedItem')
-            return
+            return false
         }
 
         const inventoryItem = this.inventory.getInventoryResource(itemToTakeOff)
@@ -556,6 +605,7 @@ export const playerObj: Player = {
 
         console.log('Инвентарь', this.inventory.playerInventory)
         console.log('Тело', this.body)
+        return true
     },
     clearItemOnBody(bodyType) {
         this.body[bodyType] = false
@@ -563,7 +613,7 @@ export const playerObj: Player = {
     dismantleItem(itemToDismantle, notifications) {
         const startedDurability = this.inventory.getItemInfoLine(itemToDismantle, 'startedDurability')
 
-        if (!useIsItemInfoUnit(startedDurability)) return
+        if (!useIsItemInfoUnit(startedDurability)) return false
 
         if (itemToDismantle.durability === startedDurability.value) {
             itemToDismantle.cost.forEach(res => {
@@ -584,6 +634,7 @@ export const playerObj: Player = {
         }
 
         this.inventory.decreaseResource(itemToDismantle)
+        return true
     },
     useMedical(item, notifications) {
         const allMedicalItemEffects = item.negativeEffects.concat(item.positiveEffects)
@@ -605,13 +656,8 @@ export const playerObj: Player = {
             effect.water && this.changeMainCharacteristic('water', effect.water)
             effect.health && this.changeMainCharacteristic('health', effect.health)
         })
-        console.log('Еда', this.food)
-        console.log('Вода', this.water)
-        console.log('Здоровье', this.health)
+        // console.log('Еда', this.food)
+        // console.log('Вода', this.water)
+        // console.log('Здоровье', this.health)
     },
-    changeMainCharacteristic(type, value) {
-        if (!this[type]) return
-
-        this[type] += value
-    }
 }

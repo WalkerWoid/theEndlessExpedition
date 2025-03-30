@@ -11,7 +11,7 @@ const definedProps = defineProps<{
   recipe: Recipes
 }>()
 
-const {recipes, player, notifications} = storeToRefs(useGameStore())
+const {recipes, player, notifications, game} = storeToRefs(useGameStore())
 const recipeInfo = useTemplateRef<HTMLElement | null>('recipeInfoRef')
 const recipeInfoHeight = ref<number>(0)
 const recipeInfoVisibility = ref<boolean>(false)
@@ -30,10 +30,13 @@ const toggleRecipeInfo = () => {
     recipeInfoVisibility.value = true
   }
 }
+
+/** todo мб в зависимлсти от типа предмета так же сделать разное количество прошедшего времени */
 const createRecipe = (recipeToCreate: Recipes) => {
   if (recipes.value.createRecipe(recipeToCreate, player.value.inventory)) {
     notifications.value.showNotification(recipeToCreate, 'createItem')
     recipeToCreate.cost.forEach(resource => notifications.value.showNotification(resource, 'decreaseResource'))
+    game.value.changeTime(15, 0, 0)
   } else {
     notifications.value.showNotification(recipeToCreate, 'cantCreate')
   }
