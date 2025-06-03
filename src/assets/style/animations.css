@@ -1,0 +1,17 @@
+.enemy-actions-enter-active,
+.enemy-actions-leave-active {
+    transition-duration: var(--transition);
+}
+.enemy-actions-enter-from {
+    transform: translateY(20px);
+    opacity: 0;
+}
+.enemy-actions-enter-to,
+.enemy-actions-leave-from {
+    transform: translateY(0);
+    opacity: 1;
+}
+.enemy-actions-leave-to {
+    transform: translateY(-20px);
+    opacity: 0;
+}

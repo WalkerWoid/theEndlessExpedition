@@ -2,7 +2,8 @@ import type {InventoryResourceSimple} from "@/classes/player.ts";
 import {useGetClone} from "@/composables/useGetClone.ts";
 import type {Inventory} from "@/classes/player.ts";
 
-interface Effect {
+export interface Effect {
+    engName: string
     name: string
     chance: number
     health: number
@@ -21,6 +22,7 @@ interface Effects {
 const positiveEffects: Effects = {
     heal: {
         simpleHerbalBandage: {
+            engName: 'weakHeal',
             name: 'Слабое Лечение',
             chance: 100,
             health: 20,
@@ -29,12 +31,24 @@ const positiveEffects: Effects = {
             sanity: 0,
             ticks: 2,
             type: 'positive'
-        }
+        },
+        simpleHerbalBandage2: {
+            engName: 'weakHeal2',
+            name: 'Слабое Лечение2',
+            chance: 100,
+            health: 20,
+            food: 0,
+            water: 0,
+            sanity: 0,
+            ticks: 2,
+            type: 'positive'
+        },
     }
 }
 const negativeEffects: Effects = {
     bloodPoisoning: {
         simpleHerbalBandage: {
+            engName: 'bloodPoisoning',
             name: 'Заражение крови',
             chance: 8,
             health: 0,
@@ -47,6 +61,7 @@ const negativeEffects: Effects = {
     },
     wormsUnderTheSkin: {
         simpleHerbalBandage: {
+            engName: 'wormInfestation',
             name: 'Заражение червями',
             chance: 50,
             health: -1,
@@ -154,7 +169,8 @@ export const allRecipes: AllRecipes = {
                 {name: 'Количество использований', engName: 'numberUses', value: 1},
             ],
             positiveEffects: [
-                positiveEffects.heal.simpleHerbalBandage
+                positiveEffects.heal.simpleHerbalBandage,
+                positiveEffects.heal.simpleHerbalBandage2,
             ],
             negativeEffects: [
                 negativeEffects.bloodPoisoning.simpleHerbalBandage,

@@ -3,11 +3,13 @@ export interface WindowsVisibility {
     activeMainWindow: string
     dialogueWindowVisibility: boolean
     statusBarVisibility: boolean
+    battleWindowVisibility: boolean
 }
 
 export const windowsVisibilityObj: WindowsVisibility = {
     mainWindowVisibility: true,
-    activeMainWindow: 'Quests',
+    activeMainWindow: 'Hunt',
     dialogueWindowVisibility: false,
     statusBarVisibility: true,
+    battleWindowVisibility: false
 }

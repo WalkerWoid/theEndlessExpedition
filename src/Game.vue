@@ -17,12 +17,21 @@
  * Сделал todo Окно основных характеристик. Здоровье, вода, время и так далее.
  * Сделал todo map
  * Сделал todo Перемотка времени
- * todo Удаление старого кода и перенос старых тудушек
- * todo Мердж веток
- * todo Создание компонента игры, который будет отвечать за основные аспекты, такие каки инициания разных событий,
+ * Сделал todo Удаление старого кода и перенос старых тудушек
+ * Сделал todo Мердж веток
+ * Сделал todo Создание компонента игры, который будет отвечать за основные аспекты, такие каки инициания разных событий,
  *  перемотка времени и так далее
  * todo Боевка
+ * todo Лечение ран
+ * todo Система находок как в игре той про принцессу
+ * todo Работа над архитектурой
  * todo Создание первых квестов
+ * todo Сброс персонажа
+ * todo Система прогрессии
+ * todo Сохранение игры
+ * todo Релиз
+ * todo Рефактор
+ * todo Внедрение vue-route
  * */
 import {storeToRefs} from "pinia";
 import {useGameStore} from "@/store/useGameStore.ts";
@@ -31,6 +40,7 @@ import Map from "../src/components/Map/Map.vue";
 import Bubbles from "@/components/Notification/Bubbles.vue";
 import Ui from "@/components/UI/Ui.vue";
 import Dialogue from "@/components/Dialogue/Dialogue.vue";
+import BattleWindow from "@/views/battle/BattleWindow.vue";
 
 const gameStore = useGameStore()
 const {player} = storeToRefs(gameStore)
@@ -41,6 +51,7 @@ const {player} = storeToRefs(gameStore)
   <Bubbles />
   <Ui />
   <Dialogue />
+  <BattleWindow />
 </template>
 
 <style></style>

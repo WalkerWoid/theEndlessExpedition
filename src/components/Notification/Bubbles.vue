@@ -8,14 +8,14 @@ const {notifications} = storeToRefs(useGameStore())
 
 <template>
   <ul class="resourceBubbles__container">
-    <TransitionGroup name="notification">
+<!--    <TransitionGroup name="notification">-->
       <li v-for="notification of notifications.notifications as Notification[]" :key="notification.text">
         <p class="main__texture _little">
           <span :class="notification.className">{{notification.text}} </span>
           {{notification.secondText}}
         </p>
       </li>
-    </TransitionGroup>
+<!--    </TransitionGroup>-->
   </ul>
 </template>
 
