@@ -5,6 +5,7 @@ import type {MedicalRecipe} from "@/classes/allRecipes.ts";
 import type {RecipeBodyType} from "@/classes/allRecipes.ts";
 import type {Notifications} from "@/classes/notifications.ts";
 import type {RecipeInfo} from "@/classes/allRecipes.ts";
+import type {Effect} from "@/classes/allRecipes.ts";
 
 import {useIsArmorOrWeapon} from "@/composables/useIsArmorOrWeapon.ts";
 import {useIsItemEquipped} from "@/composables/useIsItemEquipped.ts";
@@ -12,6 +13,7 @@ import {useGetRandomByRange} from "@/composables/useGetRandomByRange.ts";
 import {useGetClone} from "@/composables/useGetClone.ts";
 import {useIsItemInfoUnit} from "@/composables/useIsItemInfoUnit.ts";
 import {useIsMedical} from "@/composables/useIsMedical.ts";
+import {watch} from "vue";
 
 type ResourceType = 'resource' | 'food' | 'placeholder'
 export interface InventoryResource {
@@ -58,16 +60,6 @@ export interface PlayerBody {
     weapon: BattleRecipe | boolean
     shield: BattleRecipe | boolean
 }
-export interface Effect {
-    name: string
-    chance: number
-    health: number
-    ticks: number
-    food: number
-    water: number
-    sanity: number
-}
-
 
 export interface Inventory {
     playerInventory: InventoryItemsTypes[]
@@ -269,69 +261,69 @@ const inventory = {
             ],
             "isEquipped": false
         },
-        {
-            "name": "Простой травяной бинт",
-            "engName": "simpleHerbalBandage",
-            "description": "Трава, связанная травой и украшенная тремя разноцветными цветами. Никакой пропаганды. Лечит так же, как и выглядит - на троечку. Хороший шанс получить какое-нибудь заражение. Проще будет помочиться на рану.",
-            "count": 3,
-            "cost": [
-                {
-                    "name": "Трава",
-                    "engName": "grass",
-                    "count": 40,
-                    "type": "resource"
-                },
-                {
-                    "name": "Обычный цветок",
-                    "engName": "commonFlower",
-                    "count": 3,
-                    "type": "resource"
-                }
-            ],
-            "type": "medical",
-            "ruType": "Медицина",
-            "info": [
-                {
-                    "name": "Количество использований",
-                    "engName": "numberUses",
-                    "value": 1
-                }
-            ],
-            "positiveEffects": [
-                {
-                    "name": "Слабое Лечение",
-                    "chance": 100,
-                    "health": 20,
-                    "food": 0,
-                    "water": 0,
-                    "sanity": 0,
-                    "ticks": 2,
-                    "type": "positive"
-                }
-            ],
-            "negativeEffects": [
-                {
-                    "name": "Заражение крови",
-                    "chance": 8,
-                    "health": 0,
-                    "food": -4,
-                    "water": -6,
-                    "sanity": 0,
-                    "ticks": 40,
-                    "type": "negative"
-                },
-                {
-                    "name": "Заражение червями",
-                    "chance": 50,
-                    "health": -1,
-                    "food": -12,
-                    "water": -20,
-                    "sanity": -20,
-                    "ticks": 70,
-                    "type": "negative"
-                }
-            ]
-        }
+        // {
+        //     "name": "Простой травяной бинт",
+        //     "engName": "simpleHerbalBandage",
+        //     "description": "Трава, связанная травой и украшенная тремя разноцветными цветами. Никакой пропаганды. Лечит так же, как и выглядит - на троечку. Хороший шанс получить какое-нибудь заражение. Проще будет помочиться на рану.",
+        //     "count": 3,
+        //     "cost": [
+        //         {
+        //             "name": "Трава",
+        //             "engName": "grass",
+        //             "count": 40,
+        //             "type": "resource"
+        //         },
+        //         {
+        //             "name": "Обычный цветок",
+        //             "engName": "commonFlower",
+        //             "count": 3,
+        //             "type": "resource"
+        //         }
+        //     ],
+        //     "type": "medical",
+        //     "ruType": "Медицина",
+        //     "info": [
+        //         {
+        //             "name": "Количество использований",
+        //             "engName": "numberUses",
+        //             "value": 1
+        //         }
+        //     ],
+        //     "positiveEffects": [
+        //         {
+        //             "name": "Слабое Лечение",
+        //             "chance": 100,
+        //             "health": 20,
+        //             "food": 0,
+        //             "water": 0,
+        //             "sanity": 0,
+        //             "ticks": 2,
+        //             "type": "positive"
+        //         }
+        //     ],
+        //     "negativeEffects": [
+        //         {
+        //             "name": "Заражение крови",
+        //             "chance": 8,
+        //             "health": 0,
+        //             "food": -4,
+        //             "water": -6,
+        //             "sanity": 0,
+        //             "ticks": 40,
+        //             "type": "negative"
+        //         },
+        //         {
+        //             "name": "Заражение червями",
+        //             "chance": 50,
+        //             "health": -1,
+        //             "food": -12,
+        //             "water": -20,
+        //             "sanity": -20,
+        //             "ticks": 70,
+        //             "type": "negative"
+        //         }
+        //     ]
+        // }
     ] as InventoryItemsTypes[],
     farmResource(currentLocation: Location, notifications: Notifications) {
         const getResourceByRandomVal =
@@ -459,6 +451,13 @@ export interface Player {
     body: PlayerBody
     effects: Effect[]
     damage: number
+    maxDamage: number
+    armor: number
+    maxArmor: number
+    speed: number
+    maxSpeed: number
+    playerInit(): void
+
     getCurrentHealth(): number
     getMaxHealth(): number
     getHealthPercentage(): number
@@ -469,6 +468,7 @@ export interface Player {
     getMaxWater(): number
     getWaterPercentage(): number
     changeMainCharacteristic(type: 'health' | 'water' | 'food', value: number): void
+    getFullStat(type: 'speed' | 'armor' | 'damage'): number
 
     changeCurrentLocation(locationName: string): void
     putOnItemHandler(item: BattleRecipe, notifications: Notifications): boolean
@@ -477,7 +477,8 @@ export interface Player {
     clearItemOnBody(bodyType: RecipeBodyType): void
     dismantleItem(itemToDismantle: BattleRecipe, notifications: Notifications): boolean
     useMedical(item: MedicalRecipe, notifications: Notifications): void
-    calcEffects(): void
+    calcEffects(): Effect[]
+    clearEffects(effectsToClear: Effect[]): void
 }
 export const playerObj: Player = {
     name: 'Фираксис Рейнхард',
@@ -486,7 +487,7 @@ export const playerObj: Player = {
     currentLocationTitle: 'landingZone',
     status: `Осужденный по законам 19 - *Данные повреждены*; 20 - *Данные повреждены*; 21 - *Данные повреждены*;
     22 - *Данные повреждены*; 698 - Убийство особо ценного объекта, а именно: *Данные повреждены*.`,
-    health: 200,
+    health: 100,
     maxHealth: 200,
     food: 300,
     maxFood: 300,
@@ -507,6 +508,41 @@ export const playerObj: Player = {
     },
     effects: [] as Effect[],
     damage: 0,
+    maxDamage: 0,
+    armor: 0,
+    maxArmor: 0,
+    speed: 0,
+    maxSpeed: 0,
+    playerInit() {
+        /** todo смерджить вотчеры? */
+        watch(() => this.body, (newBody, oldBody) => {
+            this.maxSpeed = this.getFullStat('speed')
+            this.maxArmor = this.getFullStat('armor')
+            this.maxDamage = this.getFullStat('damage')
+
+            if (this.maxSpeed === 0) this.maxSpeed = 6
+            if (this.maxDamage === 0) this.maxDamage = 6
+        }, {deep: true, immediate: true})
+
+        watch(
+            [() => this.maxSpeed, () => this.maxArmor, () => this.maxDamage],
+            ([newSpeed, newArmor, newDamage],
+                 [oldSpeed,OldArmor, oldDamage]) => {
+                this.armor = newArmor
+                this.speed = newSpeed
+                this.damage = newDamage
+            },
+            {immediate: true}
+        )
+
+        watch(() => this.health, (newHealth) => {
+            if (newHealth <= 0) {
+                console.log('Сброс персонажа')
+                this.health = 0
+            }
+        })
+    },
+
     getCurrentHealth(): number {
         return this.health
     },
@@ -543,6 +579,16 @@ export const playerObj: Player = {
         if (this[type] + value < 0) this[type] = 0
         else if (this[type] + value > this[maxValue]) this[type] = this[maxValue]
         else this[type] += value
+    },
+    getFullStat(type) {
+        return Object.values(this.body).reduce((accum, item) => {
+            if (useIsArmorOrWeapon(item)) {
+                const statValue = this.inventory.getItemInfoLine(item, type)
+                if (statValue)
+                    accum += statValue.value
+            }
+            return accum
+        }, 0)
     },
 
     changeCurrentLocation(locationName) {
@@ -586,8 +632,6 @@ export const playerObj: Player = {
             notifications.showNotification({}, 'itemNotEquipped')
             return false
         }
-        console.log('Предмет для снятия', itemToTakeOff)
-        console.log('Предмет на теле', itemOnBody)
         if ((itemToTakeOff.name !== itemOnBody.name && itemToTakeOff.durability !== itemOnBody.durability)
             || (itemToTakeOff.name !== itemOnBody.name || itemToTakeOff.durability !== itemOnBody.durability)) {
             notifications.showNotification({}, 'notEqualEquippedItem')
@@ -602,9 +646,6 @@ export const playerObj: Player = {
         this.inventory.addItemToInventory(itemToTakeOff)
         this.clearItemOnBody(itemToTakeOff.bodyType)
         notifications.showNotification(itemToTakeOff, 'takeOffItem')
-
-        console.log('Инвентарь', this.inventory.playerInventory)
-        console.log('Тело', this.body)
         return true
     },
     clearItemOnBody(bodyType) {
@@ -641,6 +682,7 @@ export const playerObj: Player = {
 
         allMedicalItemEffects.forEach(effect => {
             const randomValForEffect = useGetRandomByRange([1, 100])
+
             if (randomValForEffect <= effect.chance) {
                 this.effects.push(effect)
                 effect.type === 'positive' && notifications.showNotification(effect, 'addPositiveEffect')
@@ -651,13 +693,29 @@ export const playerObj: Player = {
         this.inventory.decreaseResource(item)
     },
     calcEffects() {
+        let effectsToClear: Effect[] = []
+
         this.effects.forEach(effect => {
-            effect.food && this.changeMainCharacteristic('food', effect.food)
-            effect.water && this.changeMainCharacteristic('water', effect.water)
-            effect.health && this.changeMainCharacteristic('health', effect.health)
+            if (effect.ticks - 1 !== 0) {
+                effect.food && this.changeMainCharacteristic('food', effect.food)
+                effect.water && this.changeMainCharacteristic('water', effect.water)
+                effect.health && this.changeMainCharacteristic('health', effect.health)
+                effect.ticks -= 1
+            } else {
+                effect.food && this.changeMainCharacteristic('food', effect.food)
+                effect.water && this.changeMainCharacteristic('water', effect.water)
+                effect.health && this.changeMainCharacteristic('health', effect.health)
+
+                effectsToClear.push(effect)
+            }
         })
-        // console.log('Еда', this.food)
-        // console.log('Вода', this.water)
-        // console.log('Здоровье', this.health)
+
+        return effectsToClear
     },
+    clearEffects(effectsToClear) {
+        effectsToClear.forEach(effect => {
+            const indexOfEffect = this.effects.indexOf(effect)
+            this.effects.splice(indexOfEffect, 1)
+        })
+    }
 }

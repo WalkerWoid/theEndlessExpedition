@@ -1,4 +1,6 @@
 import type {InventoryResource} from "@/classes/player.ts";
+import type {Enemies} from "@/types/battle/types";
+
 export interface LocationResource extends InventoryResource {
     chance: [number, number],
     count: [number, number]
@@ -29,7 +31,7 @@ export interface Location {
     subMenu: SubmenuUnit[]
     isCurrent: boolean
     npc: string[]
-    enemies: string[]
+    enemies: Enemies
 }
 
 
@@ -59,7 +61,46 @@ export const allLocations: Location[] = [
         ],
         isCurrent: true,
         npc: ['satyr'],
-        enemies: ['littleSlime', 'littleLivingStone', 'flowerBird', 'blackScorpion']
+        // enemies: ['Маленький слайм', 'Живой камушек', 'Цветочная птица', 'Черный скорпион'],
+        enemies: [
+            // {
+            //     id: 0,
+            //     name: 'Маленький слайм',
+            //     accusativeSingular: 'Маленького слайма',
+            //     description: `Просто маленький слайм.`,
+            //     type: "enemy",
+            //     health: 10,
+            //     maxHealth: 10,
+            //     damage: 2,
+            //     maxDamage: 2,
+            //     armor: 1,
+            //     maxArmor: 1,
+            //     speed: 10,
+            //     maxSpeed: 10,
+            //     // chance: [31, 60],
+            //     chance: [1, 100],
+            // },
+            {
+                id: 1,
+                name: 'Злойм-слайм',
+                accusativeSingular: 'Злойм-слайма',
+                description: `Злойм-слайм. Злойм-слайм - старший брат маленького слайма. Не дай
+                Принцесса-Освободительница вам столкнуться с ним.`,
+                type: "enemy",
+                health: 50,
+                maxHealth: 50,
+                damage: 10,
+                maxDamage: 10,
+                armor: 6,
+                maxArmor: 6,
+                // speed: 20,
+                speed: 9,
+                maxSpeed: 9,
+                // maxSpeed: 20,
+                // chance: [91, 100],
+                chance: [1, 100],
+            }
+        ]
     },
     {
         id: 1,
@@ -78,7 +119,25 @@ export const allLocations: Location[] = [
         ],
         isCurrent: false,
         npc: ['logbook'],
-        enemies: ['woodenElf']
+        enemies: [
+            {
+                id: 2,
+                name: 'Лесной дух',
+                accusativeSingular: 'Лесного духа',
+                description: `Лесной дух, который водится в чаще, наводит шороху на ее обитателей. Но кто же знал, что
+                лесным духом окажется маленькая и проворная фея?`,
+                type: "enemy",
+                health: 20,
+                maxHealth: 20,
+                damage: 6,
+                maxDamage: 6,
+                armor: 3,
+                maxArmor: 3,
+                speed: 20,
+                maxSpeed: 20,
+                chance: [1, 10],
+            }
+        ]
     }
 ]
 export const locationPlaceholder: Location = {

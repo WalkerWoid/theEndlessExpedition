@@ -79,6 +79,23 @@ export const notificationsObj: Notifications = {
                 newNote.secondText = `${entryObj.name}`
                 newNote.className = '_red'
                 break
+            case 'meetEnemy':
+                newNote.text = 'Вы встретили'
+                newNote.secondText = entryObj.accusativeSingular
+                break
+            case 'meetNoOne':
+                newNote.text = 'Вы никого не встретили'
+                newNote.secondText = ''
+                newNote.className = '_red'
+                break
+            case 'releaseTheEnemy':
+                newNote.text = 'Вы отпустили '
+                newNote.secondText = entryObj.accusativeSingular
+                break
+            case 'resolveHunt':
+                newNote.text = 'Выберите, что будете делать с врагом...'
+                newNote.secondText = ''
+                break
         }
 
         this.notifications.push(newNote)
